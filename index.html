@@ -116,7 +116,7 @@ body {
 .wrap {
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
-  padding-block: 18px 96px;
+  padding-block: 18px 150px;
   max-width: 1400px;
   margin: 0 auto;
   display: grid;
@@ -228,7 +228,7 @@ body {
 .wip { font-family: var(--font-hand); font-size: .9rem; opacity: .7; }
 .col-head.over-limit { background: linear-gradient(90deg, rgba(0,0,0,.04), transparent 12%, transparent 88%, rgba(0,0,0,.04)), #f1b3a6; }
 .col-head.over-limit .wip { opacity: 1; color: #8e1f19; }
-.notes { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 22px 18px; min-height: 160px; padding-top: 4px; }
+.notes { display: grid; align-items: start; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 22px 18px; min-height: 160px; padding-top: 4px; }
 .empty {
   grid-column: 1 / -1; margin: 0; padding: 22px 6px;
   font-family: var(--font-hand); font-size: 1.05rem; opacity: .6;
@@ -302,13 +302,13 @@ body {
 .trash {
   position: fixed; z-index: 40;
   right: calc(18px + env(safe-area-inset-right, 0px));
-  bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+  bottom: calc(var(--rail-h) + 14px);
   width: 96px; padding: 10px 8px 8px; border-radius: 10px;
   display: grid; justify-items: center; gap: 2px;
   background: var(--ui); color: var(--ui-fg);
   font-family: var(--font-hand); font-size: .95rem;
   box-shadow: 0 6px 18px -6px var(--shadow);
-  transform: translateY(160%); transition: transform .2s ease;
+  transform: translateY(calc(100% + var(--rail-h) + 40px)); transition: transform .2s ease;
 }
 body.dragging .trash { transform: none; }
 .trash.over { outline: 3px solid #c0453f; }
@@ -395,7 +395,52 @@ body.dragging .trash { transform: none; }
 #edit-prio button[data-v="0"] { color: var(--ui-muted); font-family: var(--font-hand); }
 
 /* ---------- Today strip: prayer times + daily Quran ---------- */
-.today { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr); gap: 24px; align-items: start; }
+.today {
+  position: fixed; inset: 0; z-index: 58; overflow-y: auto;
+  background: var(--veil);
+  display: grid; grid-template-columns: minmax(0, 400px) minmax(0, 560px); justify-content: center; align-content: safe center; align-items: start; gap: 28px;
+  padding: calc(56px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) calc(var(--rail-h) + 24px) max(16px, env(safe-area-inset-left, 0px));
+}
+.today-close { position: fixed; z-index: 59; top: calc(14px + env(safe-area-inset-top, 0px)); right: calc(16px + env(safe-area-inset-right, 0px)); }
+.today[hidden] + .today-close { display: none; }
+
+/* ---------- News rail along the bottom ---------- */
+:root { --rail-h: calc(42px + env(safe-area-inset-bottom, 0px)); --rail-bg: #1c1f3a; --rail-fg: #f3ecdc; --rail-accent: #1f5f4a; }
+.rail {
+  position: fixed; z-index: 34; left: 0; right: 0; bottom: 0; height: var(--rail-h);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left: env(safe-area-inset-left, 0px); padding-right: env(safe-area-inset-right, 0px);
+  display: flex; align-items: stretch;
+  background: var(--rail-bg); color: var(--rail-fg);
+  box-shadow: 0 -6px 18px -10px rgba(0,0,0,.5);
+  cursor: pointer;
+}
+.rail-label {
+  flex: 0 0 auto; border: 0; cursor: pointer; display: flex; align-items: center; gap: 8px;
+  padding: 0 26px 0 max(16px, env(safe-area-inset-left, 0px));
+  background: var(--rail-accent); color: #fbf6ea;
+  font-family: var(--font-bn); font-size: .95rem; font-weight: 600; white-space: nowrap;
+  clip-path: polygon(0 0, 100% 0, calc(100% - 14px) 100%, 0 100%);
+}
+.rail-label .live { width: 8px; height: 8px; border-radius: 50%; background: #9be7b5; animation: blink 1.6s ease-in-out infinite; }
+@keyframes blink { 50% { opacity: .25; } }
+.rail-track { flex: 1 1 auto; min-width: 0; overflow: hidden; display: flex; align-items: center; -webkit-mask-image: linear-gradient(90deg, transparent, #000 24px, #000 calc(100% - 24px), transparent); mask-image: linear-gradient(90deg, transparent, #000 24px, #000 calc(100% - 24px), transparent); }
+.rail-move { display: flex; width: max-content; animation: ticker var(--dur, 60s) linear infinite; }
+.rail:hover .rail-move, .rail:focus-within .rail-move { animation-play-state: paused; }
+@keyframes ticker { to { transform: translateX(-50%); } }
+.rail-seq { display: flex; align-items: center; gap: 22px; padding-right: 22px; }
+.rail-item { white-space: nowrap; font-family: var(--font-bn); font-size: .95rem; }
+.rail-item[lang="ar"] { font-family: var(--font-ar); font-size: 1.15rem; unicode-bidi: isolate; }
+.rail-item.head { color: #9be7b5; font-weight: 600; }
+.rail-item.sep { opacity: .45; font-size: .7rem; }
+.rail-item.now { color: #9be7b5; font-weight: 600; }
+body.desk .rail { --rail-h: calc(52px + env(safe-area-inset-bottom, 0px)); }
+body.desk .rail-item, body.desk .rail-label { font-size: 1.1rem; }
+@media (prefers-reduced-motion: reduce) {
+  .rail-move { animation: none; }
+  .rail-track { overflow-x: auto; }
+  .rail-label .live { animation: none; }
+}
 .card {
   position: relative; min-width: 0;
   background: var(--card); background-image: var(--paper-noise); color: var(--ink);
@@ -465,7 +510,7 @@ body.dragging .trash { transform: none; }
 /* ---------- Toast ---------- */
 .toast {
   position: fixed; z-index: 70; left: 50%;
-  bottom: calc(22px + env(safe-area-inset-bottom, 0px));
+  bottom: calc(var(--rail-h) + 16px);
   transform: translateX(-50%);
   max-width: min(520px, calc(100vw - 32px));
   background: var(--ui); color: var(--ui-fg);
@@ -480,7 +525,7 @@ body.dragging .trash { transform: none; }
 .fab {
   position: fixed; z-index: 35;
   right: calc(20px + env(safe-area-inset-right, 0px));
-  bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  bottom: calc(var(--rail-h) + 16px);
   width: 60px; height: 60px;
   transition: opacity .15s ease;
 }
@@ -503,9 +548,9 @@ body.dragging .fab, body.desk .fab { opacity: 0; pointer-events: none; }
   transition-delay: calc((3 - var(--i)) * 30ms);
 }
 .fab-item span {
-  position: absolute; top: calc(100% + 3px); left: 50%; transform: translateX(-50%);
-  white-space: nowrap; font-family: var(--font-hand); font-size: .85rem; color: var(--on-desk);
-  text-shadow: 0 1px 0 color-mix(in srgb, var(--desk) 70%, transparent);
+  position: absolute; right: calc(100% + 10px); top: 50%; transform: translateY(-50%);
+  white-space: nowrap; font-family: var(--font-hand); font-size: .95rem; color: var(--ui-fg);
+  background: var(--ui); padding: 3px 10px 1px; border-radius: 4px; box-shadow: 0 4px 10px -6px var(--shadow);
 }
 .fab.open .fab-item {
   opacity: 1; pointer-events: auto;
@@ -517,7 +562,7 @@ body.dragging .fab, body.desk .fab { opacity: 0; pointer-events: none; }
 .searchbar {
   position: fixed; z-index: 36;
   right: calc(20px + env(safe-area-inset-right, 0px));
-  bottom: calc(94px + env(safe-area-inset-bottom, 0px));
+  bottom: calc(var(--rail-h) + 90px);
   display: flex; align-items: center; gap: 4px;
   background: var(--ui); padding: 6px 6px 6px 8px; border-radius: 8px;
   box-shadow: 0 10px 26px -10px var(--shadow);
@@ -533,16 +578,12 @@ body.desk .exit-desk { display: inline-block; }
 .exit-desk {
   display: none; position: fixed; z-index: 30;
   left: calc(16px + env(safe-area-inset-left, 0px));
-  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  bottom: calc(var(--rail-h) + 12px);
   opacity: .7;
 }
 
-/* Large screens: the note in your hand on the left, its options beside it */
-@media (min-width: 900px) {
-  #hand { grid-template-columns: auto minmax(320px, 440px); justify-content: center; align-items: center; column-gap: 36px; }
-  #hand .flip { width: min(400px, 40vw, 72vh); }
-  #hand .panel { width: 100%; }
-}
+/* The note sits above its options on every screen size */
+#hand .panel { width: min(520px, 100%); }
 /* ---------- Adaptive layout ---------- */
 .m-only { display: none; }
 /* Desktop: wide desk, room for three notes per column */
@@ -553,7 +594,6 @@ body.desk .exit-desk { display: inline-block; }
 @media (min-width: 761px) and (max-width: 1100px) {
   .notes { grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 18px 14px; }
   .times { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .today { grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); }
 }
 /* Phone: columns become a sideways swipe, one column per screen */
 @media (max-width: 760px) {
@@ -589,7 +629,7 @@ body.desk .exit-desk { display: inline-block; }
     </div>
   </header>
 
-  <div class="today" id="today">
+  <div class="today" id="today" hidden role="dialog" aria-modal="true" aria-label="Prayer times and daily Quran">
     <section class="card prayer" aria-labelledby="pr-title">
       <div class="card-head"><h2 id="pr-title">নামাজের সময় · ঢাকা</h2><span class="card-sub" id="pr-date"></span></div>
       <p class="next" id="pr-next">Working out today's times…</p>
@@ -612,6 +652,7 @@ body.desk .exit-desk { display: inline-block; }
       <p class="card-note">Arabic: Tanzil Quran text. Bangla meaning: Muhiuddin Khan.</p>
     </section>
   </div>
+  <button class="btn today-close" id="today-close" type="button">Close</button>
 
   <nav class="tabs" id="tabs" aria-label="Projects"></nav>
   <div class="filters" id="filters" role="group" aria-label="Show"></div>
@@ -646,18 +687,22 @@ body.desk .exit-desk { display: inline-block; }
   <input class="search" id="search" type="search" placeholder="Search notes" aria-label="Search notes" autocomplete="off">
   <button class="btn quiet" id="search-close" type="button" aria-label="Close search">✕</button>
 </div>
+<div class="rail" id="rail" role="region" aria-label="Prayer times and today's Quran">
+  <button class="rail-label" id="rail-label" type="button" aria-label="Open prayer times and today's Quran"><span class="live" aria-hidden="true"></span><span id="rail-next">নামাজের সময়</span></button>
+  <div class="rail-track" aria-hidden="true"><div class="rail-move" id="rail-move"></div></div>
+</div>
 <div class="fab" id="fab">
   <div class="fab-items" id="fab-items">
-    <button class="fab-item" id="search-btn" type="button" style="--x:-104px;--y:0px;--i:0" aria-label="Search notes">
+    <button class="fab-item" id="search-btn" type="button" style="--x:0px;--y:-68px;--i:0" aria-label="Search notes">
       <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg><span>Search</span>
     </button>
-    <button class="fab-item" id="bg-btn" type="button" style="--x:-90px;--y:-52px;--i:1" aria-label="Background">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="m3 16 5-5 4 4 3-3 6 6"/><circle cx="16" cy="8.5" r="1.6"/></svg><span>Desk</span>
+    <button class="fab-item" id="bg-btn" type="button" style="--x:0px;--y:-126px;--i:1" aria-label="Background">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="m3 16 5-5 4 4 3-3 6 6"/><circle cx="16" cy="8.5" r="1.6"/></svg><span>Background</span>
     </button>
-    <button class="fab-item" id="today-btn" type="button" style="--x:-52px;--y:-90px;--i:2" aria-pressed="true" aria-controls="today" aria-label="Show prayer and Quran">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 3.5a8.5 8.5 0 1 0 5 15.4A7 7 0 0 1 15.5 3.5z"/></svg><span>Prayer</span>
+    <button class="fab-item" id="today-btn" type="button" style="--x:0px;--y:-184px;--i:2" aria-controls="today" aria-label="Prayer times and Quran">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 3.5a8.5 8.5 0 1 0 5 15.4A7 7 0 0 1 15.5 3.5z"/></svg><span>Prayer &amp; Quran</span>
     </button>
-    <button class="fab-item" id="desk-btn" type="button" style="--x:0px;--y:-104px;--i:3" aria-label="Desk mode">
+    <button class="fab-item" id="desk-btn" type="button" style="--x:0px;--y:-242px;--i:3" aria-label="Desk mode">
       <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M8 20h8M12 16v4"/></svg><span>Desk mode</span>
     </button>
   </div>
@@ -1411,6 +1456,10 @@ body.desk .exit-desk { display: inline-block; }
     const h = Math.floor(mins / 60), m = mins % 60;
     $("#pr-next").textContent = `পরের নামাজ ${name} · ${h ? bnDigits(h) + " ঘণ্টা " : ""}${bnDigits(m)} মিনিট পর`;
     $("#pr-date").textContent = now.toLocaleDateString("bn-BD", { weekday: "long", day: "numeric", month: "long", timeZone: DHAKA.tz });
+    $("#rail-next").textContent = `${name} · ${h ? bnDigits(h) + " ঘণ্টা " : ""}${bnDigits(m)} মিনিট পর`;
+    ticker.prayer = [{ t: "আজকের নামাজ · ঢাকা", cls: "head" }];
+    for (const [k, bn] of PRAYERS) ticker.prayer.push({ t: `${bn} ${fmtTime(pt[k])}`, cls: next && k === next[0] ? "now" : "" }, { t: "◆", cls: "sep" });
+    updateTicker();
     $("#pr-times").replaceChildren(...PRAYERS.map(([k, bn, en]) => {
       const li = document.createElement("li");
       if (next && k === next[0]) li.className = "is-next"; else if (pt[k] <= now) li.className = "is-past";
@@ -1564,6 +1613,11 @@ body.desk .exit-desk { display: inline-block; }
         pb.append(nb, bn);
         box.append(pa, pb); kids.push(box);
       }
+      ticker.quran = [{ t: `আজকের কুরআন · ${ch[1]} ${bnDigits(a)}${b > a ? "–" + bnDigits(b) : ""}`, cls: "head" }];
+      for (let v = a; v <= Math.min(b, a + 2); v++) {
+        ticker.quran.push({ t: `${verses[v - 1][0]} ﴿${arDigits(v)}﴾`, ar: true }, { t: `(${bnDigits(v)}) ${verses[v - 1][1]}` }, { t: "◆", cls: "sep" });
+      }
+      updateTicker();
       $("#qr-body").replaceChildren(...kids);
       $("#qr-body").scrollTop = 0;
     } catch (e) {
@@ -1584,15 +1638,40 @@ body.desk .exit-desk { display: inline-block; }
   });
 
   /* ---------- show or hide the prayer & Quran strip ---------- */
-  let stripOn = true;
-  try { stripOn = localStorage.getItem("sticky-desk-today") !== "0"; } catch (e) {}
+  let stripOn = false;
   function setStrip(on) {
     stripOn = on; $("#today").hidden = !on;
-    $("#today-btn").setAttribute("aria-pressed", String(on));
-    try { localStorage.setItem("sticky-desk-today", on ? "1" : "0"); } catch (e) {}
+    $("#today-btn").setAttribute("aria-expanded", String(on));
+    if (on) renderPrayer();
   }
-  setStrip(stripOn);
+  setStrip(false);
   $("#today-btn").addEventListener("click", () => setStrip(!stripOn));
+  $("#today-close").addEventListener("click", () => setStrip(false));
+  $("#today").addEventListener("click", (e) => { if (e.target.id === "today") setStrip(false); });
+  $("#rail").addEventListener("click", () => setStrip(true));
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && stripOn) setStrip(false); });
+
+  /* ---------- news rail ---------- */
+  const ticker = { prayer: [], quran: [] };
+  let tickerKey = "";
+  function updateTicker() {
+    const parts = [...ticker.prayer, ...ticker.quran];
+    const key = JSON.stringify(parts);
+    if (key === tickerKey) return;
+    tickerKey = key;
+    const seq = () => {
+      const d = document.createElement("div"); d.className = "rail-seq";
+      for (const p of parts) {
+        const s = document.createElement("span"); s.className = "rail-item " + (p.cls || "");
+        if (p.ar) { s.lang = "ar"; s.dir = "rtl"; }
+        s.textContent = p.t; d.append(s);
+      }
+      return d;
+    };
+    const move = $("#rail-move");
+    move.replaceChildren(seq(), seq());
+    requestAnimationFrame(() => move.style.setProperty("--dur", Math.max(25, move.firstChild.scrollWidth / 55) + "s"));
+  }
 
   /* ---------- desk mode: keep the iPad awake as a note display ---------- */
   let wake = null, clockTimer = null, lastDay = today();

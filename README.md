@@ -17,6 +17,7 @@ Open `index.html` in Safari on iPad or Mac. On iPad, tap Share, then **Add to Ho
 - **Background** lets you pick the desk: wood, cork, whiteboard, linen, green felt or chalkboard.
 - **Prayer times for Dhaka** (Karachi method, Hanafi Asr) with the next prayer and a countdown. Turn on **Azan** and add your favourite azan recording; it plays at each prayer time while the page is open.
 - **Daily Quran**: about one minute a day, in order, Arabic with Bangla meaning (Muhiuddin Khan). Tap "পড়া হয়েছে ✓" to move on.
+- **News rail** along the bottom scrolls today's prayer times and Quran verses like a TV ticker. Tap it to open the full prayer times and reading.
 - **Floating button** (bottom right) opens Search, Background, Prayer & Quran and Desk mode.
 - **Desk mode** keeps the screen awake and shows the date and time, so an iPad on a stand works as a sticky-note display.
 
