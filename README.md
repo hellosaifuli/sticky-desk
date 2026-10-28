@@ -9,6 +9,12 @@ Open `index.html` in Safari on iPad or Mac. On iPad, tap Share, then **Add to Ho
 - **Tap** a note to write on it. Apple Pencil Scribble works in the note.
 - **Hold and drag** a note to another column, or onto the bin to throw it away.
 - **Tap the pad** to tear off a new note. Pick the pad colour first.
+- **Projects** are folder tabs, each with its own paper colour. "All projects" shows everything together.
+- **Today, Scheduled, Flagged** filter the board like Apple Reminders' smart lists. Search finds notes by their words, steps or project.
+- **On each note:** due date (Today, TMR, a date; red when late), priority (`!` to `!!!`), a flag tab, and a repeat (daily, weekdays, weekly, monthly). Finishing a repeating note puts the next one in To do.
+- **Flip** a note to write details and a checklist of steps on the back. The front shows progress like "2/4".
+- **Doing** has a soft limit of 3 notes so you stay focused.
+- **Background** lets you pick the desk: wood, cork, whiteboard, linen, green felt or chalkboard.
 - **Desk mode** keeps the screen awake and shows the date and time, so an iPad on a stand works as a sticky-note display.
 
 When opened as a standalone file, notes are saved in that browser.
