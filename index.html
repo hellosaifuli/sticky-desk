@@ -405,35 +405,41 @@ body.dragging .trash { transform: none; }
 .today[hidden] + .today-close { display: none; }
 
 /* ---------- News rail along the bottom ---------- */
-:root { --rail-h: calc(42px + env(safe-area-inset-bottom, 0px)); --rail-bg: #1c1f3a; --rail-fg: #f3ecdc; --rail-accent: #1f5f4a; }
+:root { --rail-h: calc(44px + env(safe-area-inset-bottom, 0px)); }
+/* A long strip of masking tape across the bottom of the desk, with a sticky-note tab as the label */
 .rail {
   position: fixed; z-index: 34; left: 0; right: 0; bottom: 0; height: var(--rail-h);
   padding-bottom: env(safe-area-inset-bottom, 0px);
   padding-left: env(safe-area-inset-left, 0px); padding-right: env(safe-area-inset-right, 0px);
   display: flex; align-items: stretch;
-  background: var(--rail-bg); color: var(--rail-fg);
-  box-shadow: 0 -6px 18px -10px rgba(0,0,0,.5);
+  background: linear-gradient(180deg, rgba(255,255,255,.18), transparent 40%), var(--tape);
+  background-image: linear-gradient(180deg, rgba(255,255,255,.18), transparent 40%), var(--paper-noise);
+  color: var(--tape-ink);
+  box-shadow: 0 -1px 0 var(--tape-edge), 0 -8px 16px -12px var(--shadow);
+  clip-path: polygon(0 4px, 2% 0, 5% 3px, 9% 0, 14% 4px, 20% 1px, 27% 4px, 33% 0, 40% 3px, 47% 1px, 55% 4px, 62% 0, 70% 3px, 78% 1px, 85% 4px, 92% 0, 97% 3px, 100% 1px, 100% 100%, 0 100%);
   cursor: pointer;
 }
 .rail-label {
   flex: 0 0 auto; border: 0; cursor: pointer; display: flex; align-items: center; gap: 8px;
-  padding: 0 26px 0 max(16px, env(safe-area-inset-left, 0px));
-  background: var(--rail-accent); color: #fbf6ea;
+  margin: 5px 6px 4px max(12px, env(safe-area-inset-left, 0px));
+  padding: 2px 14px 0 12px;
+  background: var(--n-pink); background-image: var(--paper-noise); color: var(--ink);
   font-family: var(--font-bn); font-size: .95rem; font-weight: 600; white-space: nowrap;
-  clip-path: polygon(0 0, 100% 0, calc(100% - 14px) 100%, 0 100%);
+  transform: rotate(-1.2deg);
+  box-shadow: 0 2px 3px rgba(0,0,0,.18);
 }
-.rail-label .live { width: 8px; height: 8px; border-radius: 50%; background: #9be7b5; animation: blink 1.6s ease-in-out infinite; }
+.rail-label .live { width: 8px; height: 8px; border-radius: 50%; background: var(--red-ink); animation: blink 1.6s ease-in-out infinite; }
 @keyframes blink { 50% { opacity: .25; } }
 .rail-track { flex: 1 1 auto; min-width: 0; overflow: hidden; display: flex; align-items: center; -webkit-mask-image: linear-gradient(90deg, transparent, #000 24px, #000 calc(100% - 24px), transparent); mask-image: linear-gradient(90deg, transparent, #000 24px, #000 calc(100% - 24px), transparent); }
 .rail-move { display: flex; width: max-content; animation: ticker var(--dur, 60s) linear infinite; }
 .rail:hover .rail-move, .rail:focus-within .rail-move { animation-play-state: paused; }
 @keyframes ticker { to { transform: translateX(-50%); } }
 .rail-seq { display: flex; align-items: center; gap: 22px; padding-right: 22px; }
-.rail-item { white-space: nowrap; font-family: var(--font-bn); font-size: .95rem; }
+.rail-item { white-space: nowrap; font-family: var(--font-bn); font-size: .95rem; color: var(--ink); }
 .rail-item[lang="ar"] { font-family: var(--font-ar); font-size: 1.15rem; unicode-bidi: isolate; }
-.rail-item.head { color: #9be7b5; font-weight: 600; }
-.rail-item.sep { opacity: .45; font-size: .7rem; }
-.rail-item.now { color: #9be7b5; font-weight: 600; }
+.rail-item.head { font-family: var(--font-marker); font-size: .9rem; letter-spacing: .03em; color: var(--accent-ink); }
+.rail-item.sep { color: var(--red-ink); opacity: .6; font-size: .65rem; }
+.rail-item.now { color: var(--accent-ink); font-weight: 600; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; }
 body.desk .rail { --rail-h: calc(52px + env(safe-area-inset-bottom, 0px)); }
 body.desk .rail-item, body.desk .rail-label { font-size: 1.1rem; }
 @media (prefers-reduced-motion: reduce) {
