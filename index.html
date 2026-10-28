@@ -419,6 +419,12 @@ body.desk .exit-desk { display: inline-block; }
   opacity: .7;
 }
 
+/* Large screens: the note in your hand on the left, its options beside it */
+@media (min-width: 900px) {
+  #hand { grid-template-columns: auto minmax(320px, 440px); justify-content: center; align-items: center; column-gap: 36px; }
+  #hand .flip { width: min(400px, 40vw, 72vh); }
+  #hand .panel { width: 100%; }
+}
 @media (max-width: 760px) {
   .board { grid-template-columns: 1fr; gap: 44px; }
   .col + .col::before {
