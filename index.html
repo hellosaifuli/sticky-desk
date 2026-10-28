@@ -203,7 +203,7 @@ body {
   flex: 0 0 auto; display: inline-flex; align-items: center; gap: 8px;
   font-family: var(--font-hand); font-size: 1.05rem; color: var(--ink);
   border: 0; cursor: pointer; padding: 9px 16px 5px;
-  background: color-mix(in srgb, var(--c, var(--tape)) 75%, var(--desk));
+  background: color-mix(in srgb, var(--c, var(--tape)) 88%, var(--desk));
   border-radius: 10px 10px 0 0;
   box-shadow: inset 0 -6px 8px -6px rgba(0,0,0,.25);
   transform: translateY(3px); transition: transform .12s ease;
@@ -718,9 +718,22 @@ input, select, textarea { font-size: max(16px, 1em); } /* 16px+ stops iOS zoomin
 #hand.more-open .flip { width: min(220px, 56vw, 26vh); min-width: 150px; }
 /* pressed chip reads well on every desk and theme */
 .chip[aria-pressed="true"] { background: var(--glass-shine), var(--tape); color: var(--tape-ink); }
+
+.rail-pause {
+  flex: 0 0 auto; align-self: center; width: 40px; height: 40px; margin: 0 max(10px, env(safe-area-inset-right, 0px)) 0 6px;
+  border: 1px solid var(--glass-edge); border-radius: 50%; cursor: pointer; display: grid; place-items: center;
+  background: var(--glass-shine), var(--glass-bg); color: var(--ink);
+}
+.rail-pause svg { width: 16px; height: 16px; fill: currentColor; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; }
+.rail.paused .rail-move { animation-play-state: paused; }
+@media (pointer: coarse) {
+  .seg button, .card-btn, .btn.quiet, .tab { min-height: 40px; }
+  .box { width: 28px; height: 28px; }
+  .x { min-width: 32px; min-height: 32px; }
+}
 </style>
 
-<div class="wrap">
+<main class="wrap">
   <header class="top">
     <h1 class="tape title">Sticky Desk</h1>
     <span class="clock" id="clock"></span>
@@ -732,23 +745,23 @@ input, select, textarea { font-size: max(16px, 1em); } /* 16px+ stops iOS zoomin
 
   <div class="today" id="today" hidden role="dialog" aria-modal="true" aria-label="Prayer times and daily Quran">
     <section class="card prayer" aria-labelledby="pr-title">
-      <div class="card-head"><h2 id="pr-title">নামাজের সময় · ঢাকা</h2><span class="card-sub" id="pr-date"></span></div>
+      <div class="card-head"><h2 id="pr-title" lang="bn">নামাজের সময় · ঢাকা</h2><span class="card-sub" id="pr-date"></span></div>
       <p class="next" id="pr-next">Working out today's times…</p>
       <ol class="times" id="pr-times"></ol>
       <div class="card-actions">
-        <button class="card-btn" id="azan-toggle" type="button" aria-pressed="false">আযান চালু করুন</button>
-        <button class="card-btn" id="azan-settings" type="button">আযানের শব্দ</button>
+        <button class="card-btn" id="azan-toggle" type="button" lang="bn" aria-pressed="false">আযান চালু করুন</button>
+        <button class="card-btn" id="azan-settings" type="button" lang="bn">আযানের শব্দ</button>
       </div>
       <p class="card-note">Karachi method, Hanafi Asr, as used in Bangladesh. Your mosque may differ by a minute or two.</p>
     </section>
     <section class="card quran" aria-labelledby="qr-title">
-      <div class="card-head"><h2 id="qr-title">আজকের কুরআন</h2><span class="card-sub" id="qr-ref"></span></div>
-      <div class="qr-body" id="qr-body"><p class="qr-empty">লোড হচ্ছে…</p></div>
+      <div class="card-head"><h2 id="qr-title" lang="bn">আজকের কুরআন</h2><span class="card-sub" id="qr-ref"></span></div>
+      <div class="qr-body" id="qr-body" tabindex="0" role="region" aria-label="Today's verses"><p class="qr-empty">লোড হচ্ছে…</p></div>
       <div class="card-actions">
-        <button class="card-btn" id="qr-prev" type="button">← আগের</button>
+        <button class="card-btn" id="qr-prev" type="button" lang="bn">← আগের</button>
         <span class="card-sub" id="qr-progress"></span>
         <span class="spacer-x"></span>
-        <button class="card-btn primary" id="qr-done" type="button">পড়া হয়েছে ✓</button>
+        <button class="card-btn primary" id="qr-done" type="button" lang="bn">পড়া হয়েছে ✓</button>
       </div>
       <p class="card-note">Arabic: Tanzil Quran text. Bangla meaning: Muhiuddin Khan.</p>
     </section>
@@ -759,7 +772,7 @@ input, select, textarea { font-size: max(16px, 1em); } /* 16px+ stops iOS zoomin
   <div class="filters" id="filters" role="group" aria-label="Show"></div>
   <p class="hint" id="hint">Tap a note to write on it. Hold and drag to move it.<span class="m-only"> Swipe sideways for Doing and Done.</span></p>
 
-  <main class="board" id="board">
+  <section class="board" id="board" aria-label="Board">
     <section class="col" data-col="todo" aria-labelledby="h-todo">
       <div class="tape col-head"><h2 id="h-todo">To do</h2><span class="count"></span></div>
       <div class="notes"></div>
@@ -772,8 +785,8 @@ input, select, textarea { font-size: max(16px, 1em); } /* 16px+ stops iOS zoomin
       <div class="tape col-head"><h2 id="h-done">Done</h2><span class="count"></span></div>
       <div class="notes"></div>
     </section>
-  </main>
-</div>
+  </section>
+</main>
 
 <div class="trash" id="trash" aria-hidden="true">
   <svg viewBox="0 0 40 40"><path d="M9 12h22l-2.2 22.5a2 2 0 0 1-2 1.5H13.2a2 2 0 0 1-2-1.5z"/><path d="M6.5 12h27M16 12V8.5h8V12M15.5 18l.8 12M24.5 18l-.8 12M20 18v12"/></svg>
@@ -788,8 +801,9 @@ input, select, textarea { font-size: max(16px, 1em); } /* 16px+ stops iOS zoomin
   <button class="btn quiet" id="search-close" type="button" aria-label="Close search">✕</button>
 </div>
 <div class="rail" id="rail" role="region" aria-label="Prayer times and today's Quran">
-  <button class="rail-label" id="rail-label" type="button" aria-label="Open prayer times and today's Quran"><span class="live" aria-hidden="true"></span><span id="rail-next">নামাজের সময়</span></button>
+  <button class="rail-label" id="rail-label" type="button" aria-label="Open prayer times and today's Quran"><span class="live" aria-hidden="true"></span><span id="rail-next" lang="bn">নামাজের সময়</span></button>
   <div class="rail-track" aria-hidden="true"><div class="rail-move" id="rail-move"></div></div>
+  <button class="rail-pause" id="rail-pause" type="button" aria-pressed="false" aria-label="Pause scrolling verses"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg></button>
 </div>
 <div class="fab" id="fab">
   <div class="fab-items" id="fab-items">
@@ -827,7 +841,7 @@ input, select, textarea { font-size: max(16px, 1em); } /* 16px+ stops iOS zoomin
   </div>
   <div class="panel">
     <div class="quick">
-      <div class="seg" id="quick-due" role="group" aria-label="When"><button type="button" data-v="0">Today</button><button type="button" data-v="1">TMR</button></div>
+      <div class="seg" id="quick-due" role="group" aria-label="When"><button type="button" data-v="0">Today</button><button type="button" data-v="1" aria-label="Tomorrow">TMR</button></div>
       <div class="seg"><button type="button" id="quick-flag" aria-pressed="false">⚑ Flag</button></div>
       <span class="spacer"></span>
       <button class="btn quiet" id="more-btn" type="button" aria-expanded="false" aria-controls="more">More</button>
@@ -836,6 +850,7 @@ input, select, textarea { font-size: max(16px, 1em); } /* 16px+ stops iOS zoomin
     <div class="more" id="more" hidden>
     <div class="mrow">
       <label class="mfield">Project<select class="field" id="edit-project"></select></label>
+      <label class="mfield">Column<select class="field" id="edit-col"><option value="todo">To do</option><option value="doing">Doing</option><option value="done">Done</option></select></label>
       <label class="mfield">Date<span class="date-wrap" id="date-wrap"><input class="field" id="edit-due" type="date"><span class="date-ph" aria-hidden="true">Pick a date</span></span></label>
       <label class="mfield">Repeat<select class="field" id="edit-repeat">
         <option value="">Doesn't repeat</option><option value="daily">Every day</option><option value="weekdays">Every weekday</option><option value="weekly">Every week</option><option value="monthly">Every month</option>
@@ -892,7 +907,7 @@ input, select, textarea { font-size: max(16px, 1em); } /* 16px+ stops iOS zoomin
   </div>
 </div>
 
-<div class="banner" id="banner" hidden role="alert"><span id="banner-msg"></span><span class="spacer-x"></span><button class="card-btn primary" id="banner-stop" type="button">বন্ধ করুন</button></div>
+<div class="banner" id="banner" hidden role="alert"><span id="banner-msg" lang="bn"></span><span class="spacer-x"></span><button class="card-btn primary" id="banner-stop" type="button" lang="bn">বন্ধ করুন</button></div>
 
 <script src="https://unpkg.com/adhan@4.4.3/lib/bundles/adhan.umd.min.js"></script>
 
@@ -1198,7 +1213,9 @@ input, select, textarea { font-size: max(16px, 1em); } /* 16px+ stops iOS zoomin
     fab.classList.toggle("open", open);
     $("#fab-main").setAttribute("aria-expanded", String(open));
     $("#fab-main").setAttribute("aria-label", open ? "Close options" : "Options");
+    $("#fab-items").inert = !open;
   }
+  setFab(false);
   $("#fab-main").addEventListener("click", () => setFab(!fab.classList.contains("open")));
   $("#fab-items").addEventListener("click", (e) => { if (e.target.closest(".fab-item")) setFab(false); });
   document.addEventListener("click", (e) => { if (fab.classList.contains("open") && !e.target.closest("#fab")) setFab(false); });
@@ -1225,6 +1242,14 @@ input, select, textarea { font-size: max(16px, 1em); } /* 16px+ stops iOS zoomin
   function openEditor(note, isNew) {
     editing = { note: { checklist: [], ...note, checklist: (note.checklist || []).map((s) => ({ ...s })) }, isNew, prev: note };
     const N = editing.note;
+    const cs = $("#edit-col");
+    cs.value = N.column;
+    cs.onchange = () => {
+      const v = cs.value;
+      const list = notes.filter((n) => n.column === v && n.id !== N.id).sort((a, b) => a.order - b.order);
+      N.order = list.length ? list[list.length - 1].order + 1 : 1;
+      Object.assign(N, withColumn(N, v)); renderSteps();
+    };
     const ps = $("#edit-project");
     ps.replaceChildren(...sortedProjects().map((p) => { const o = document.createElement("option"); o.value = p.id; o.textContent = p.name; return o; }));
     ps.value = N.projectId;
@@ -1380,8 +1405,20 @@ input, select, textarea { font-size: max(16px, 1em); } /* 16px+ stops iOS zoomin
 
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape") { if (editing) closeEditor(true); else if (projEditing) closeProject(); }
-    if (e.key === "Enter" && !editing && !projEditing && e.target.classList?.contains("note") && e.target.dataset.id) {
+    const onNote = !editing && !projEditing && e.target.classList?.contains("note") && e.target.dataset.id;
+    if (onNote && (e.key === "Enter" || e.key === " ")) {
+      e.preventDefault();
       const n = notes.find((x) => x.id === e.target.dataset.id); if (n) openEditor(n, false);
+    }
+    if (onNote && (e.key === "ArrowLeft" || e.key === "ArrowRight")) {
+      e.preventDefault();
+      const n = notes.find((x) => x.id === e.target.dataset.id); if (!n) return;
+      const to = COLS[COLS.indexOf(n.column) + (e.key === "ArrowRight" ? 1 : -1)]; if (!to) return;
+      const list = notes.filter((x) => x.column === to).sort((a, b) => a.order - b.order);
+      const moved = { ...withColumn(n, to), order: list.length ? list[list.length - 1].order + 1 : 1 };
+      put("notes", moved); afterDone(n, moved); checkWip(n, moved);
+      if (to !== "done") toast(`Moved to ${{ todo: "To do", doing: "Doing" }[to]}.`);
+      board.querySelector(`[data-id="${n.id}"]`)?.focus();
     }
   });
 
@@ -1572,6 +1609,7 @@ input, select, textarea { font-size: max(16px, 1em); } /* 16px+ stops iOS zoomin
     const railMain = document.createElement("span"); railMain.textContent = `${next ? next[1] : "ফজর"} ${fmtTime(nextTime)}`;
     const railCount = document.createElement("span"); railCount.className = "rn-count"; railCount.textContent = ` · ${h ? bnDigits(h) + " ঘণ্টা " : ""}${bnDigits(m)} মিনিট পর`;
     $("#rail-next").replaceChildren(railMain, railCount);
+    $("#rail-label").setAttribute("aria-label", `Next prayer ${next ? next[2] : "Fajr"} at ${fmtTime(nextTime)}, in ${h ? h + " hours " : ""}${m} minutes. Opens prayer times and today's Quran.`);
     ticker.prayer = [];
     updateTicker();
     $("#pr-times").replaceChildren(...PRAYERS.map(([k, bn, en]) => {
@@ -1766,6 +1804,45 @@ input, select, textarea { font-size: max(16px, 1em); } /* 16px+ stops iOS zoomin
   document.addEventListener("keydown", (e) => { if (e.key === "Escape" && stripOn) setStrip(false); });
 
   /* ---------- news rail ---------- */
+  $("#rail-pause").addEventListener("click", (e) => {
+    e.stopPropagation();
+    const paused = !$("#rail").classList.contains("paused");
+    $("#rail").classList.toggle("paused", paused);
+    e.currentTarget.setAttribute("aria-pressed", String(paused));
+    e.currentTarget.setAttribute("aria-label", paused ? "Play scrolling verses" : "Pause scrolling verses");
+    e.currentTarget.innerHTML = paused ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5l11 7-11 7z"/></svg>' : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg>';
+  });
+
+  /* ---------- sheets: keep focus inside, return it to where you were ---------- */
+  if (!document.documentElement.lang) document.documentElement.lang = "en";
+  const SHEETS = ["#hand", "#proj-sheet", "#bg-sheet", "#azan-sheet", "#today"].map((q) => $(q));
+  const BEHIND = () => [...document.querySelectorAll(".wrap > *:not(#today):not(#today-close), #fab, #rail, #searchbar, #exit-desk, #trash")];
+  const openers = new Map();
+  new MutationObserver(() => {
+    const anyOpen = SHEETS.some((el) => !el.hidden);
+    BEHIND().forEach((el) => { el.inert = anyOpen; });
+    for (const el of SHEETS) {
+      if (!el.hidden && !openers.has(el)) {
+        openers.set(el, document.activeElement);
+        setTimeout(() => { if (!el.contains(document.activeElement)) el.querySelector("textarea, input, select, button, [tabindex='0']")?.focus({ preventScroll: true }); }, 120);
+      } else if (el.hidden && openers.has(el)) {
+        let back = openers.get(el); openers.delete(el);
+        // the board redraws on save, so find the same note again by its id
+        if (back && !back.isConnected && back.dataset?.id) back = board.querySelector(`[data-id="${back.dataset.id}"]`);
+        if (back && back.isConnected) setTimeout(() => back.focus({ preventScroll: true }), 0);
+      }
+    }
+  }).observe(document.body, { subtree: true, attributes: true, attributeFilter: ["hidden"] });
+  // Tab and Shift+Tab loop inside an open sheet
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Tab") return;
+    const sheet = SHEETS.find((el) => !el.hidden); if (!sheet) return;
+    const items = [...sheet.querySelectorAll("button, input, select, textarea, [tabindex='0']")].filter((x) => !x.disabled && !x.closest("[hidden], [inert]") && x.getClientRects().length);
+    if (!items.length) return;
+    const first = items[0], last = items[items.length - 1];
+    if (e.shiftKey && (document.activeElement === first || !sheet.contains(document.activeElement))) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && (document.activeElement === last || !sheet.contains(document.activeElement))) { e.preventDefault(); first.focus(); }
+  });
   const ticker = { prayer: [], quran: [] };
   let tickerKey = "";
   function updateTicker() {
