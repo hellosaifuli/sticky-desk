@@ -873,6 +873,36 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
 #edit-text { font-size: max(16px, 10cqi); }
 #edit-details, .add-step, .steps input[type="text"] { font-size: max(16px, 5.6cqi); }
 #edit-details { line-height: max(24px, 9cqi); }
+
+/* ---------- photo notes ---------- */
+.cam-btn {
+  width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center; cursor: pointer;
+  border: 1px solid var(--glass-edge); background: var(--glass-shine), var(--glass-bg); box-shadow: var(--glass-shadow); color: var(--ui-fg);
+  -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur);
+}
+.cam-btn svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; }
+.cam-btn:active { transform: scale(.94); }
+.tools { align-items: center; }
+/* the photo is taped onto the sticky note */
+.ph {
+  display: block; width: 100%; flex: 1 1 auto; min-height: 0; object-fit: cover; border-radius: 1px;
+  box-shadow: 0 1px 2px rgba(0,0,0,.25); transform: rotate(-1.2deg); -webkit-user-drag: none; pointer-events: none;
+  border: 3px solid #fbf8f1;
+}
+.note.has-photo .paper { gap: 4%; }
+.note.has-photo .text { flex: 0 0 auto; font-size: 8cqi; max-height: 2.4em; overflow: hidden; }
+.note.has-photo .text:empty { display: none; }
+.edit-photo { display: block; width: 100%; height: 56%; object-fit: cover; border: 4px solid #fbf8f1; box-shadow: 0 2px 4px rgba(0,0,0,.25); transform: rotate(-1deg); margin-bottom: 4%; }
+.face.front.has-photo #edit-text { font-size: max(16px, 7cqi); padding-top: 0; }
+
+@media (max-width: 760px) {
+  .top { flex-wrap: nowrap; gap: 10px; }
+  .title-group { min-width: 0; flex: 1 1 auto; }
+  .top > .spacer { display: none; }
+  .tools { flex: 0 0 auto; gap: 10px; flex-wrap: nowrap; }
+  .cam-btn { width: 46px; height: 46px; }
+  .pad { width: 82px; height: 66px; font-size: .98rem; }
+}
 </style>
 
 <main class="wrap">
@@ -881,6 +911,10 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
     <span class="clock" id="clock"></span></div>
     <span class="spacer"></span>
     <div class="tools">
+      <button class="cam-btn" id="cam-btn" type="button" aria-label="Take a photo for a new note">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.6l1.3-1.8A1.5 1.5 0 0 1 10.6 3.5h2.8a1.5 1.5 0 0 1 1.2.7L15.9 6h1.6A2.5 2.5 0 0 1 20 8.5v8A2.5 2.5 0 0 1 17.5 19h-11A2.5 2.5 0 0 1 4 16.5z"/><circle cx="12" cy="12.3" r="3.6"/></svg>
+      </button>
+      <input type="file" id="cam-input" accept="image/*" capture="environment" hidden>
       <button class="pad" id="pad" type="button" aria-label="Tear off a new note">+ new<br>note</button>
     </div>
   </header>
@@ -978,7 +1012,7 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
 <div class="overlay" id="hand" hidden role="dialog" aria-modal="true" aria-label="Edit note">
   <div class="flip" id="flip">
     <div class="flip-inner">
-      <div class="face paper front"><textarea id="edit-text" maxlength="160" placeholder="What do you need to do?" aria-label="Note text"></textarea></div>
+      <div class="face paper front"><img class="edit-photo" id="edit-photo" alt="" hidden><textarea id="edit-text" maxlength="160" placeholder="What do you need to do?" aria-label="Note text"></textarea></div>
       <div class="face paper back" id="back">
         <span class="back-label">Details</span>
         <textarea id="edit-details" maxlength="1200" placeholder="Links, context, anything you need" aria-label="Details"></textarea>
@@ -1012,6 +1046,7 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
         </div>
       </div>
       <span class="spacer"></span>
+      <button class="btn quiet" id="remove-photo" type="button" hidden>Remove photo</button>
       <button class="btn quiet" id="flip-btn" type="button">Flip to back</button>
       <button class="btn quiet danger" id="hand-delete" type="button">Throw away</button>
     </div>
@@ -1167,7 +1202,7 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
   }
 
   /* ---------- storage ---------- */
-  function saveLocal() { try { localStorage.setItem(LOCAL_KEY, JSON.stringify({ notes, projects })); } catch (e) {} }
+  function saveLocal() { try { localStorage.setItem(LOCAL_KEY, JSON.stringify({ notes, projects })); } catch (e) { toast("This browser is out of space, so the last change wasn't saved. Remove a few photo notes, then try again."); } }
   const strip = ({ id, ...body }) => body;
   async function put(kind, obj) {
     const list = kind === "notes" ? notes : projects;
@@ -1257,7 +1292,7 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
     const di = dueInfo(n.due);
     const steps = n.checklist || [];
     const stepsDone = steps.filter((s) => s.done).length;
-    el.setAttribute("aria-label", [n.text || "Empty note", projOf(n)?.name, di && "due " + di.label, n.priority ? ["", "low", "medium", "high"][n.priority] + " priority" : "", n.flagged && "flagged", steps.length && `${stepsDone} of ${steps.length} steps done`].filter(Boolean).join(", ") + ". Tap to edit.");
+    el.setAttribute("aria-label", [n.text || (photoSrc(n) ? "Photo note" : "Empty note"), projOf(n)?.name, di && "due " + di.label, n.priority ? ["", "low", "medium", "high"][n.priority] + " priority" : "", n.flagged && "flagged", steps.length && `${stepsDone} of ${steps.length} steps done`].filter(Boolean).join(", ") + ". Tap to edit.");
     el.style.setProperty("--c", `var(--n-${colorOf(n)})`);
     el.style.setProperty("--tilt", tiltFor(n.id));
     if (n.flagged) { const f = document.createElement("span"); f.className = "flag"; el.append(f); }
@@ -1268,13 +1303,19 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
     top.append(pr);
     if (n.column === "done") top.insertAdjacentHTML("beforeend", '<svg class="tick" viewBox="0 0 100 100" aria-hidden="true"><path d="M14 56c8 6 16 15 24 26 13-27 29-50 50-68"/></svg>');
     const t = document.createElement("div"); t.className = "text"; t.textContent = n.text;
+    const src = photoSrc(n);
+    if (src) {
+      el.classList.add("has-photo");
+      const img = document.createElement("img"); img.className = "ph"; img.src = src; img.alt = ""; img.loading = "lazy"; img.draggable = false;
+      paper.append(img);
+    }
     const meta = document.createElement("div"); meta.className = "meta";
     const due = document.createElement("span");
     if (di && n.column !== "done") { due.className = "due " + di.state; due.textContent = (di.state === "due-late" ? "Late · " : "") + di.label + (n.repeat ? " ↻" : ""); }
     const sub = document.createElement("span"); sub.className = "sub";
     if (steps.length) sub.textContent = `${stepsDone}/${steps.length} ☐`;
     meta.append(due, sub);
-    paper.append(top, t, meta);
+    paper.prepend(top); paper.append(t, meta);
     el.append(paper);
     return el;
   }
@@ -1436,7 +1477,7 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
         const di = dueInfo(n.due);
         const step = (n.checklist || []).find((x) => x.t.toLowerCase().includes(q));
         const sub = [projOf(n)?.name, di && n.column !== "done" ? di.label : "", step && !n.text.toLowerCase().includes(q) ? "Step: " + step.t : ""].filter(Boolean).join(" · ");
-        return spRow({ color: colorOf(n), title: n.text.replace(/\n/g, " "), q, sub, onPick: () => { closeSpotlight(); openEditor(n, false); } });
+        return spRow({ color: colorOf(n), title: (n.text || "Photo note").replace(/\n/g, " "), q, sub, onPick: () => { closeSpotlight(); openEditor(n, false); } });
       })));
     }
     if (!secs.length) {
@@ -1497,6 +1538,10 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
     $("#quick-flag").setAttribute("aria-pressed", String(!!N.flagged));
     $("#more").hidden = true; $("#more-btn").setAttribute("aria-expanded", "false"); $("#more-btn").textContent = "More"; hand.classList.remove("more-open");
     editText.value = N.text || "";
+    const eSrc = photoSrc(N);
+    $("#edit-photo").hidden = !eSrc; if (eSrc) $("#edit-photo").src = eSrc;
+    $(".face.front").classList.toggle("has-photo", !!eSrc);
+    $("#remove-photo").hidden = !eSrc;
     $("#edit-details").value = N.details || "";
     $("#add-step").value = "";
     renderSteps();
@@ -1561,7 +1606,7 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
     note.checklist = note.checklist.filter((s) => s.t.trim());
     editing = null; hand.hidden = true;
     if (!save) { if (!isNew) removeNote(note.id); else render(); return; }
-    if (!note.text) { if (isNew) render(); else removeNote(note.id); return; }
+    if (!note.text && !photoSrc(note)) { if (isNew) render(); else removeNote(note.id); return; }
     if (JSON.stringify(prev) !== JSON.stringify(note) || isNew) {
       put("notes", note);
       afterDone(prev, note); checkWip(prev, note);
@@ -1572,14 +1617,62 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
   $("#hand-delete").addEventListener("click", () => closeEditor(false));
   hand.addEventListener("click", (e) => { if (e.target === hand) closeEditor(true); });
 
-  $("#pad").addEventListener("click", () => {
-    if (!projects.length) { toast("Make a project first, then tear off a note."); return openProject(null); }
+  function blankNote() {
     const pid = view.project !== "all" ? view.project : sortedProjects()[0].id;
     const top = notes.filter((n) => n.column === "todo").sort((a, b) => a.order - b.order)[0];
-    openEditor({
+    return {
       id: newId("n"), text: "", column: "todo", projectId: pid, order: top ? top.order - 1 : 1, createdAt: Date.now(),
       due: view.filter === "today" ? today() : "", flagged: view.filter === "flagged", priority: 0, repeat: "", details: "", checklist: [],
-    }, true);
+    };
+  }
+  $("#pad").addEventListener("click", () => {
+    if (!projects.length) { toast("Make a project first, then tear off a note."); return openProject(null); }
+    openEditor(blankNote(), true);
+  });
+
+  /* ---------- photo notes: camera → note, and Claude reads the handwriting when it can ---------- */
+  function photoSrc(n) { return n.photoId ? "/_blob/" + n.photoId : (n.photoData || ""); }
+  async function shrinkPhoto(file, max = 1100, quality = 0.82) {
+    const bmp = await createImageBitmap(file);
+    const k = Math.min(1, max / Math.max(bmp.width, bmp.height));
+    const c = document.createElement("canvas"); c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
+    c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height);
+    return new Promise((res, rej) => c.toBlob((b) => (b ? res(b) : rej(new Error("encode"))), "image/jpeg", quality));
+  }
+  const blobToDataURL = (b) => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(b); });
+  async function readHandwriting(blob) {
+    if (mode !== "account" || !window.claude?.use) return;
+    const s = await window.claude.use("sample").catch(() => null); if (!s) return;
+    const lim = await s.limits().catch(() => null); if (!lim?.images) return;
+    const ph = editText.placeholder; editText.placeholder = "Reading the handwriting…";
+    try {
+      const r = await s("This image is a photo of a handwritten sticky note or a to-do. Reply with only the words written on it, keeping its line breaks, and nothing else. If no writing is readable, reply with a single dash.", { images: [blob], modelTier: "quick" });
+      const t = (r.text || "").trim();
+      if (editing && !editText.value.trim() && t && t !== "-") { editText.value = t.slice(0, 160); toast("Read the note from your photo. Check it, then tap Stick it."); }
+    } catch (e) { /* a declined or failed read just leaves the field for typing */ }
+    finally { editText.placeholder = ph; }
+  }
+  $("#cam-btn").addEventListener("click", () => {
+    if (!projects.length) { toast("Make a project first, then add a photo note."); return openProject(null); }
+    $("#cam-input").click();
+  });
+  $("#cam-input").addEventListener("change", async (e) => {
+    const f = e.target.files[0]; e.target.value = ""; if (!f) return;
+    let blob;
+    try { blob = await shrinkPhoto(f); } catch (err) { toast("Couldn't open that photo. Try taking it again."); return; }
+    const note = blankNote();
+    const assets = mode === "account" && window.claude?.use ? await window.claude.use("assets").catch(() => null) : null;
+    try {
+      if (assets) { const r = await assets.upload(blob, { type: "image/jpeg" }); note.photoId = r.id; }
+      else note.photoData = await blobToDataURL(blob);
+    } catch (err) { toast("Couldn't save that photo. Check your connection, then try again."); return; }
+    openEditor(note, true);
+    readHandwriting(blob);
+  });
+  $("#remove-photo").addEventListener("click", () => {
+    if (!editing) return;
+    delete editing.note.photoId; delete editing.note.photoData;
+    $("#edit-photo").hidden = true; $(".face.front").classList.remove("has-photo"); $("#remove-photo").hidden = true;
   });
 
   $("#toast-undo").addEventListener("click", () => {
