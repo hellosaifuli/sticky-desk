@@ -19,6 +19,7 @@ Open `index.html` in Safari on iPad or Mac. On iPad, tap Share, then **Add to Ho
 - **Daily Quran**: about one minute a day, in order, Arabic with Bangla meaning (Muhiuddin Khan). Tap "পড়া হয়েছে ✓" to move on.
 - **News rail** along the bottom scrolls today's prayer times and Quran verses like a TV ticker. Tap it to open the full prayer times and reading.
 - **Floating button** (bottom right) opens Search, Background, Prayer & Quran and Desk mode.
+- **Search** opens full screen like iOS Spotlight: shortcuts for Today, Flagged and Scheduled, your projects, and results grouped by column as you type. On a keyboard, press ⌘K or Ctrl+K.
 - **Desk mode** keeps the screen awake and shows the date and time, so an iPad on a stand works as a sticky-note display.
 
 When opened as a standalone file, notes are saved in that browser.

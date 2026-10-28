@@ -153,7 +153,7 @@ body {
   clip-path: polygon(0 8%, 3% 0, 6% 10%, 9% 2%, 100% 0, 97% 12%, 100% 30%, 98% 55%, 100% 78%, 97% 100%, 0 100%, 2% 80%, 0 60%, 3% 40%);
 }
 .title { font-size: 1.6rem; transform: rotate(-1.5deg); margin: 0; font-weight: 400; }
-.clock { display: none; font-family: var(--font-hand); font-size: 1.05rem; opacity: .85; }
+.clock { display: inline; }
 .spacer { flex: 1 1 auto; }
 .tools { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
 .search {
@@ -731,12 +731,118 @@ input, select, textarea { font-size: max(16px, 1em); } /* 16px+ stops iOS zoomin
   .box { width: 28px; height: 28px; }
   .x { min-width: 32px; min-height: 32px; }
 }
+
+/* =========================================================
+   Premium polish: system type for controls, paper for content
+   ========================================================= */
+:root {
+  --font-sys: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", system-ui, sans-serif;
+  --font-sys-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", system-ui, sans-serif;
+  --r-sm: 10px; --r-md: 14px; --r-lg: 22px;
+  --ease-out: cubic-bezier(.2, .8, .2, 1);
+  --mark: rgba(255, 214, 10, .55);
+}
+.chip, .tab, .btn, .seg button, .pchip, .field, .mfield, .plabel, .fab-item span, .toast, .hint, .bg-opt,
+.sheet-text, .empty, .date-ph, .card-note, #edit-prio button[data-v="0"], .exit-desk, .today-close, .wip {
+  font-family: var(--font-sys);
+  -webkit-font-smoothing: antialiased;
+}
+.top { align-items: center; }
+.title-group { display: grid; gap: 4px; }
+.clock { font-family: var(--font-sys); font-size: .85rem; font-weight: 500; letter-spacing: .01em; color: var(--on-desk); opacity: .72; padding-left: 4px; }
+body.desk .clock { font-size: 1.05rem; opacity: .9; }
+.tab { font-size: .92rem; font-weight: 600; letter-spacing: -.01em; padding: 10px 16px 7px; }
+.tab .n, .col-head .count {
+  font-family: var(--font-sys); font-size: .72rem; font-weight: 600; font-variant-numeric: tabular-nums;
+  min-width: 20px; padding: 1px 7px; border-radius: 999px; text-align: center;
+  background: rgba(28, 31, 58, .1); color: inherit; opacity: 1;
+}
+.chip { font-size: .86rem; font-weight: 500; padding: 7px 14px; }
+.chip .n { font-weight: 600; opacity: .55; }
+.hint { font-size: .8rem; color: var(--on-desk); opacity: .6; }
+.empty { font-size: .88rem; border-radius: var(--r-md); border-width: 1.5px; padding: 26px 12px; }
+.btn { font-size: .95rem; font-weight: 600; letter-spacing: -.005em; border-radius: var(--r-sm); padding: 10px 16px; }
+.btn.quiet { font-weight: 500; text-decoration: none; color: var(--ui-fg); opacity: .8; }
+.btn.quiet:hover { opacity: 1; }
+.btn.quiet.danger { color: #c0453f; }
+#hand-close { background: var(--ui-fg); color: var(--desk); box-shadow: 0 6px 16px -8px var(--shadow); }
+.seg button, .pchip { font-size: .9rem; font-weight: 500; border-radius: var(--r-sm); }
+.mfield { font-size: .7rem; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; }
+.field { font-size: 1rem; padding: 8px 10px; }
+.toast { font-size: .92rem; font-weight: 500; padding: 12px 18px; }
+.fab-item span { font-size: .82rem; font-weight: 600; padding: 5px 10px; border-radius: 8px; }
+/* paper notes lift a little under the pointer on desktop */
+@media (hover: hover) and (pointer: fine) {
+  .note { transition: transform .22s var(--ease-out); }
+  .note:hover { transform: rotate(var(--tilt)) translateY(-3px); }
+  .note:hover::before, .note:hover::after { box-shadow: 0 18px 15px var(--shadow); }
+}
+.note:active { transform: rotate(var(--tilt)) scale(.985); }
+
+/* ---------- Spotlight ---------- */
+.spotlight {
+  position: fixed; inset: 0; z-index: 66;
+  display: flex; flex-direction: column;
+  background: color-mix(in srgb, var(--desk) 45%, transparent);
+  -webkit-backdrop-filter: blur(34px) saturate(180%); backdrop-filter: blur(34px) saturate(180%);
+  padding: calc(14px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) 0 max(16px, env(safe-area-inset-left, 0px));
+  animation: sp-in .28s var(--ease-out);
+}
+@keyframes sp-in { from { opacity: 0; } }
+.sp-bar { display: flex; align-items: center; gap: 12px; width: min(680px, 100%); margin: 0 auto; animation: sp-drop .32s var(--ease-out); }
+@keyframes sp-drop { from { transform: translateY(-14px) scale(.98); opacity: 0; } }
+.sp-field {
+  flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; height: 48px; padding: 0 12px 0 14px;
+  border-radius: var(--r-md); border: 1px solid var(--glass-edge);
+  background: var(--glass-shine), var(--glass-bg); box-shadow: var(--glass-shadow);
+}
+.sp-field > svg { width: 20px; height: 20px; flex: 0 0 auto; fill: none; stroke: var(--ui-muted); stroke-width: 2.2; stroke-linecap: round; }
+#sp-input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; color: var(--ui-fg); font: 500 17px/1.2 var(--font-sys); -webkit-appearance: none; appearance: none; }
+#sp-input::placeholder { color: var(--ui-muted); }
+#sp-input::-webkit-search-cancel-button { display: none; }
+.sp-clear { width: 26px; height: 26px; border: 0; border-radius: 50%; display: grid; place-items: center; cursor: pointer; background: color-mix(in srgb, var(--ui-fg) 22%, transparent); }
+.sp-clear svg { width: 14px; height: 14px; stroke: var(--desk); stroke-width: 2.6; stroke-linecap: round; fill: none; }
+.sp-cancel { border: 0; background: none; cursor: pointer; font: 500 17px var(--font-sys); color: var(--ui-fg); padding: 10px 2px; }
+.sp-body { flex: 1; overflow-y: auto; width: min(680px, 100%); margin: 0 auto; padding: 22px 0 calc(28px + env(safe-area-inset-bottom, 0px)); display: grid; align-content: start; gap: 26px; overscroll-behavior: contain; }
+.sp-sec { display: grid; gap: 10px; animation: sp-rise .34s var(--ease-out) both; }
+.sp-sec:nth-child(2) { animation-delay: 40ms; } .sp-sec:nth-child(3) { animation-delay: 80ms; } .sp-sec:nth-child(4) { animation-delay: 120ms; }
+@keyframes sp-rise { from { transform: translateY(10px); opacity: 0; } }
+.sp-sec h3 { margin: 0 4px; font: 700 .78rem var(--font-sys); letter-spacing: .06em; text-transform: uppercase; color: var(--on-desk); opacity: .6; }
+.sp-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+@media (min-width: 640px) { .sp-tiles { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+.sp-tile {
+  display: grid; justify-items: start; gap: 2px; padding: 14px 14px 12px; border-radius: var(--r-md); cursor: pointer; text-align: left;
+  border: 1px solid var(--glass-edge); background: var(--glass-shine), var(--glass-bg); box-shadow: var(--glass-shadow); color: var(--ui-fg);
+  transition: transform .15s var(--ease-out);
+}
+.sp-tile:active { transform: scale(.97); }
+.sp-num { font: 700 1.7rem/1.1 var(--font-sys-display); font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+.sp-tname { font: 600 .95rem var(--font-sys); }
+.sp-thint { font: 400 .76rem var(--font-sys); color: var(--ui-muted); }
+.sp-today .sp-num { color: #2f6fd6; } .sp-flagged .sp-num { color: var(--flag); } .sp-scheduled .sp-num { color: #c0453f; } .sp-all .sp-num { color: var(--ui-fg); }
+:root[data-theme="dark"] .sp-today .sp-num { color: #7fb0ff; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .sp-today .sp-num { color: #7fb0ff; } :root:not([data-theme="light"]) .sp-scheduled .sp-num { color: #f08a84; } }
+.sp-list { display: grid; border-radius: var(--r-md); overflow: hidden; border: 1px solid var(--glass-edge); background: var(--glass-shine), var(--glass-bg); box-shadow: var(--glass-shadow); }
+.sp-row {
+  display: flex; align-items: center; gap: 14px; min-height: 58px; padding: 10px 14px; border: 0; background: transparent; cursor: pointer; text-align: left; color: var(--ui-fg);
+  border-top: 1px solid color-mix(in srgb, var(--ui-fg) 10%, transparent);
+}
+.sp-row:first-child { border-top: 0; }
+.sp-row:hover, .sp-row:focus-visible { background: color-mix(in srgb, var(--ui-fg) 7%, transparent); }
+.sp-swatch { flex: 0 0 auto; width: 26px; height: 26px; background: var(--c); background-image: var(--paper-noise); border-radius: 2px; transform: rotate(-4deg); box-shadow: 0 2px 4px rgba(0,0,0,.2); }
+.sp-text { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.sp-title { font: 600 1rem/1.25 var(--font-sys); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sp-sub { font: 400 .8rem var(--font-sys); color: var(--ui-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sp-row mark { background: var(--mark); color: inherit; border-radius: 3px; padding: 0 1px; }
+.sp-chev { flex: 0 0 auto; font: 400 1.4rem var(--font-sys); color: var(--ui-muted); }
+.sp-none { margin: 30px 0; text-align: center; font: 500 1rem var(--font-sys); color: var(--on-desk); opacity: .7; }
+@media (prefers-reduced-motion: reduce) { .spotlight, .sp-bar, .sp-sec { animation: none; } }
 </style>
 
 <main class="wrap">
   <header class="top">
-    <h1 class="tape title">Sticky Desk</h1>
-    <span class="clock" id="clock"></span>
+    <div class="title-group"><h1 class="tape title">Sticky Desk</h1>
+    <span class="clock" id="clock"></span></div>
     <span class="spacer"></span>
     <div class="tools">
       <button class="pad" id="pad" type="button" aria-label="Tear off a new note">+ new<br>note</button>
@@ -796,9 +902,16 @@ input, select, textarea { font-size: max(16px, 1em); } /* 16px+ stops iOS zoomin
 <button class="btn exit-desk" id="exit-desk" type="button">Exit desk mode</button>
 
 <!-- Floating options button: fans out into search, background, prayer & Quran, desk mode -->
-<div class="searchbar" id="searchbar" hidden>
-  <input class="search" id="search" type="search" placeholder="Search notes" aria-label="Search notes" autocomplete="off">
-  <button class="btn quiet" id="search-close" type="button" aria-label="Close search">✕</button>
+<div class="spotlight" id="spotlight" hidden role="dialog" aria-modal="true" aria-label="Search">
+  <div class="sp-bar">
+    <div class="sp-field">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg>
+      <input id="sp-input" type="search" placeholder="Search notes, steps and projects" aria-label="Search notes, steps and projects" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search">
+      <button class="sp-clear" id="sp-clear" type="button" aria-label="Clear search" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 8l8 8M16 8l-8 8"/></svg></button>
+    </div>
+    <button class="sp-cancel" id="sp-cancel" type="button">Cancel</button>
+  </div>
+  <div class="sp-body" id="sp-body" aria-live="polite"></div>
 </div>
 <div class="rail" id="rail" role="region" aria-label="Prayer times and today's Quran">
   <button class="rail-label" id="rail-label" type="button" aria-label="Open prayer times and today's Quran"><span class="live" aria-hidden="true"></span><span id="rail-next" lang="bn">নামাজের সময়</span></button>
@@ -1205,7 +1318,7 @@ input, select, textarea { font-size: max(16px, 1em); } /* 16px+ stops iOS zoomin
     const b = e.target.closest(".chip"); if (!b) return;
     view.filter = b.dataset.f; saveView(); render();
   });
-  $("#search").addEventListener("input", (e) => { view.q = e.target.value.trim(); render(); });
+
 
   /* ---------- floating options button ---------- */
   const fab = $("#fab");
@@ -1219,13 +1332,93 @@ input, select, textarea { font-size: max(16px, 1em); } /* 16px+ stops iOS zoomin
   $("#fab-main").addEventListener("click", () => setFab(!fab.classList.contains("open")));
   $("#fab-items").addEventListener("click", (e) => { if (e.target.closest(".fab-item")) setFab(false); });
   document.addEventListener("click", (e) => { if (fab.classList.contains("open") && !e.target.closest("#fab")) setFab(false); });
-  $("#search-btn").addEventListener("click", () => { $("#searchbar").hidden = false; $("#search").focus(); });
-  $("#search-close").addEventListener("click", () => {
-    $("#search").value = ""; view.q = ""; $("#searchbar").hidden = true; render();
-  });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && fab.classList.contains("open")) setFab(false); });
+
+  /* ---------- Spotlight-style search ---------- */
+  const COL_NAME = { todo: "To do", doing: "Doing", done: "Done" };
+  const sp = $("#spotlight"), spInput = $("#sp-input"), spBody = $("#sp-body");
+  function openSpotlight() { sp.hidden = false; spInput.value = ""; renderSpotlight(); setTimeout(() => spInput.focus(), 30); }
+  function closeSpotlight() { sp.hidden = true; }
+  function hiText(text, q) {
+    const frag = document.createDocumentFragment();
+    const i = q ? text.toLowerCase().indexOf(q) : -1;
+    if (i < 0) { frag.append(text); return frag; }
+    const m = document.createElement("mark"); m.textContent = text.slice(i, i + q.length);
+    frag.append(text.slice(0, i), m, text.slice(i + q.length));
+    return frag;
+  }
+  function spSection(title, kids, cls = "sp-list") {
+    const sec = document.createElement("section"); sec.className = "sp-sec";
+    const h = document.createElement("h3"); h.textContent = title;
+    const box = document.createElement("div"); box.className = cls; box.append(...kids);
+    sec.append(h, box); return sec;
+  }
+  function spRow({ color, title, sub, q, onPick, label }) {
+    const b = document.createElement("button"); b.type = "button"; b.className = "sp-row";
+    const sw = document.createElement("span"); sw.className = "sp-swatch"; sw.style.setProperty("--c", `var(--n-${color})`);
+    const t = document.createElement("span"); t.className = "sp-text";
+    const a = document.createElement("span"); a.className = "sp-title"; a.append(hiText(title, q));
+    const c = document.createElement("span"); c.className = "sp-sub"; c.textContent = sub;
+    t.append(a, c);
+    const chev = document.createElement("span"); chev.className = "sp-chev"; chev.setAttribute("aria-hidden", "true"); chev.textContent = "›";
+    b.append(sw, t, chev);
+    if (label) b.setAttribute("aria-label", label);
+    b.addEventListener("click", onPick);
+    return b;
+  }
+  function renderSpotlight() {
+    const q = spInput.value.trim().toLowerCase();
+    $("#sp-clear").hidden = !q;
+    if (!q) {
+      const count = (f) => notes.filter((n) => { const keep = view.project; view.project = "all"; const r = matches(n, f) && (f !== "today" || n.column !== "done"); view.project = keep; return r; }).length;
+      const tiles = [["today", "Today", "Due today or late"], ["flagged", "Flagged", "Marked with a flag"], ["scheduled", "Scheduled", "Has a date"], ["all", "Everything", "Every note"]].map(([f, name, hint]) => {
+        const b = document.createElement("button"); b.type = "button"; b.className = "sp-tile sp-" + f;
+        const n = document.createElement("span"); n.className = "sp-num"; n.textContent = f === "all" ? notes.length : count(f);
+        const l = document.createElement("span"); l.className = "sp-tname"; l.textContent = name;
+        const h = document.createElement("span"); h.className = "sp-thint"; h.textContent = hint;
+        b.append(n, l, h);
+        b.addEventListener("click", () => { view.filter = f; view.project = "all"; saveView(); render(); closeSpotlight(); });
+        return b;
+      });
+      const projRows = sortedProjects().map((p) => spRow({
+        color: p.color, title: p.name, q: "",
+        sub: `${notes.filter((n) => n.projectId === p.id && n.column !== "done").length} open`,
+        onPick: () => { view.project = p.id; view.filter = "all"; saveView(); render(); closeSpotlight(); },
+      }));
+      spBody.replaceChildren(spSection("Shortcuts", tiles, "sp-tiles"), ...(projRows.length ? [spSection("Projects", projRows)] : []));
+      return;
+    }
+    const hay = (n) => [n.text, n.details, ...(n.checklist || []).map((x) => x.t), projOf(n)?.name].join(" ").toLowerCase();
+    const hits = notes.filter((n) => hay(n).includes(q));
+    const projHits = sortedProjects().filter((p) => p.name.toLowerCase().includes(q));
+    const secs = [];
+    if (projHits.length) secs.push(spSection("Projects", projHits.map((p) => spRow({ color: p.color, title: p.name, q, sub: "Project", onPick: () => { view.project = p.id; view.filter = "all"; saveView(); render(); closeSpotlight(); } }))));
+    for (const c of COLS) {
+      const list = hits.filter((n) => n.column === c).sort((a, b) => a.order - b.order);
+      if (!list.length) continue;
+      secs.push(spSection(COL_NAME[c], list.map((n) => {
+        const di = dueInfo(n.due);
+        const step = (n.checklist || []).find((x) => x.t.toLowerCase().includes(q));
+        const sub = [projOf(n)?.name, di && n.column !== "done" ? di.label : "", step && !n.text.toLowerCase().includes(q) ? "Step: " + step.t : ""].filter(Boolean).join(" · ");
+        return spRow({ color: colorOf(n), title: n.text.replace(/\n/g, " "), q, sub, onPick: () => { closeSpotlight(); openEditor(n, false); } });
+      })));
+    }
+    if (!secs.length) {
+      const p = document.createElement("p"); p.className = "sp-none";
+      p.textContent = `No notes match “${spInput.value.trim()}”.`;
+      spBody.replaceChildren(p); return;
+    }
+    spBody.replaceChildren(...secs);
+  }
+  $("#search-btn").addEventListener("click", openSpotlight);
+  spInput.addEventListener("input", renderSpotlight);
+  spInput.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); spBody.querySelector(".sp-row")?.click(); } });
+  $("#sp-clear").addEventListener("click", () => { spInput.value = ""; renderSpotlight(); spInput.focus(); });
+  $("#sp-cancel").addEventListener("click", closeSpotlight);
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && fab.classList.contains("open")) setFab(false);
-    if (e.key === "Escape" && document.activeElement === $("#search") && !$("#search").value) $("#searchbar").hidden = true;
+    if (e.key === "Escape" && !sp.hidden) closeSpotlight();
+    // ⌘K / Ctrl+K opens search on a keyboard
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); sp.hidden ? openSpotlight() : closeSpotlight(); }
   });
 
   /* ---------- segmented controls ---------- */
@@ -1815,7 +2008,7 @@ input, select, textarea { font-size: max(16px, 1em); } /* 16px+ stops iOS zoomin
 
   /* ---------- sheets: keep focus inside, return it to where you were ---------- */
   if (!document.documentElement.lang) document.documentElement.lang = "en";
-  const SHEETS = ["#hand", "#proj-sheet", "#bg-sheet", "#azan-sheet", "#today"].map((q) => $(q));
+  const SHEETS = ["#hand", "#proj-sheet", "#bg-sheet", "#azan-sheet", "#today", "#spotlight"].map((q) => $(q));
   const BEHIND = () => [...document.querySelectorAll(".wrap > *:not(#today):not(#today-close), #fab, #rail, #searchbar, #exit-desk, #trash")];
   const openers = new Map();
   new MutationObserver(() => {
@@ -1871,8 +2064,10 @@ input, select, textarea { font-size: max(16px, 1em); } /* 16px+ stops iOS zoomin
     const d = new Date();
     $("#clock").textContent = d.toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" }) + " · " + d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
   }
+  const showDate = () => { $("#clock").textContent = new Date().toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" }); };
+  showDate();
   // Re-draw at midnight so "Today", "TMR" and "Late" stay right on a board left open.
-  setInterval(() => { if (today() !== lastDay) { lastDay = today(); render(); } }, 60000);
+  setInterval(() => { if (today() !== lastDay) { lastDay = today(); render(); if (!document.body.classList.contains("desk")) showDate(); } }, 60000);
   async function setDesk(on) {
     document.body.classList.toggle("desk", on);
     if (on) {
@@ -1881,7 +2076,7 @@ input, select, textarea { font-size: max(16px, 1em); } /* 16px+ stops iOS zoomin
       toast(ok ? "Desk mode is on. The screen will stay awake while this page is open."
                : "Desk mode is on, but your iPad may still lock. To stop that, set Settings › Display & Brightness › Auto-Lock to Never.");
     } else {
-      clearInterval(clockTimer);
+      clearInterval(clockTimer); showDate();
       try { await wake?.release(); } catch (e) {}
       wake = null;
     }
