@@ -23,7 +23,9 @@ Open `index.html` in Safari on iPad or Mac. On iPad, tap Share, then **Add to Ho
 - **Search** opens full screen like iOS Spotlight: shortcuts for Today, Flagged and Scheduled, your projects, and results grouped by column as you type. On a keyboard, press ⌘K or Ctrl+K.
 - **Desk mode** keeps the screen awake and shows the date and time, so an iPad on a stand works as a sticky-note display.
 
-When opened as a standalone file, notes are saved in that browser.
+On the website, sign in with a **name and PIN** (a new board starts with PIN 1111; change it in Settings) and the same board syncs across your iPhone, iPad and Mac. Changes sync about every 20 seconds and whenever you open the app, and changes made offline are sent when you're back online. Without signing in, notes stay in that browser.
+
+**Widget:** Settings → Set up widget gives you a script for the free Scriptable app. It shows your Doing and To do notes on the Home Screen, and the counts on the Lock Screen.
 
 ## More features
 

@@ -973,6 +973,18 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
 .ob-dots span.on { width: 20px; border-radius: 4px; background: var(--ui-fg); }
 .ob-actions { display: flex; gap: 12px; justify-content: center; }
 @media (prefers-reduced-motion: reduce) { .fp-dot { animation: none; } }
+
+/* sign in + sync */
+.si-panel { width: min(420px, 100%); }
+.si-panel .mfield .field { width: 100%; max-width: none; height: 46px; font-size: 17px; }
+#si-pin { letter-spacing: .3em; }
+.si-hint { font-size: .85rem; color: var(--ui-muted); }
+.si-msg { min-height: 1.3em; color: var(--ui-fg); font-weight: 500; }
+.acct-line { display: flex; flex-wrap: wrap; gap: 0 4px; }
+.pin-change { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; align-items: end; }
+.pin-change .sheet-text { grid-column: 1 / -1; }
+.widget-box { display: grid; gap: 10px; }
+.widget-code { width: 100%; height: 130px; font: 16px/1.4 ui-monospace, Menlo, monospace; white-space: pre; resize: vertical; }
 </style>
 
 <main class="wrap">
@@ -1158,6 +1170,32 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
 <div class="overlay" id="bg-sheet" hidden role="dialog" aria-modal="true" aria-labelledby="bg-title">
   <div class="panel">
     <h3 class="tape sheet-title" id="bg-title">Settings</h3>
+    <div id="acct-section" hidden>
+      <h4 class="set-h">Sync</h4>
+      <div id="acct-out">
+        <p class="sheet-text">Sign in with a name and PIN to keep one board on your iPhone, iPad and Mac.</p>
+        <div class="set-actions"><button class="btn" id="acct-signin" type="button">Sign in or create a board</button></div>
+      </div>
+      <div id="acct-in" hidden>
+        <p class="sheet-text acct-line"><strong id="acct-name"></strong><span aria-hidden="true"> · </span><span id="acct-status" role="status"></span></p>
+        <div class="set-actions">
+          <button class="btn" id="acct-pin" type="button">Change PIN</button>
+          <button class="btn" id="acct-widget" type="button">Set up widget</button>
+          <button class="btn quiet danger" id="acct-signout" type="button">Sign out</button>
+        </div>
+        <div class="pin-change" id="pin-change" hidden>
+          <label class="mfield">Current PIN<input class="field" id="pc-old" type="password" inputmode="numeric" maxlength="8" autocomplete="current-password"></label>
+          <label class="mfield">New PIN<input class="field" id="pc-new" type="password" inputmode="numeric" maxlength="8" autocomplete="new-password"></label>
+          <button class="btn primary" id="pc-save" type="button">Save PIN</button>
+          <p class="sheet-text" id="pc-msg" role="status"></p>
+        </div>
+        <div class="widget-box" id="widget-box" hidden>
+          <p class="sheet-text">1. Install the free <strong>Scriptable</strong> app. 2. Tap + to make a new script, paste this in and name it Sticky Desk. 3. Add a Scriptable widget to your Home Screen or Lock Screen, tap it, and choose Sticky Desk.</p>
+          <textarea class="field widget-code" id="widget-code" readonly rows="6" aria-label="Widget script"></textarea>
+          <div class="set-actions"><button class="btn" id="widget-copy" type="button">Copy script</button></div>
+        </div>
+      </div>
+    </div>
     <h4 class="set-h">Desk</h4>
     <div class="bgs" id="bgs" role="group" aria-label="Desk background"></div>
     <h4 class="set-h">Sounds</h4>
@@ -1190,6 +1228,19 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
 <div class="banner" id="banner" hidden role="alert"><span id="banner-msg" lang="bn"></span><span class="spacer-x"></span><button class="card-btn primary" id="banner-stop" type="button" lang="bn">বন্ধ করুন</button></div>
 
 <script src="https://unpkg.com/adhan@4.4.3/lib/bundles/adhan.umd.min.js"></script>
+
+<!-- Sign in -->
+<div class="overlay" id="signin" hidden role="dialog" aria-modal="true" aria-labelledby="si-title">
+  <div class="panel si-panel">
+    <h3 class="tape sheet-title" id="si-title">Sign in to sync</h3>
+    <p class="sheet-text">Use the same name and PIN on your iPhone, iPad and Mac to share one board.</p>
+    <label class="mfield">Name<input class="field" id="si-name" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="40" placeholder="e.g. saiful"></label>
+    <label class="mfield">PIN<input class="field" id="si-pin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" autocomplete="current-password" placeholder="1111"></label>
+    <p class="sheet-text si-hint">New here? Pick any name. A new board starts with PIN 1111, and you can change it in Settings.</p>
+    <p class="sheet-text si-msg" id="si-msg" role="alert"></p>
+    <div class="pactions"><div class="left"><button class="btn quiet" id="si-later" type="button">Not now</button></div><button class="btn primary" id="si-go" type="button">Sign in</button></div>
+  </div>
+</div>
 
 <!-- Archive -->
 <div class="overlay" id="archive-sheet" hidden role="dialog" aria-modal="true" aria-labelledby="arch-title">
@@ -1360,7 +1411,7 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
     if (mode === "account") {
       try { await db.collection(kind).doc(obj.id).set(strip(obj)); }
       catch (e) { toast("Couldn't save that change. Check your connection, then try again."); }
-    } else saveLocal();
+    } else { saveLocal(); queueSync(kind, obj.id, obj); }
   }
   async function del(kind, id) {
     const old = (kind === "notes" ? notes : projects).find((x) => x.id === id);
@@ -1370,7 +1421,7 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
     if (mode === "account") {
       try { await db.collection(kind).doc(id).delete(); }
       catch (e) { toast("Couldn't delete that. Check your connection, then try again."); }
-    } else saveLocal();
+    } else { saveLocal(); queueSync(kind, id, null, true); }
   }
   function removeNote(id) {
     const n = notes.find((x) => x.id === id); if (!n) return;
@@ -2047,7 +2098,7 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
     if (mode === "account") {
       try { await db.doc("settings/board").set(settings); }
       catch (e) { toast("Couldn't save that setting to your account. It's kept on this device."); }
-    }
+    } else queueSync("settings", "board", settings);
   }
   function onSettings() {
     if (BGS.some((x) => x.id === settings.bg)) applyBg(settings.bg);
@@ -2323,7 +2374,7 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
 
   /* ---------- sheets: keep focus inside, return it to where you were ---------- */
   if (!document.documentElement.lang) document.documentElement.lang = "en";
-  const SHEETS = ["#hand", "#proj-sheet", "#bg-sheet", "#azan-sheet", "#today", "#spotlight", "#archive-sheet", "#ai-sheet", "#onboard"].map((q) => $(q));
+  const SHEETS = ["#hand", "#proj-sheet", "#bg-sheet", "#azan-sheet", "#today", "#spotlight", "#archive-sheet", "#ai-sheet", "#onboard", "#signin"].map((q) => $(q));
   const BEHIND = () => [...document.querySelectorAll(".wrap > *:not(#today):not(#today-close), #fab, #rail, #searchbar, #exit-desk, #trash")];
   const openers = new Map();
   new MutationObserver(() => {
@@ -2774,7 +2825,7 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
     $("#ob-dots").querySelectorAll("span").forEach((d, k) => d.classList.toggle("on", k === i));
     $("#ob-next").textContent = i >= 2 ? "Start" : "Next";
   }
-  function closeOb() { ob.hidden = true; try { localStorage.setItem("sticky-desk-onboarded", "1"); } catch (e) {} }
+  function closeOb() { ob.hidden = true; try { localStorage.setItem("sticky-desk-onboarded", "1"); } catch (e) {} setTimeout(maybeSignIn, 300); }
   obTrack.addEventListener("scroll", syncOb, { passive: true });
   $("#ob-next").addEventListener("click", () => {
     const i = obIndex();
@@ -2790,6 +2841,255 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
     ["#archive-sheet", "#ai-sheet"].forEach((q) => { if (!$(q).hidden) $(q).hidden = true; });
   });
 
+  /* =====================================================================
+     Cloud sync with name + PIN (Supabase). Website only: claude.ai blocks
+     outside connections, and there the board already syncs through claude.ai.
+     ===================================================================== */
+  const SB_URL = "https://gxeatllskccthzunvzbp.supabase.co";
+  const SB_KEY = "sb_publishable_bbnTx_OR9QFv6_ZpoYx0DA_QcUQDngC";
+  const CLOUD_OK = !window.claude;
+  const SYNC_KIND = { notes: "note", projects: "project", settings: "settings" };
+  let cloud = null;
+  try { cloud = JSON.parse(localStorage.getItem("sticky-desk-cloud") || "null"); } catch (e) {}
+  const saveCloud = () => { try { cloud ? localStorage.setItem("sticky-desk-cloud", JSON.stringify(cloud)) : localStorage.removeItem("sticky-desk-cloud"); } catch (e) {} };
+  const outbox = new Map();
+  try { for (const x of JSON.parse(localStorage.getItem("sticky-desk-outbox") || "[]")) outbox.set(x.kind + ":" + x.id, x); } catch (e) {}
+  const saveOutbox = () => { try { localStorage.setItem("sticky-desk-outbox", JSON.stringify([...outbox.values()])); } catch (e) {} };
+  let pushTimer = null, applying = false, busy = false, lastSyncAt = 0, syncProblem = "";
+
+  async function rpc(fn, args) {
+    const r = await fetch(`${SB_URL}/rest/v1/rpc/${fn}`, {
+      method: "POST", headers: { apikey: SB_KEY, "Content-Type": "application/json" }, body: JSON.stringify(args),
+    });
+    const body = await r.json().catch(() => null);
+    if (!r.ok) { const e = new Error(body?.message || `HTTP ${r.status}`); e.status = r.status; e.code = body?.code; throw e; }
+    return body;
+  }
+  function syncStatusText() {
+    if (!cloud) return "";
+    if (syncProblem) return syncProblem;
+    if (outbox.size) return "Saving changes…";
+    if (!lastSyncAt) return "Connecting…";
+    const s = Math.round((Date.now() - lastSyncAt) / 1000);
+    return s < 60 ? "Synced just now" : `Synced ${Math.round(s / 60)} min ago`;
+  }
+  const showSyncStatus = () => { const el = $("#acct-status"); if (el) el.textContent = syncStatusText(); };
+  function handleCloudError(e) {
+    if (e.code === "P0002" || /unknown sync code/.test(e.message)) {
+      cloud = null; saveCloud(); outbox.clear(); saveOutbox(); renderAccount();
+      toast("You were signed out of sync. Sign in again to keep your devices in step.");
+      return;
+    }
+    syncProblem = "Offline. Changes sync when you're back online.";
+    showSyncStatus();
+  }
+  function queueSync(kind, id, data, deleted) {
+    if (!CLOUD_OK || !cloud || applying) return;
+    const k = SYNC_KIND[kind] || kind;
+    outbox.set(k + ":" + id, { kind: k, id, data: deleted ? null : data, deleted: !!deleted });
+    saveOutbox(); showSyncStatus();
+    clearTimeout(pushTimer); pushTimer = setTimeout(flush, 700);
+  }
+  function applyItems(items) {
+    applying = true;
+    let changed = false;
+    try {
+      for (const it of items || []) {
+        if (outbox.has(it.kind + ":" + it.id)) continue; // this device's newer change wins until it's sent
+        if (it.kind === "settings") {
+          if (!it.deleted && it.data) { settings = { ...settings, ...it.data }; try { localStorage.setItem("sticky-desk-settings", JSON.stringify(settings)); } catch (e) {} onSettings(); }
+          continue;
+        }
+        const list = it.kind === "note" ? notes : projects;
+        const i = list.findIndex((x) => x.id === it.id);
+        if (it.deleted) { if (i >= 0) { list.splice(i, 1); changed = true; } }
+        else { const obj = { ...it.data, id: it.id }; if (i >= 0) list[i] = obj; else list.push(obj); changed = true; }
+      }
+      if (changed) { saveLocal(); render(); }
+    } finally { applying = false; }
+  }
+  async function flush() {
+    if (!cloud || !outbox.size || busy) return;
+    busy = true;
+    const batch = [...outbox.values()].slice(0, 100);
+    try {
+      await rpc("sd_push", { p_key: cloud.token, p_items: batch });
+      for (const x of batch) { const key = x.kind + ":" + x.id; if (outbox.get(key) === x) outbox.delete(key); }
+      saveOutbox(); syncProblem = ""; lastSyncAt = Date.now();
+    } catch (e) { handleCloudError(e); }
+    finally { busy = false; showSyncStatus(); }
+    if (cloud && outbox.size && !syncProblem) setTimeout(flush, 800);
+  }
+  async function pull() {
+    if (!cloud || busy) return;
+    busy = true;
+    try {
+      const res = await rpc("sd_pull", { p_key: cloud.token, p_since: cloud.since || null });
+      applyItems(res.items);
+      cloud.since = res.now; saveCloud(); syncProblem = ""; lastSyncAt = Date.now();
+    } catch (e) { handleCloudError(e); }
+    finally { busy = false; showSyncStatus(); }
+    if (cloud && outbox.size) flush();
+  }
+  async function afterSignIn(res) {
+    cloud = { token: res.token, name: res.name, since: null }; saveCloud();
+    const remote = await rpc("sd_pull", { p_key: cloud.token, p_since: null });
+    const onBoard = new Set((remote.items || []).map((it) => it.kind + ":" + it.id));
+    // anything on this device the board hasn't seen goes up; the board's own copy (and its deletions) win
+    for (const p of projects) if (!onBoard.has("project:" + p.id)) outbox.set("project:" + p.id, { kind: "project", id: p.id, data: p, deleted: false });
+    for (const n of notes) if (!onBoard.has("note:" + n.id)) outbox.set("note:" + n.id, { kind: "note", id: n.id, data: n, deleted: false });
+    if (!onBoard.has("settings:board")) outbox.set("settings:board", { kind: "settings", id: "board", data: settings, deleted: false });
+    saveOutbox();
+    applyItems(remote.items);
+    cloud.since = remote.now; saveCloud(); lastSyncAt = Date.now(); syncProblem = "";
+    renderAccount(); startCloudLoop(); flush();
+  }
+  let loopStarted = false;
+  function startCloudLoop() {
+    if (loopStarted) return; loopStarted = true;
+    setInterval(() => { if (document.visibilityState === "visible") { flush(); pull(); } }, 20000);
+    setInterval(showSyncStatus, 15000);
+    document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") { flush(); pull(); } });
+    addEventListener("online", () => { syncProblem = ""; flush(); pull(); });
+  }
+
+  /* ---------- sign-in sheet ---------- */
+  let createMode = false;
+  function openSignIn() {
+    createMode = false;
+    $("#si-msg").textContent = ""; $("#si-go").textContent = "Sign in"; $("#si-pin").value = "";
+    $("#signin").hidden = false;
+    setTimeout(() => ($("#si-name").value ? $("#si-pin") : $("#si-name")).focus(), 60);
+  }
+  function maybeSignIn() {
+    if (!CLOUD_OK || cloud) return;
+    try { if (localStorage.getItem("sticky-desk-signin-later")) return; } catch (e) { return; }
+    openSignIn();
+  }
+  const SI_ERR = {
+    bad_name: "Use 3 to 40 letters, numbers, spaces, dots or dashes for the name.",
+    bad_pin: "A PIN is 4 to 8 digits.",
+    name_taken: "That name is already taken. Try another, or sign in if it's yours.",
+  };
+  async function submitSignIn() {
+    const name = $("#si-name").value.trim(), pinTyped = $("#si-pin").value.trim();
+    const pin = pinTyped || (createMode ? "1111" : "");
+    const msg = $("#si-msg");
+    if (name.length < 3) { msg.textContent = SI_ERR.bad_name; $("#si-name").focus(); return; }
+    if (!pin) { msg.textContent = "Enter your PIN."; $("#si-pin").focus(); return; }
+    const btn = $("#si-go"); btn.disabled = true; msg.textContent = createMode ? "Creating your board…" : "Signing in…";
+    try {
+      const res = await rpc(createMode ? "sd_register" : "sd_sign_in", { p_name: name, p_pin: pin });
+      if (res.ok) {
+        $("#signin").hidden = true;
+        await afterSignIn(res);
+        toast(pin === "1111" ? "Signed in. Your PIN is still 1111, so change it in Settings to keep your board private." : "Signed in. This board now syncs across your devices.");
+        return;
+      }
+      if (res.error === "not_found") {
+        createMode = true; btn.textContent = "Create board";
+        msg.textContent = `There's no board called “${name}” yet. Tap Create board to make it with ${pinTyped ? "this PIN" : "PIN 1111"}.`;
+      } else if (res.error === "wrong_pin") {
+        msg.textContent = `That PIN isn't right. ${res.tries_left} ${res.tries_left === 1 ? "try" : "tries"} left before a short lock.`;
+        $("#si-pin").select();
+      } else if (res.error === "locked") {
+        msg.textContent = `Too many wrong PINs. Try again in ${res.wait_minutes} minutes.`;
+      } else msg.textContent = SI_ERR[res.error] || "Couldn't sign in. Try again.";
+    } catch (e) {
+      msg.textContent = "Can't reach the sync server. Check your connection, then try again.";
+    } finally { btn.disabled = false; }
+  }
+  $("#si-go").addEventListener("click", submitSignIn);
+  $("#si-pin").addEventListener("keydown", (e) => { if (e.key === "Enter") submitSignIn(); });
+  $("#si-name").addEventListener("keydown", (e) => { if (e.key === "Enter") $("#si-pin").focus(); });
+  $("#si-name").addEventListener("input", () => { if (createMode) { createMode = false; $("#si-go").textContent = "Sign in"; $("#si-msg").textContent = ""; } });
+  $("#si-later").addEventListener("click", () => { try { localStorage.setItem("sticky-desk-signin-later", "1"); } catch (e) {} $("#signin").hidden = true; });
+  $("#signin").addEventListener("click", (e) => { if (e.target.id === "signin") $("#signin").hidden = true; });
+
+  /* ---------- account section in Settings ---------- */
+  function renderAccount() {
+    $("#acct-section").hidden = !CLOUD_OK;
+    if (!CLOUD_OK) return;
+    $("#acct-out").hidden = !!cloud; $("#acct-in").hidden = !cloud;
+    if (cloud) { $("#acct-name").textContent = cloud.name; showSyncStatus(); }
+    $("#pin-change").hidden = true; $("#widget-box").hidden = true;
+  }
+  $("#acct-signin").addEventListener("click", () => { $("#bg-sheet").hidden = true; openSignIn(); });
+  $("#acct-signout").addEventListener("click", async () => {
+    const t = cloud?.token;
+    cloud = null; saveCloud(); outbox.clear(); saveOutbox(); renderAccount();
+    toast("Signed out. Your notes stay on this device.");
+    if (t) rpc("sd_sign_out", { p_key: t }).catch(() => {});
+  });
+  $("#acct-pin").addEventListener("click", () => { $("#pin-change").hidden = !$("#pin-change").hidden; $("#pc-msg").textContent = ""; $("#pc-old").focus(); });
+  $("#pc-save").addEventListener("click", async () => {
+    const msg = $("#pc-msg"), o = $("#pc-old").value.trim(), n = $("#pc-new").value.trim();
+    if (!/^\d{4,8}$/.test(n)) { msg.textContent = SI_ERR.bad_pin; return; }
+    try {
+      const r = await rpc("sd_change_pin", { p_key: cloud.token, p_old: o, p_new: n });
+      if (r.ok) { msg.textContent = "PIN changed. Use the new PIN on your other devices."; $("#pc-old").value = ""; $("#pc-new").value = ""; }
+      else msg.textContent = r.error === "wrong_pin" ? "Your current PIN isn't right." : SI_ERR[r.error] || "Couldn't change the PIN.";
+    } catch (e) { msg.textContent = "Can't reach the sync server. Try again."; }
+  });
+  function widgetScript(token) {
+    return [
+      "// Sticky Desk widget for Scriptable",
+      'const KEY = "' + token + '";',
+      'const req = new Request("' + SB_URL + '/rest/v1/rpc/sd_widget");',
+      'req.method = "POST";',
+      'req.headers = { apikey: "' + SB_KEY + '", "Content-Type": "application/json" };',
+      "req.body = JSON.stringify({ p_key: KEY });",
+      "const d = await req.loadJSON();",
+      'const paper = { pink: "#f4888c", yellow: "#f8de78", blue: "#92cfe9", green: "#b9de8c", orange: "#f7b06a", lilac: "#cdb6ec", mint: "#9fe0c9" };',
+      "const w = new ListWidget();",
+      'w.url = "' + location.origin + '";',
+      'const fam = config.widgetFamily || "medium";',
+      'if (fam.startsWith("accessory")) {',
+      '  const t = w.addText((d.doing || 0) + " doing · " + (d.todo || 0) + " to do");',
+      "  t.font = Font.semiboldSystemFont(13);",
+      "} else {",
+      '  w.backgroundColor = new Color("#d8bf98");',
+      '  const h = w.addText("Sticky Desk"); h.font = Font.boldSystemFont(13); h.textColor = new Color("#3b2f21");',
+      '  const c = w.addText((d.doing || 0) + " doing · " + (d.todo || 0) + " to do"); c.font = Font.systemFont(11); c.textColor = new Color("#6b5a45");',
+      "  w.addSpacer(6);",
+      '  const max = fam === "large" ? 6 : fam === "small" ? 2 : 3;',
+      "  for (const n of (d.notes || []).slice(0, max)) {",
+      "    const s = w.addStack(); s.backgroundColor = new Color(paper[n.color] || paper.pink); s.cornerRadius = 3; s.setPadding(5, 8, 5, 8);",
+      '    const t = s.addText((n.priority ? "!".repeat(n.priority) + " " : "") + n.text); t.font = Font.mediumSystemFont(12); t.textColor = new Color("#1c1f3a"); t.lineLimit = 1;',
+      "    s.addSpacer(); w.addSpacer(4);",
+      "  }",
+      "}",
+      "Script.setWidget(w);",
+      "Script.complete();",
+    ].join("\n");
+  }
+  $("#acct-widget").addEventListener("click", async () => {
+    const box = $("#widget-box");
+    if (!box.hidden) { box.hidden = true; return; }
+    $("#widget-code").value = "Making a widget key…"; box.hidden = false;
+    try {
+      const r = await rpc("sd_new_token", { p_key: cloud.token, p_label: "widget" });
+      if (!r.ok) throw new Error(r.error);
+      $("#widget-code").value = widgetScript(r.token);
+    } catch (e) { $("#widget-code").value = "Couldn't make a widget key. Check your connection, then try again."; }
+  });
+  $("#widget-copy").addEventListener("click", async () => {
+    const ta = $("#widget-code");
+    try { await navigator.clipboard.writeText(ta.value); toast("Widget script copied. Paste it into a new Scriptable script."); }
+    catch (e) { ta.focus(); ta.select(); toast("Select all and copy the script."); }
+  });
+  $("#bg-btn").addEventListener("click", renderAccount);
+
+  function cloudBoot() {
+    renderAccount();
+    if (!CLOUD_OK) return;
+    if (cloud) { startCloudLoop(); pull(); flush(); }
+    else {
+      let seenWelcome = false; try { seenWelcome = !!localStorage.getItem("sticky-desk-onboarded"); } catch (e) {}
+      if (seenWelcome) setTimeout(maybeSignIn, 700);
+    }
+  }
+
   render();
   // Measure where the board starts so its columns can fill the rest of the screen.
   const sizeBoard = () => document.documentElement.style.setProperty("--board-top", Math.round(board.getBoundingClientRect().top + window.scrollY) + "px");
@@ -2803,6 +3103,7 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
   setInterval(renderPrayer, 15000);
   document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") renderPrayer(); });
   start();
+  cloudBoot();
 })();
 </script>
 
