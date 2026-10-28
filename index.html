@@ -903,6 +903,16 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
   .cam-btn { width: 46px; height: 46px; }
   .pad { width: 82px; height: 66px; font-size: .98rem; }
 }
+
+.sheet-x {
+  position: fixed; z-index: 2;
+  top: calc(12px + env(safe-area-inset-top, 0px)); right: calc(14px + env(safe-area-inset-right, 0px));
+  width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; cursor: pointer;
+  border: 1px solid var(--glass-edge); background: var(--glass-shine), var(--glass-bg); box-shadow: var(--glass-shadow); color: var(--ui-fg);
+  -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur);
+}
+.sheet-x svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; }
+.sheet-x:active { transform: scale(.92); }
 </style>
 
 <main class="wrap">
@@ -1010,6 +1020,7 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
 
 <!-- Note in hand -->
 <div class="overlay" id="hand" hidden role="dialog" aria-modal="true" aria-label="Edit note">
+  <button class="sheet-x" id="hand-x" type="button" aria-label="Close and keep the note"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg></button>
   <div class="flip" id="flip">
     <div class="flip-inner">
       <div class="face paper front"><img class="edit-photo" id="edit-photo" alt="" hidden><textarea id="edit-text" maxlength="160" placeholder="What do you need to do?" aria-label="Note text"></textarea></div>
@@ -1614,6 +1625,7 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
     board.querySelector(`[data-id="${note.id}"]`)?.focus({ preventScroll: true });
   }
   $("#hand-close").addEventListener("click", () => closeEditor(true));
+  $("#hand-x").addEventListener("click", () => closeEditor(true));
   $("#hand-delete").addEventListener("click", () => closeEditor(false));
   hand.addEventListener("click", (e) => { if (e.target === hand) closeEditor(true); });
 
