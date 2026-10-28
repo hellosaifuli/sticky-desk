@@ -2083,8 +2083,13 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
     const d = new Date();
     $("#clock").textContent = d.toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" }) + " · " + d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
   }
-  const showDate = () => { $("#clock").textContent = new Date().toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" }); };
+  // Date and time under the title, kept current to the minute
+  const showDate = () => {
+    const d = new Date();
+    $("#clock").textContent = d.toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" }) + " · " + d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+  };
   showDate();
+  setTimeout(() => { showDate(); setInterval(showDate, 60000); }, (60 - new Date().getSeconds()) * 1000);
   // Re-draw at midnight so "Today", "TMR" and "Late" stay right on a board left open.
   setInterval(() => { if (today() !== lastDay) { lastDay = today(); render(); if (!document.body.classList.contains("desk")) showDate(); } }, 60000);
   async function setDesk(on) {
@@ -2096,6 +2101,7 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
                : "Desk mode is on, but your iPad may still lock. To stop that, set Settings › Display & Brightness › Auto-Lock to Never.");
     } else {
       clearInterval(clockTimer); showDate();
+      $("#clock").style.fontVariantNumeric = "tabular-nums";
       try { await wake?.release(); } catch (e) {}
       wake = null;
     }
