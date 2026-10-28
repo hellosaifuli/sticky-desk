@@ -1,0 +1,694 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>Sticky Desk</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Permanent+Marker&family=Work+Sans:wght@400;500&display=swap">
+<style>
+/* Layout: a light-wood desk seen from above. Three columns marked with masking tape, paper notes stuck in rows, a pad of fresh notes in the corner. */
+:root {
+  --desk: #d8bf98;
+  --desk-shade: #c4a67b;
+  --grain-r: .42; /* used only in the SVG data URI below via literal */
+  --tape: #ece3cb;
+  --tape-edge: #d9cdae;
+  --tape-ink: #2a2723;
+  --ink: #1c1f3a;
+  --shadow: rgba(70, 45, 20, .38);
+  --ui: rgba(255, 250, 240, .9);
+  --ui-fg: #3b2f21;
+  --ui-muted: #7a6650;
+  --focus: #2d5bd7;
+  --drop: rgba(255, 255, 255, .35);
+  --veil: rgba(40, 28, 16, .45);
+  --n-pink: #f4888c;
+  --n-yellow: #f8de78;
+  --n-blue: #92cfe9;
+  --n-green: #b9de8c;
+  --n-orange: #f7b06a;
+  --font-hand: "Kalam", "Bradley Hand", "Segoe Print", cursive;
+  --font-marker: "Permanent Marker", "Marker Felt", "Kalam", cursive;
+  --font-ui: "Work Sans", system-ui, -apple-system, sans-serif;
+  --paper-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .2 0 0 0 0 .12 0 0 0 0 .08 1.7 0 0 0 -.62'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.22'/%3E%3C/svg%3E");
+  --wood-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='900' height='600'%3E%3Cfilter id='w'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.0035 .22' numOctaves='4' seed='7' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .42 0 0 0 0 .27 0 0 0 0 .13 1.9 0 0 0 -.78'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23w)' opacity='.5'/%3E%3C/svg%3E");
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --desk: #4a3727; --desk-shade: #382819;
+    --tape: #d6ccb2; --tape-edge: #b9ad90; --tape-ink: #221f1b;
+    --shadow: rgba(0, 0, 0, .6);
+    --ui: rgba(42, 32, 23, .92); --ui-fg: #f1e5d0; --ui-muted: #bba88c;
+    --focus: #9db8ff; --drop: rgba(255, 240, 220, .12); --veil: rgba(0, 0, 0, .6);
+    --n-pink: #e27c80; --n-yellow: #e8cd6a; --n-blue: #82bdd6; --n-green: #a8cb7e; --n-orange: #e5a05e;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --desk: #4a3727; --desk-shade: #382819;
+  --tape: #d6ccb2; --tape-edge: #b9ad90; --tape-ink: #221f1b;
+  --shadow: rgba(0, 0, 0, .6);
+  --ui: rgba(42, 32, 23, .92); --ui-fg: #f1e5d0; --ui-muted: #bba88c;
+  --focus: #9db8ff; --drop: rgba(255, 240, 220, .12); --veil: rgba(0, 0, 0, .6);
+  --n-pink: #e27c80; --n-yellow: #e8cd6a; --n-blue: #82bdd6; --n-green: #a8cb7e; --n-orange: #e5a05e;
+  color-scheme: dark;
+}
+
+html, body { min-height: 100%; }
+body {
+  background-color: var(--desk);
+  background-image:
+    radial-gradient(130% 90% at 25% -10%, rgba(255, 255, 255, .22), transparent 60%),
+    radial-gradient(120% 80% at 100% 110%, var(--desk-shade), transparent 70%),
+    var(--wood-grain);
+  background-attachment: fixed;
+  color: var(--ui-fg);
+  font-family: var(--font-ui);
+  -webkit-tap-highlight-color: transparent;
+}
+.wrap {
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 18px 96px;
+  max-width: 1400px;
+  margin: 0 auto;
+  display: grid;
+  gap: 22px;
+}
+
+/* ---------- Top strip ---------- */
+.top { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 20px; }
+.tape {
+  display: inline-flex; align-items: baseline; gap: 10px;
+  background:
+    linear-gradient(90deg, rgba(0,0,0,.04), transparent 12%, transparent 88%, rgba(0,0,0,.04)),
+    var(--tape);
+  color: var(--tape-ink);
+  padding: 6px 18px 4px;
+  font-family: var(--font-marker);
+  letter-spacing: .04em;
+  box-shadow: 0 1px 2px rgba(0,0,0,.15);
+  opacity: .96;
+  /* torn tape ends */
+  clip-path: polygon(0 8%, 3% 0, 6% 10%, 9% 2%, 100% 0, 97% 12%, 100% 30%, 98% 55%, 100% 78%, 97% 100%, 0 100%, 2% 80%, 0 60%, 3% 40%);
+}
+.title { font-size: 1.6rem; transform: rotate(-1.5deg); margin: 0; font-weight: 400; }
+.clock { display: none; font-family: var(--font-hand); font-size: 1.05rem; color: var(--ui-fg); opacity: .85; }
+.spacer { flex: 1 1 auto; }
+
+.tools { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
+.swatches { display: flex; gap: 8px; align-items: center; }
+.swatch {
+  width: 28px; height: 28px; border: 0; padding: 0; cursor: pointer;
+  background: var(--c); background-image: var(--paper-noise);
+  box-shadow: 0 2px 3px var(--shadow);
+  transform: rotate(var(--t, -3deg));
+  border-radius: 1px;
+}
+.swatch[aria-pressed="true"] { outline: 2px solid var(--ui-fg); outline-offset: 3px; }
+.pad {
+  position: relative; border: 0; cursor: pointer;
+  width: 92px; height: 74px;
+  background: var(--pad, var(--n-pink)); background-image: var(--paper-noise);
+  box-shadow:
+    2px 3px 0 -1px color-mix(in srgb, var(--pad, var(--n-pink)) 85%, #000),
+    4px 6px 0 -2px color-mix(in srgb, var(--pad, var(--n-pink)) 78%, #000),
+    6px 12px 12px -6px var(--shadow);
+  font-family: var(--font-hand); font-size: 1.05rem; color: var(--ink); line-height: 1.1;
+  transform: rotate(2deg);
+  transition: transform .15s ease;
+}
+.pad:active { transform: rotate(2deg) translateY(2px) scale(.98); }
+.btn {
+  font-family: var(--font-hand); font-size: 1.05rem;
+  border: 0; cursor: pointer; color: var(--ui-fg);
+  background: var(--ui); padding: 8px 14px 6px; border-radius: 3px;
+  box-shadow: 0 1px 2px rgba(0,0,0,.15), 0 4px 10px -6px var(--shadow);
+}
+.btn.quiet { background: transparent; box-shadow: none; text-decoration: underline; text-underline-offset: 3px; }
+.status { font-size: .78rem; color: var(--ui-muted); letter-spacing: .02em; font-family: var(--font-ui); }
+.hint { font-family: var(--font-hand); color: var(--ui-fg); opacity: .8; margin: -8px 0 0; font-size: 1rem; }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+
+/* ---------- Board ---------- */
+.board { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; align-items: start; }
+.col {
+  min-width: 0; display: grid; gap: 16px; align-content: start;
+  padding: 10px; margin: -10px; border-radius: 6px;
+  transition: background-color .15s ease, box-shadow .15s ease;
+}
+.col.over { background: var(--drop); box-shadow: inset 0 0 0 2px var(--drop); }
+.col-head { justify-self: start; }
+.col h2 { margin: 0; font-size: 1.15rem; font-weight: 400; text-transform: uppercase; }
+.col:nth-child(1) .col-head { transform: rotate(-2deg); }
+.col:nth-child(2) .col-head { transform: rotate(1.2deg); }
+.col:nth-child(3) .col-head { transform: rotate(-.8deg); }
+.count { font-family: var(--font-hand); font-size: 1rem; opacity: .7; font-variant-numeric: tabular-nums; }
+.notes {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+  gap: 22px 18px; min-height: 160px; padding-top: 4px;
+}
+.empty {
+  grid-column: 1 / -1; margin: 0; padding: 22px 6px;
+  font-family: var(--font-hand); font-size: 1.05rem; color: var(--ui-fg); opacity: .6;
+  border: 2px dashed color-mix(in srgb, var(--ui-fg) 25%, transparent); border-radius: 4px; text-align: center;
+}
+
+/* ---------- Note ---------- */
+.note {
+  position: relative; aspect-ratio: 1; max-width: 100%;
+  transform: rotate(var(--tilt, 0deg));
+  container-type: inline-size;
+  cursor: grab; touch-action: manipulation;
+  -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
+  outline-offset: 6px;
+}
+.note::before, .note::after {
+  content: ""; position: absolute; z-index: 0; bottom: 9%; width: 46%; height: 24%;
+  box-shadow: 0 13px 11px var(--shadow);
+}
+.note::before { left: 5%; transform: rotate(-4deg); }
+.note::after { right: 5%; transform: rotate(4deg); }
+.paper {
+  position: relative; z-index: 1; height: 100%;
+  background-color: var(--c);
+  background-image:
+    linear-gradient(180deg, rgba(0,0,0,.055) 0, rgba(0,0,0,.02) 20%, transparent 24%, transparent 62%, rgba(255,255,255,.16) 100%),
+    var(--paper-noise);
+  border-radius: 1px 1px 2px 3px;
+  box-shadow: 0 0 0 .5px rgba(0,0,0,.06), 0 2px 3px rgba(0,0,0,.12);
+  transform: perspective(700px) rotateX(5deg);
+  transform-origin: 50% 0;
+  padding: 15% 11% 11%;
+  display: flex; align-items: flex-start; justify-content: center;
+  overflow: hidden;
+}
+.text {
+  font-family: var(--font-hand); color: var(--ink);
+  font-size: 13cqi; line-height: 1.16; text-align: center;
+  white-space: pre-wrap; overflow-wrap: anywhere;
+  text-shadow: 0 0 .6px rgba(28, 31, 58, .55); /* felt-pen bleed */
+  width: 100%;
+}
+.note.m .text { font-size: 10.5cqi; }
+.note.l .text { font-size: 8.5cqi; }
+.note.xl .text { font-size: 7cqi; }
+.note.done .text {
+  text-decoration: line-through; text-decoration-thickness: .09em;
+  text-decoration-color: rgba(28, 31, 58, .8); opacity: .62;
+}
+.tick {
+  position: absolute; right: 7%; bottom: 6%; width: 30%; height: 30%;
+  fill: none; stroke: var(--ink); stroke-width: 7; stroke-linecap: round; stroke-linejoin: round; opacity: .85;
+}
+.note.placeholder { opacity: .22; }
+.note.settle { animation: settle .38s cubic-bezier(.2, .9, .3, 1.3); }
+@keyframes settle {
+  from { transform: rotate(var(--tilt)) scale(1.07); }
+  to { transform: rotate(var(--tilt)) scale(1); }
+}
+.ghost {
+  position: fixed; left: 0; top: 0; z-index: 50; pointer-events: none; margin: 0;
+  transition: none;
+}
+.ghost::before, .ghost::after { box-shadow: 0 26px 22px var(--shadow); bottom: 4%; }
+.ghost .paper { transform: perspective(700px) rotateX(9deg); }
+
+/* ---------- Trash ---------- */
+.trash {
+  position: fixed; z-index: 40;
+  right: calc(18px + env(safe-area-inset-right, 0px));
+  bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+  width: 96px; padding: 10px 8px 8px; border-radius: 10px;
+  display: grid; justify-items: center; gap: 2px;
+  background: var(--ui); color: var(--ui-fg);
+  font-family: var(--font-hand); font-size: .95rem;
+  box-shadow: 0 6px 18px -6px var(--shadow);
+  transform: translateY(160%); transition: transform .2s ease;
+}
+body.dragging .trash { transform: none; }
+.trash.over { outline: 3px solid #c0453f; }
+.trash svg { width: 38px; height: 38px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ---------- Note in hand (editor) ---------- */
+.hand {
+  position: fixed; inset: 0; z-index: 60;
+  background: var(--veil);
+  display: grid; place-items: center; align-content: center; gap: 22px;
+  padding: calc(20px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) calc(20px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+}
+.hand .note { width: min(360px, 78vw); cursor: default; transform: rotate(-1deg); animation: lift .22s ease-out; }
+.hand .paper { padding: 13% 9% 9%; }
+@keyframes lift { from { transform: rotate(-1deg) scale(.85); opacity: .4; } }
+#edit-text {
+  width: 100%; height: 100%; resize: none; border: 0; outline: 0; background: transparent;
+  font-family: var(--font-hand); color: var(--ink); font-size: 2.1rem; line-height: 1.16; text-align: center;
+  -webkit-user-select: text; user-select: text;
+}
+#edit-text::placeholder { color: rgba(28, 31, 58, .4); }
+.hand-tools {
+  display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 12px 16px;
+  background: var(--ui); padding: 12px 16px; border-radius: 10px; max-width: 560px;
+  box-shadow: 0 10px 30px -12px var(--shadow);
+}
+.seg { display: flex; gap: 4px; }
+.seg button {
+  font-family: var(--font-hand); font-size: 1rem; border: 0; cursor: pointer;
+  padding: 6px 10px 4px; border-radius: 3px; background: transparent; color: var(--ui-fg);
+}
+.seg button[aria-pressed="true"] { background: var(--tape); color: var(--tape-ink); }
+.btn.danger { color: #b23a34; }
+:root[data-theme="dark"] .btn.danger { color: #f08a84; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .btn.danger { color: #f08a84; } }
+.btn.primary { background: var(--tape); color: var(--tape-ink); }
+
+/* ---------- Toast ---------- */
+.toast {
+  position: fixed; z-index: 70; left: 50%;
+  bottom: calc(22px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  max-width: min(520px, calc(100vw - 32px));
+  background: var(--ui); color: var(--ui-fg);
+  font-family: var(--font-hand); font-size: 1.05rem;
+  padding: 10px 16px 8px; border-radius: 8px;
+  box-shadow: 0 10px 26px -10px var(--shadow);
+  display: flex; gap: 14px; align-items: center;
+}
+.toast button { font: inherit; border: 0; background: none; color: inherit; text-decoration: underline; cursor: pointer; padding: 0; }
+
+/* ---------- Desk mode: the iPad as a sticky-note display ---------- */
+body.desk .tools, body.desk .hint, body.desk .status { display: none; }
+body.desk .clock { display: inline; }
+body.desk .exit-desk { display: inline-block; }
+.exit-desk {
+  display: none; position: fixed; z-index: 30;
+  left: calc(16px + env(safe-area-inset-left, 0px));
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  opacity: .7;
+}
+
+@media (max-width: 760px) {
+  .board { grid-template-columns: 1fr; gap: 34px; }
+  .notes { grid-template-columns: repeat(auto-fill, minmax(124px, 1fr)); }
+  .title { font-size: 1.35rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .note.settle, .hand .note { animation: none; }
+  .trash, .pad, .col { transition: none; }
+}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <h1 class="tape title">Sticky Desk</h1>
+    <span class="clock" id="clock"></span>
+    <span class="spacer"></span>
+    <div class="tools">
+      <div class="swatches" role="group" aria-label="Pad colour" id="swatches"></div>
+      <button class="pad" id="pad" type="button" aria-label="Tear off a new note">+ new<br>note</button>
+      <button class="btn" id="desk-btn" type="button">Desk mode</button>
+    </div>
+  </header>
+  <p class="hint" id="hint">Tap a note to write on it. Hold and drag to move it between columns.</p>
+
+  <main class="board" id="board">
+    <section class="col" data-col="todo" aria-labelledby="h-todo">
+      <div class="tape col-head"><h2 id="h-todo">To do</h2><span class="count"></span></div>
+      <div class="notes"></div>
+    </section>
+    <section class="col" data-col="doing" aria-labelledby="h-doing">
+      <div class="tape col-head"><h2 id="h-doing">Doing</h2><span class="count"></span></div>
+      <div class="notes"></div>
+    </section>
+    <section class="col" data-col="done" aria-labelledby="h-done">
+      <div class="tape col-head"><h2 id="h-done">Done</h2><span class="count"></span></div>
+      <div class="notes"></div>
+    </section>
+  </main>
+  <p class="status" id="status">Unpacking your notes…</p>
+</div>
+
+<div class="trash" id="trash" aria-hidden="true">
+  <svg viewBox="0 0 40 40"><path d="M9 12h22l-2.2 22.5a2 2 0 0 1-2 1.5H13.2a2 2 0 0 1-2-1.5z"/><path d="M6.5 12h27M16 12V8.5h8V12M15.5 18l.8 12M24.5 18l-.8 12M20 18v12"/></svg>
+  Throw away
+</div>
+
+<button class="btn exit-desk" id="exit-desk" type="button">Exit desk mode</button>
+
+<div class="hand" id="hand" hidden role="dialog" aria-modal="true" aria-label="Edit note">
+  <div class="note" id="hand-note"><div class="paper"><textarea id="edit-text" maxlength="160" placeholder="Write a task…" aria-label="Note text"></textarea></div></div>
+  <div class="hand-tools">
+    <div class="swatches" role="group" aria-label="Note colour" id="hand-swatches"></div>
+    <div class="seg" role="group" aria-label="Column" id="hand-cols">
+      <button type="button" data-col="todo">To do</button>
+      <button type="button" data-col="doing">Doing</button>
+      <button type="button" data-col="done">Done</button>
+    </div>
+    <button class="btn danger" id="hand-delete" type="button">Throw away</button>
+    <button class="btn primary" id="hand-close" type="button">Stick it</button>
+  </div>
+</div>
+
+<div class="toast" id="toast" hidden role="status"><span id="toast-msg"></span><button id="toast-undo" type="button" hidden>Undo</button></div>
+
+<script>
+(() => {
+  const COLS = ["todo", "doing", "done"];
+  const COLORS = ["pink", "yellow", "blue", "green", "orange"];
+  const COLOR_NAMES = { pink: "Pink", yellow: "Yellow", blue: "Blue", green: "Green", orange: "Orange" };
+  const LOCAL_KEY = "sticky-desk-notes-v1";
+  // Your notes from the photo, used only when the board is opened without your account.
+  const SAMPLE = [
+    { id: "s1", text: "PDF feedback\n→ TMR", column: "doing", color: "pink", order: 1 },
+    { id: "s2", text: "START\nBeevo Partner Portal", column: "todo", color: "pink", order: 1 },
+    { id: "s3", text: "Complete Notification UX", column: "todo", color: "pink", order: 2 },
+  ];
+
+  const $ = (s) => document.querySelector(s);
+  const board = $("#board"), trash = $("#trash"), hand = $("#hand"), editText = $("#edit-text");
+  let notes = [];
+  let mode = "loading"; // "account" | "local"
+  let col = null;       // db collection
+  let padColor = "pink";
+  let drag = null, editing = null, renderPending = false, lastDeleted = null, toastTimer = null;
+
+  try { const c = localStorage.getItem("sticky-desk-pad"); if (COLORS.includes(c)) padColor = c; } catch (e) {}
+
+  /* ---------- helpers ---------- */
+  const hash = (s) => { let h = 0; for (const ch of s) h = (h * 31 + ch.charCodeAt(0)) | 0; return Math.abs(h); };
+  const tiltFor = (id) => ((hash(id) % 9) - 4) * 0.75 + "deg";
+  const newId = () => "n" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  const sizeClass = (t) => { const n = (t || "").length; return n > 90 ? "xl" : n > 55 ? "l" : n > 26 ? "m" : ""; };
+  const inCol = (c) => notes.filter((n) => n.column === c).sort((a, b) => a.order - b.order);
+
+  function toast(msg, undo) {
+    $("#toast-msg").textContent = msg;
+    $("#toast-undo").hidden = !undo;
+    $("#toast").hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { $("#toast").hidden = true; lastDeleted = null; }, undo ? 6000 : 4200);
+  }
+  function setStatus() {
+    $("#status").textContent = mode === "account"
+      ? "Saved to your account, so the board looks the same on your iPad, phone and laptop."
+      : "Saved in this browser only. Open the board while signed in to claude.ai to keep it on every device.";
+  }
+
+  /* ---------- storage ---------- */
+  function saveLocal() { try { localStorage.setItem(LOCAL_KEY, JSON.stringify(notes)); } catch (e) {} }
+  async function persist(note) {
+    const i = notes.findIndex((n) => n.id === note.id);
+    if (i >= 0) notes[i] = note; else notes.push(note);
+    render();
+    if (mode === "account") {
+      const { id, ...body } = note;
+      try { await col.doc(id).set(body); }
+      catch (e) { toast("Couldn't save that change. Check your connection, then try again."); }
+    } else saveLocal();
+  }
+  async function remove(id) {
+    const note = notes.find((n) => n.id === id);
+    if (!note) return;
+    notes = notes.filter((n) => n.id !== id);
+    lastDeleted = note;
+    render();
+    toast("Note thrown away.", true);
+    if (mode === "account") {
+      try { await col.doc(id).delete(); }
+      catch (e) { toast("Couldn't throw that note away. Check your connection, then try again."); }
+    } else saveLocal();
+  }
+
+  function startLocal() {
+    mode = "local";
+    let stored = null;
+    try { stored = JSON.parse(localStorage.getItem(LOCAL_KEY) || "null"); } catch (e) {}
+    notes = Array.isArray(stored) ? stored : SAMPLE.map((n) => ({ ...n }));
+    setStatus(); render();
+  }
+  async function start() {
+    const c = window.claude;
+    if (!c || !c.use) return startLocal();
+    try {
+      const [db, user] = await Promise.all([c.use("db"), c.use("user")]);
+      const owner = user ? await user.isOwner() : false;
+      if (!db || !owner) return startLocal();
+      mode = "account";
+      col = db.collection("notes");
+      setStatus();
+      col.onSnapshot((snap) => {
+        notes = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+        render();
+      }, () => toast("Couldn't load your notes. Check your connection, then reload the page."));
+    } catch (e) { startLocal(); }
+  }
+
+  /* ---------- render ---------- */
+  function noteEl(n) {
+    const el = document.createElement("div");
+    el.className = "note " + sizeClass(n.text) + (n.column === "done" ? " done" : "");
+    el.dataset.id = n.id;
+    el.tabIndex = 0;
+    el.setAttribute("role", "button");
+    el.setAttribute("aria-label", (n.text || "Empty note") + ". Tap to edit.");
+    el.style.setProperty("--c", `var(--n-${COLORS.includes(n.color) ? n.color : "pink"})`);
+    el.style.setProperty("--tilt", tiltFor(n.id));
+    const paper = document.createElement("div");
+    paper.className = "paper";
+    const t = document.createElement("div");
+    t.className = "text";
+    t.textContent = n.text;
+    paper.append(t);
+    if (n.column === "done") {
+      paper.insertAdjacentHTML("beforeend", '<svg class="tick" viewBox="0 0 100 100" aria-hidden="true"><path d="M14 56c8 6 16 15 24 26 13-27 29-50 50-68"/></svg>');
+    }
+    el.append(paper);
+    return el;
+  }
+  const EMPTY = { todo: "Tap the pad to tear off a note.", doing: "Drag a note here when you start it.", done: "Finished notes land here." };
+  function render(settleId) {
+    if (drag && drag.active || editing) { renderPending = true; return; }
+    renderPending = false;
+    for (const c of COLS) {
+      const section = board.querySelector(`[data-col="${c}"]`);
+      const list = inCol(c);
+      const wrap = section.querySelector(".notes");
+      const kids = list.map(noteEl);
+      if (!kids.length && mode !== "loading") {
+        const p = document.createElement("p"); p.className = "empty"; p.textContent = EMPTY[c]; kids.push(p);
+      }
+      wrap.replaceChildren(...kids);
+      section.querySelector(".count").textContent = list.length;
+    }
+    if (settleId) board.querySelector(`[data-id="${settleId}"]`)?.classList.add("settle");
+  }
+
+  /* ---------- swatches ---------- */
+  function buildSwatches(host, get, set) {
+    host.replaceChildren(...COLORS.map((c, i) => {
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "swatch";
+      b.style.setProperty("--c", `var(--n-${c})`);
+      b.style.setProperty("--t", [-4, 2, -1, 3, -2][i] + "deg");
+      b.setAttribute("aria-label", COLOR_NAMES[c]);
+      b.dataset.color = c;
+      b.addEventListener("click", () => { set(c); sync(); });
+      return b;
+    }));
+    const sync = () => host.querySelectorAll(".swatch").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.color === get())));
+    sync();
+    return sync;
+  }
+  const syncPad = buildSwatches($("#swatches"), () => padColor, (c) => {
+    padColor = c; $("#pad").style.setProperty("--pad", `var(--n-${c})`);
+    try { localStorage.setItem("sticky-desk-pad", c); } catch (e) {}
+  });
+  $("#pad").style.setProperty("--pad", `var(--n-${padColor})`);
+
+  /* ---------- editor (note in hand) ---------- */
+  let syncHand;
+  function openEditor(note, isNew) {
+    editing = { note: { ...note }, isNew };
+    const hn = $("#hand-note");
+    const paint = () => hn.style.setProperty("--c", `var(--n-${editing.note.color})`);
+    syncHand = buildSwatches($("#hand-swatches"), () => editing.note.color, (c) => { editing.note.color = c; paint(); });
+    paint();
+    syncCols();
+    editText.value = note.text || "";
+    hand.hidden = false;
+    $("#hand-delete").textContent = isNew ? "Discard" : "Throw away";
+    setTimeout(() => { editText.focus(); editText.setSelectionRange(editText.value.length, editText.value.length); }, 60);
+  }
+  function syncCols() {
+    $("#hand-cols").querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.col === editing.note.column)));
+  }
+  $("#hand-cols").addEventListener("click", (e) => {
+    const b = e.target.closest("button"); if (!b || !editing) return;
+    if (editing.note.column !== b.dataset.col) {
+      editing.note.column = b.dataset.col;
+      const list = inCol(b.dataset.col).filter((n) => n.id !== editing.note.id);
+      editing.note.order = list.length ? list[list.length - 1].order + 1 : 1;
+    }
+    syncCols();
+  });
+  function closeEditor(save) {
+    if (!editing) return;
+    const { note, isNew } = editing;
+    note.text = editText.value.trim();
+    editing = null;
+    hand.hidden = true;
+    if (!save) { if (!isNew) remove(note.id); else render(); return; }
+    if (!note.text) { if (isNew) { render(); return; } remove(note.id); return; }
+    const old = notes.find((n) => n.id === note.id);
+    const changed = !old || ["text", "color", "column", "order"].some((k) => old[k] !== note[k]);
+    if (changed) persist(note); else if (renderPending) render();
+    board.querySelector(`[data-id="${note.id}"]`)?.focus({ preventScroll: true });
+  }
+  $("#hand-close").addEventListener("click", () => closeEditor(true));
+  $("#hand-delete").addEventListener("click", () => closeEditor(false));
+  hand.addEventListener("click", (e) => { if (e.target === hand) closeEditor(true); });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && editing) closeEditor(true);
+    if (e.key === "Enter" && !editing && e.target.classList?.contains("note") && e.target.dataset.id) {
+      const n = notes.find((x) => x.id === e.target.dataset.id); if (n) openEditor(n, false);
+    }
+  });
+
+  $("#pad").addEventListener("click", () => {
+    const top = inCol("todo")[0];
+    openEditor({ id: newId(), text: "", column: "todo", color: padColor, order: top ? top.order - 1 : 1, createdAt: Date.now() }, true);
+  });
+
+  $("#toast-undo").addEventListener("click", () => {
+    if (lastDeleted) { const n = lastDeleted; lastDeleted = null; persist(n); }
+    $("#toast").hidden = true;
+  });
+
+  /* ---------- drag: hold to pick up on touch, drag right away with a mouse ---------- */
+  board.addEventListener("pointerdown", (e) => {
+    const el = e.target.closest(".note");
+    if (!el || e.button > 0 || editing) return;
+    drag = { id: el.dataset.id, el, x0: e.clientX, y0: e.clientY, x: e.clientX, y: e.clientY, active: false, touch: e.pointerType !== "mouse" };
+    if (drag.touch) drag.timer = setTimeout(() => drag && !drag.active && lift(), 230);
+  });
+  function lift() {
+    const r = drag.el.getBoundingClientRect();
+    const g = drag.el.cloneNode(true);
+    g.classList.add("ghost"); g.classList.remove("settle");
+    g.style.width = drag.el.offsetWidth + "px";
+    g.removeAttribute("tabindex");
+    document.body.append(g);
+    drag.ghost = g; drag.dx = drag.x - (r.left + r.width / 2); drag.dy = drag.y - (r.top + r.height / 2);
+    drag.half = drag.el.offsetWidth / 2;
+    drag.active = true;
+    drag.el.classList.add("placeholder");
+    document.body.classList.add("dragging");
+    moveGhost();
+  }
+  function moveGhost() {
+    const { ghost, x, y } = drag;
+    const tx = x - drag.dx - drag.half, ty = y - drag.dy - drag.half;
+    ghost.style.transform = `translate(${tx}px, ${ty}px) rotate(${(x - drag.x0) > 0 ? 4 : -4}deg) scale(1.07)`;
+    const hit = document.elementFromPoint(x, y);
+    const overTrash = !!hit?.closest("#trash");
+    trash.classList.toggle("over", overTrash);
+    const c = overTrash ? null : hit?.closest(".col");
+    board.querySelectorAll(".col").forEach((s) => s.classList.toggle("over", s === c));
+    drag.target = overTrash ? "trash" : c?.dataset.col || null;
+  }
+  window.addEventListener("pointermove", (e) => {
+    if (!drag) return;
+    drag.x = e.clientX; drag.y = e.clientY;
+    const dist = Math.hypot(drag.x - drag.x0, drag.y - drag.y0);
+    if (!drag.active) {
+      if (!drag.touch && dist > 5) lift();
+      else if (drag.touch && dist > 10) { clearTimeout(drag.timer); drag = null; } // it's a scroll
+      return;
+    }
+    moveGhost();
+  });
+  // Stop iPad Safari from scrolling while a note is held.
+  document.addEventListener("touchmove", (e) => { if (drag && drag.active) e.preventDefault(); }, { passive: false });
+  document.addEventListener("contextmenu", (e) => { if (e.target.closest?.(".note")) e.preventDefault(); });
+
+  function endDrag(commit) {
+    const d = drag; drag = null;
+    clearTimeout(d.timer);
+    if (!d.active) {
+      if (commit && Math.hypot(d.x - d.x0, d.y - d.y0) < 10) {
+        const n = notes.find((x) => x.id === d.id); if (n) openEditor(n, false);
+      }
+      return;
+    }
+    d.ghost.remove();
+    document.body.classList.remove("dragging");
+    trash.classList.remove("over");
+    board.querySelectorAll(".col").forEach((s) => s.classList.remove("over"));
+    d.el.classList.remove("placeholder");
+    const note = notes.find((n) => n.id === d.id);
+    if (!commit || !note || !d.target) { render(); return; }
+    if (d.target === "trash") { remove(note.id); return; }
+    // Where in the column was it dropped?
+    const others = [...board.querySelectorAll(`[data-col="${d.target}"] .note`)].filter((el) => el.dataset.id !== d.id);
+    let idx = others.length;
+    for (let i = 0; i < others.length; i++) {
+      const r = others[i].getBoundingClientRect();
+      if (d.y < r.top || (d.y <= r.bottom && d.x < r.left + r.width / 2)) { idx = i; break; }
+    }
+    const list = inCol(d.target).filter((n) => n.id !== d.id);
+    const prev = list[idx - 1]?.order, next = list[idx]?.order;
+    const order = prev == null && next == null ? 1 : prev == null ? next - 1 : next == null ? prev + 1 : (prev + next) / 2;
+    if (note.column === d.target && note.order === order) { render(note.id); return; }
+    const moved = { ...note, column: d.target, order };
+    const i = notes.findIndex((n) => n.id === d.id); notes[i] = moved;
+    render(moved.id);
+    persist(moved);
+    if (d.target === "done" && note.column !== "done") toast("Nice. That one's done.");
+  }
+  window.addEventListener("pointerup", () => drag && endDrag(true));
+  window.addEventListener("pointercancel", () => drag && endDrag(false));
+
+  /* ---------- desk mode: keep the iPad awake as a note display ---------- */
+  let wake = null;
+  async function requestWake() {
+    try { wake = await navigator.wakeLock.request("screen"); return true; } catch (e) { return false; }
+  }
+  function tick() {
+    const d = new Date();
+    $("#clock").textContent = d.toLocaleDateString(undefined, { weekday: "short", day: "numeric", month: "short" }) + " · " + d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+  }
+  let clockTimer = null;
+  async function setDesk(on) {
+    document.body.classList.toggle("desk", on);
+    try { localStorage.setItem("sticky-desk-desk", on ? "1" : "0"); } catch (e) {}
+    if (on) {
+      tick(); clockTimer = setInterval(tick, 15000);
+      const ok = await requestWake();
+      toast(ok ? "Desk mode is on. The screen will stay awake while this page is open."
+               : "Desk mode is on, but your iPad may still lock. To stop that, set Settings › Display & Brightness › Auto-Lock to Never.");
+    } else {
+      clearInterval(clockTimer);
+      try { await wake?.release(); } catch (e) {}
+      wake = null;
+    }
+  }
+  $("#desk-btn").addEventListener("click", () => setDesk(true));
+  $("#exit-desk").addEventListener("click", () => setDesk(false));
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible" && document.body.classList.contains("desk")) requestWake();
+  });
+
+  render();
+  start();
+})();
+</script>
+
+</body>
+</html>
