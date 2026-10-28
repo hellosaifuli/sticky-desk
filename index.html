@@ -856,6 +856,18 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
     -webkit-mask-image: linear-gradient(90deg, transparent, #000 16px, #000 calc(100% - 24px), transparent);
             mask-image: linear-gradient(90deg, transparent, #000 16px, #000 calc(100% - 24px), transparent); }
 }
+
+/* fields in More: labels stay small caps, the fields themselves read normally and share one height */
+.mrow { align-items: flex-start; }
+.mfield > :is(.field, .date-wrap, .seg), .date-ph { text-transform: none; letter-spacing: normal; }
+.mfield .field, .date-wrap .field { height: 44px; min-height: 44px; padding-block: 0; line-height: 44px; }
+.date-ph { font: 400 1rem var(--font-sys); color: var(--ui-muted); left: 12px; }
+.date-wrap { min-width: 0; }
+.date-wrap .field { min-width: 0; }
+#more .mrow > .mfield { flex: 1 1 130px; min-width: 0; }
+#more .mrow > .mfield .field { max-width: none; width: 100%; }
+#more .mrow > .mfield:has(#edit-prio) { flex: 0 1 auto; }
+#edit-due { -webkit-appearance: none; appearance: none; display: block; }
 </style>
 
 <main class="wrap">
