@@ -708,6 +708,16 @@ input, select, textarea { font-size: max(16px, 1em); } /* 16px+ stops iOS zoomin
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .fab-main, .fab-item, .fab-item span, .searchbar, .panel, .toast, .exit-desk, .today-close, .chip, .trash { background: var(--ui); }
 }
+
+.date-wrap { position: relative; display: block; }
+.date-wrap .field { width: 100%; min-width: 150px; min-height: 40px; }
+.date-ph { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); pointer-events: none; font-family: var(--font-hand); font-size: 1rem; color: var(--ui-muted); }
+.date-wrap.has-value .date-ph { display: none; }
+.date-wrap:not(.has-value) input::-webkit-datetime-edit { color: transparent; }
+.flip { transition: width .25s ease; }
+#hand.more-open .flip { width: min(220px, 56vw, 26vh); min-width: 150px; }
+/* pressed chip reads well on every desk and theme */
+.chip[aria-pressed="true"] { background: var(--glass-shine), var(--tape); color: var(--tape-ink); }
 </style>
 
 <div class="wrap">
@@ -826,7 +836,7 @@ input, select, textarea { font-size: max(16px, 1em); } /* 16px+ stops iOS zoomin
     <div class="more" id="more" hidden>
     <div class="mrow">
       <label class="mfield">Project<select class="field" id="edit-project"></select></label>
-      <label class="mfield">Date<input class="field" id="edit-due" type="date"></label>
+      <label class="mfield">Date<span class="date-wrap" id="date-wrap"><input class="field" id="edit-due" type="date"><span class="date-ph" aria-hidden="true">Pick a date</span></span></label>
       <label class="mfield">Repeat<select class="field" id="edit-repeat">
         <option value="">Doesn't repeat</option><option value="daily">Every day</option><option value="weekdays">Every weekday</option><option value="weekly">Every week</option><option value="monthly">Every month</option>
       </select></label>
@@ -1224,14 +1234,14 @@ input, select, textarea { font-size: max(16px, 1em); } /* 16px+ stops iOS zoomin
     syncQuick = seg($("#quick-due"), () => N.due === today() ? "0" : N.due === addDays(today(), 1) ? "1" : "none", (v) => {
       const d = addDays(today(), Number(v));
       N.due = N.due === d ? "" : d;
-      $("#edit-due").value = N.due || "";
+      setDueField(N.due);
       if (!N.due) { N.repeat = ""; $("#edit-repeat").value = ""; }
       syncDue();
     });
-    $("#edit-due").value = N.due || "";
+    setDueField(N.due);
     $("#edit-repeat").value = N.repeat || "";
     $("#quick-flag").setAttribute("aria-pressed", String(!!N.flagged));
-    $("#more").hidden = true; $("#more-btn").setAttribute("aria-expanded", "false"); $("#more-btn").textContent = "More";
+    $("#more").hidden = true; $("#more-btn").setAttribute("aria-expanded", "false"); $("#more-btn").textContent = "More"; hand.classList.remove("more-open");
     editText.value = N.text || "";
     $("#edit-details").value = N.details || "";
     $("#add-step").value = "";
@@ -1242,9 +1252,11 @@ input, select, textarea { font-size: max(16px, 1em); } /* 16px+ stops iOS zoomin
     hand.hidden = false;
     setTimeout(() => { editText.focus(); editText.setSelectionRange(editText.value.length, editText.value.length); }, 60);
   }
-  $("#edit-due").addEventListener("change", (e) => { editing.note.due = e.target.value; if (!e.target.value) { editing.note.repeat = ""; $("#edit-repeat").value = ""; } syncDue(); syncQuick(); });
+  function setDueField(v) { $("#edit-due").value = v || ""; $("#date-wrap").classList.toggle("has-value", !!v); }
+  $("#edit-due").addEventListener("change", (e) => { $("#date-wrap").classList.toggle("has-value", !!e.target.value); editing.note.due = e.target.value; if (!e.target.value) { editing.note.repeat = ""; $("#edit-repeat").value = ""; } syncDue(); syncQuick(); });
   $("#more-btn").addEventListener("click", (e) => {
     const open = $("#more").hidden;
+    hand.classList.toggle("more-open", open);
     $("#more").hidden = !open;
     e.currentTarget.setAttribute("aria-expanded", String(open));
     e.currentTarget.textContent = open ? "Less" : "More";
@@ -1253,7 +1265,7 @@ input, select, textarea { font-size: max(16px, 1em); } /* 16px+ stops iOS zoomin
   editText.addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); closeEditor(true); } });
   $("#edit-repeat").addEventListener("change", (e) => {
     editing.note.repeat = e.target.value;
-    if (e.target.value && !editing.note.due) { editing.note.due = today(); $("#edit-due").value = editing.note.due; syncDue(); syncQuick(); }
+    if (e.target.value && !editing.note.due) { editing.note.due = today(); setDueField(editing.note.due); syncDue(); syncQuick(); }
   });
   $("#quick-flag").addEventListener("click", (e) => { editing.note.flagged = !editing.note.flagged; e.currentTarget.setAttribute("aria-pressed", String(editing.note.flagged)); });
   $("#edit-details").addEventListener("input", (e) => { editing.note.details = e.target.value; });
