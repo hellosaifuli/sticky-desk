@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
 </head>
 <body>
@@ -868,6 +868,11 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
 #more .mrow > .mfield .field { max-width: none; width: 100%; }
 #more .mrow > .mfield:has(#edit-prio) { flex: 0 1 auto; }
 #edit-due { -webkit-appearance: none; appearance: none; display: block; }
+
+/* iOS zooms into any text field under 16px; the note-sized fields scale with the note, so floor them at 16px */
+#edit-text { font-size: max(16px, 10cqi); }
+#edit-details, .add-step, .steps input[type="text"] { font-size: max(16px, 5.6cqi); }
+#edit-details { line-height: max(24px, 9cqi); }
 </style>
 
 <main class="wrap">
