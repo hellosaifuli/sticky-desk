@@ -11,7 +11,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Permanent+Marker&family=Work+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Hind+Siliguri:wght@400;500;600&family=Kalam:wght@400;700&family=Permanent+Marker&family=Work+Sans:wght@400;500;600&display=swap">
 <style>
 /* Layout: a light-wood desk seen from above. Folder tabs pick the project, masking tape labels three columns split by pencil lines, paper notes stuck in rows. */
 :root {
@@ -41,6 +41,11 @@
   --font-hand: "Kalam", "Bradley Hand", "Segoe Print", cursive;
   --font-marker: "Permanent Marker", "Marker Felt", "Kalam", cursive;
   --font-ui: "Work Sans", system-ui, -apple-system, sans-serif;
+  --font-ar: "Amiri", "Geeza Pro", "Times New Roman", serif;
+  --font-bn: "Hind Siliguri", "Kohinoor Bangla", "Bangla Sangam MN", sans-serif;
+  --card: #fbf6ea;         /* printed paper stays paper in both themes */
+  --card-rule: rgba(28, 31, 58, .12);
+  --accent-ink: #1f5f4a;   /* green ink for the next prayer */
   --paper-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .2 0 0 0 0 .12 0 0 0 0 .08 1.7 0 0 0 -.62'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.22'/%3E%3C/svg%3E");
   --wood-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='900' height='600'%3E%3Cfilter id='w'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.0035 .22' numOctaves='4' seed='7' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .42 0 0 0 0 .27 0 0 0 0 .13 1.9 0 0 0 -.78'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23w)' opacity='.5'/%3E%3C/svg%3E");
   --pencil-v: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 400' preserveAspectRatio='none'%3E%3Cpath d='M4 2C2.6 70 5.2 130 3.8 200S2.7 330 4.3 398' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E");
@@ -382,7 +387,69 @@ body.dragging .trash { transform: none; }
   background: color-mix(in srgb, var(--ui-fg) 8%, transparent); border: 0; border-radius: 3px; padding: 5px 8px 3px;
 }
 .quick { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
-.more { display: grid; gap: 12px; padding-top: 12px; border-top: 1px dashed color-mix(in srgb, var(--ui-fg) 25%, transparent); }
+.more { display: grid; gap: 14px; padding-top: 14px; border-top: 1px solid color-mix(in srgb, var(--ui-fg) 12%, transparent); }
+.mrow { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px 16px; }
+.mfield { display: grid; gap: 4px; font-size: .72rem; letter-spacing: .04em; color: var(--ui-muted); }
+.mfield .field { min-width: 0; max-width: 220px; }
+#edit-prio button { min-width: 36px; justify-content: center; font-family: var(--font-marker); color: var(--red-ink); }
+#edit-prio button[data-v="0"] { color: var(--ui-muted); font-family: var(--font-hand); }
+
+/* ---------- Today strip: prayer times + daily Quran ---------- */
+.today { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr); gap: 24px; align-items: start; }
+.card {
+  position: relative; min-width: 0;
+  background: var(--card); background-image: var(--paper-noise); color: var(--ink);
+  padding: 18px 20px 14px; border-radius: 2px;
+  box-shadow: 0 1px 2px rgba(0,0,0,.12), 0 14px 20px -14px var(--shadow);
+}
+.card::before { /* a strip of tape holding the sheet down */
+  content: ""; position: absolute; top: -10px; left: 50%; width: 92px; height: 22px; margin-left: -46px;
+  background: var(--tape); opacity: .85; transform: rotate(-2deg); box-shadow: 0 1px 2px rgba(0,0,0,.12);
+}
+.prayer { transform: rotate(-.4deg); }
+.quran { transform: rotate(.3deg); }
+.card-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; margin-bottom: 10px; }
+.card-head h2 { margin: 0; font-family: var(--font-bn); font-weight: 600; font-size: 1.1rem; }
+.card-sub { font-family: var(--font-bn); font-size: .85rem; opacity: .7; }
+.next { font-family: var(--font-hand); font-size: 1.15rem; color: var(--accent-ink); margin: 0 0 8px; }
+.times { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px 10px; }
+.times li { display: grid; gap: 0; padding: 6px 8px 5px; border-radius: 3px; border-bottom: 1px solid var(--card-rule); }
+.times .pn { font-family: var(--font-bn); font-size: .85rem; opacity: .75; }
+.times .pt { font-family: var(--font-ui); font-weight: 500; font-size: 1.02rem; font-variant-numeric: tabular-nums; }
+.times li.is-next { background: color-mix(in srgb, var(--accent-ink) 12%, transparent); border-bottom-color: var(--accent-ink); }
+.times li.is-next .pn, .times li.is-next .pt { color: var(--accent-ink); opacity: 1; }
+.times li.is-past .pt { opacity: .5; }
+.card-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-top: 12px; }
+.card-btn {
+  font-family: var(--font-bn); font-size: .92rem; color: var(--ink);
+  border: 0; cursor: pointer; padding: 6px 12px 5px; border-radius: 3px;
+  background: rgba(28, 31, 58, .07);
+}
+.card-btn.primary { background: var(--accent-ink); color: #fbf6ea; }
+.card-btn[aria-pressed="true"] { background: var(--accent-ink); color: #fbf6ea; }
+.card-note { margin: 8px 0 0; font-family: var(--font-ui); font-size: .72rem; opacity: .6; }
+.qr-body { max-height: 300px; overflow-y: auto; padding-right: 4px; display: grid; gap: 4px; }
+.ayah { display: grid; gap: 4px; padding: 8px 0 10px; border-bottom: 1px solid var(--card-rule); }
+.ayah:last-child { border-bottom: 0; }
+.ar { margin: 0; font-family: var(--font-ar); font-size: 1.65rem; line-height: 2; text-align: right; }
+.ar .num { font-size: 1.1rem; color: var(--accent-ink); }
+.bn { margin: 0; font-family: var(--font-bn); font-size: 1rem; line-height: 1.6; }
+.bn .num { opacity: .55; font-size: .85rem; }
+.qr-empty { font-family: var(--font-bn); opacity: .7; margin: 6px 0; }
+.spacer-x { flex: 1 1 auto; }
+.banner {
+  position: fixed; z-index: 75; left: 50%; top: calc(16px + env(safe-area-inset-top, 0px)); transform: translateX(-50%);
+  width: min(460px, calc(100vw - 32px));
+  background: var(--card); background-image: var(--paper-noise); color: var(--ink);
+  padding: 14px 18px; border-radius: 4px; box-shadow: 0 18px 36px -14px var(--shadow);
+  display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px;
+  font-family: var(--font-bn); font-size: 1.05rem;
+}
+.banner strong { color: var(--accent-ink); }
+@media (max-width: 760px) {
+  .today { grid-template-columns: 1fr; }
+  .times { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
 .pactions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-end; }
 .pactions .left { margin-right: auto; display: flex; gap: 10px; }
 .swatches { display: flex; flex-wrap: wrap; gap: 10px; }
@@ -393,6 +460,7 @@ body.dragging .trash { transform: none; }
 }
 .swatch[aria-pressed="true"] { outline: 2px solid var(--ui-fg); outline-offset: 3px; }
 .sheet-title { margin: 0; font-size: 1.2rem; font-weight: 400; justify-self: start; }
+.sheet-text { margin: 0; font-size: .95rem; line-height: 1.5; max-width: 60ch; }
 
 /* ---------- Toast ---------- */
 .toast {
@@ -407,6 +475,56 @@ body.dragging .trash { transform: none; }
   display: flex; gap: 14px; align-items: center;
 }
 .toast button { font: inherit; border: 0; background: none; color: inherit; text-decoration: underline; cursor: pointer; padding: 0; }
+
+/* ---------- Floating options button ---------- */
+.fab {
+  position: fixed; z-index: 35;
+  right: calc(20px + env(safe-area-inset-right, 0px));
+  bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  width: 60px; height: 60px;
+  transition: opacity .15s ease;
+}
+body.dragging .fab, body.desk .fab { opacity: 0; pointer-events: none; }
+.fab-main, .fab-item {
+  position: absolute; border: 0; cursor: pointer; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--tape); background-image: var(--paper-noise); color: var(--tape-ink);
+}
+.fab svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.fab-main { inset: 0; box-shadow: 0 3px 4px rgba(0,0,0,.18), 0 14px 22px -10px var(--shadow); z-index: 2; }
+.fab-main svg { width: 28px; height: 28px; transition: transform .28s cubic-bezier(.2, .9, .3, 1.3); }
+.fab.open .fab-main svg { transform: rotate(135deg); }
+.fab-items { position: absolute; inset: 0; }
+.fab-item {
+  left: 6px; top: 6px; width: 48px; height: 48px;
+  box-shadow: 0 2px 3px rgba(0,0,0,.18), 0 10px 16px -10px var(--shadow);
+  opacity: 0; transform: translate(0, 0) scale(.3) rotate(-30deg); pointer-events: none;
+  transition: transform .32s cubic-bezier(.2, .9, .3, 1.25), opacity .2s ease;
+  transition-delay: calc((3 - var(--i)) * 30ms);
+}
+.fab-item span {
+  position: absolute; top: calc(100% + 3px); left: 50%; transform: translateX(-50%);
+  white-space: nowrap; font-family: var(--font-hand); font-size: .85rem; color: var(--on-desk);
+  text-shadow: 0 1px 0 color-mix(in srgb, var(--desk) 70%, transparent);
+}
+.fab.open .fab-item {
+  opacity: 1; pointer-events: auto;
+  transform: translate(var(--x), var(--y)) scale(1) rotate(0deg);
+  transition-delay: calc(var(--i) * 45ms);
+}
+.fab-item[aria-pressed="false"] { opacity: .75; }
+.fab.open .fab-item[aria-pressed="false"] { opacity: .7; }
+.searchbar {
+  position: fixed; z-index: 36;
+  right: calc(20px + env(safe-area-inset-right, 0px));
+  bottom: calc(94px + env(safe-area-inset-bottom, 0px));
+  display: flex; align-items: center; gap: 4px;
+  background: var(--ui); padding: 6px 6px 6px 8px; border-radius: 8px;
+  box-shadow: 0 10px 26px -10px var(--shadow);
+  animation: pop .22s cubic-bezier(.2, .9, .3, 1.25);
+}
+.searchbar .search { width: min(260px, calc(100vw - 120px)); box-shadow: none; }
+@keyframes pop { from { transform: translateY(10px) scale(.9); opacity: 0; } }
 
 /* ---------- Desk mode ---------- */
 body.desk .tools, body.desk .hint, body.desk .status { display: none; }
@@ -425,16 +543,35 @@ body.desk .exit-desk { display: inline-block; }
   #hand .flip { width: min(400px, 40vw, 72vh); }
   #hand .panel { width: 100%; }
 }
+/* ---------- Adaptive layout ---------- */
+.m-only { display: none; }
+/* Desktop: wide desk, room for three notes per column */
+@media (min-width: 1280px) {
+  .notes { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+}
+/* iPad and small laptops: three columns, smaller notes so two fit side by side */
+@media (min-width: 761px) and (max-width: 1100px) {
+  .notes { grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 18px 14px; }
+  .times { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .today { grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); }
+}
+/* Phone: columns become a sideways swipe, one column per screen */
 @media (max-width: 760px) {
-  .board { grid-template-columns: 1fr; gap: 44px; }
-  .col + .col::before {
-    top: -16px; bottom: auto; left: 4px; right: 4px; width: auto; height: 8px;
-    -webkit-mask-image: var(--pencil-h); mask-image: var(--pencil-h);
-  }
-  .notes { grid-template-columns: repeat(auto-fill, minmax(128px, 1fr)); }
+  .m-only { display: inline; }
+  .wrap { gap: 14px; }
   .title { font-size: 1.35rem; }
-  .search { width: 150px; }
+  .board {
+    display: flex; gap: 28px; overflow-x: auto; overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory; scrollbar-width: none; padding-bottom: 6px;
+  }
+  .board::-webkit-scrollbar { display: none; }
+  .col { flex: 0 0 86%; margin: 0; padding: 6px 2px; scroll-snap-align: start; }
+  .col + .col::before { left: -18px; }
+  .notes { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 14px; }
+  .times { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ar { font-size: 1.45rem; }
   .plabel { width: 100%; }
+  .card { padding: 16px 14px 12px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .note.settle, .flip { animation: none; }
@@ -448,16 +585,37 @@ body.desk .exit-desk { display: inline-block; }
     <span class="clock" id="clock"></span>
     <span class="spacer"></span>
     <div class="tools">
-      <input class="search" id="search" type="search" placeholder="Search notes" aria-label="Search notes" autocomplete="off">
       <button class="pad" id="pad" type="button" aria-label="Tear off a new note">+ new<br>note</button>
-      <button class="btn" id="bg-btn" type="button">Background</button>
-      <button class="btn" id="desk-btn" type="button">Desk mode</button>
     </div>
   </header>
 
+  <div class="today" id="today">
+    <section class="card prayer" aria-labelledby="pr-title">
+      <div class="card-head"><h2 id="pr-title">নামাজের সময় · ঢাকা</h2><span class="card-sub" id="pr-date"></span></div>
+      <p class="next" id="pr-next">Working out today's times…</p>
+      <ol class="times" id="pr-times"></ol>
+      <div class="card-actions">
+        <button class="card-btn" id="azan-toggle" type="button" aria-pressed="false">আযান চালু করুন</button>
+        <button class="card-btn" id="azan-settings" type="button">আযানের শব্দ</button>
+      </div>
+      <p class="card-note">Karachi method, Hanafi Asr, as used in Bangladesh. Your mosque may differ by a minute or two.</p>
+    </section>
+    <section class="card quran" aria-labelledby="qr-title">
+      <div class="card-head"><h2 id="qr-title">আজকের কুরআন</h2><span class="card-sub" id="qr-ref"></span></div>
+      <div class="qr-body" id="qr-body"><p class="qr-empty">লোড হচ্ছে…</p></div>
+      <div class="card-actions">
+        <button class="card-btn" id="qr-prev" type="button">← আগের</button>
+        <span class="card-sub" id="qr-progress"></span>
+        <span class="spacer-x"></span>
+        <button class="card-btn primary" id="qr-done" type="button">পড়া হয়েছে ✓</button>
+      </div>
+      <p class="card-note">Arabic: Tanzil Quran text. Bangla meaning: Muhiuddin Khan.</p>
+    </section>
+  </div>
+
   <nav class="tabs" id="tabs" aria-label="Projects"></nav>
   <div class="filters" id="filters" role="group" aria-label="Show"></div>
-  <p class="hint" id="hint">Tap a note to write on it. Hold and drag to move it.</p>
+  <p class="hint" id="hint">Tap a note to write on it. Hold and drag to move it.<span class="m-only"> Swipe sideways for Doing and Done.</span></p>
 
   <main class="board" id="board">
     <section class="col" data-col="todo" aria-labelledby="h-todo">
@@ -483,6 +641,31 @@ body.desk .exit-desk { display: inline-block; }
 
 <button class="btn exit-desk" id="exit-desk" type="button">Exit desk mode</button>
 
+<!-- Floating options button: fans out into search, background, prayer & Quran, desk mode -->
+<div class="searchbar" id="searchbar" hidden>
+  <input class="search" id="search" type="search" placeholder="Search notes" aria-label="Search notes" autocomplete="off">
+  <button class="btn quiet" id="search-close" type="button" aria-label="Close search">✕</button>
+</div>
+<div class="fab" id="fab">
+  <div class="fab-items" id="fab-items">
+    <button class="fab-item" id="search-btn" type="button" style="--x:-104px;--y:0px;--i:0" aria-label="Search notes">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg><span>Search</span>
+    </button>
+    <button class="fab-item" id="bg-btn" type="button" style="--x:-90px;--y:-52px;--i:1" aria-label="Background">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="m3 16 5-5 4 4 3-3 6 6"/><circle cx="16" cy="8.5" r="1.6"/></svg><span>Desk</span>
+    </button>
+    <button class="fab-item" id="today-btn" type="button" style="--x:-52px;--y:-90px;--i:2" aria-pressed="true" aria-controls="today" aria-label="Show prayer and Quran">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 3.5a8.5 8.5 0 1 0 5 15.4A7 7 0 0 1 15.5 3.5z"/></svg><span>Prayer</span>
+    </button>
+    <button class="fab-item" id="desk-btn" type="button" style="--x:0px;--y:-104px;--i:3" aria-label="Desk mode">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M8 20h8M12 16v4"/></svg><span>Desk mode</span>
+    </button>
+  </div>
+  <button class="fab-main" id="fab-main" type="button" aria-expanded="false" aria-controls="fab-items" aria-label="Options">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+  </button>
+</div>
+
 <!-- Note in hand -->
 <div class="overlay" id="hand" hidden role="dialog" aria-modal="true" aria-label="Edit note">
   <div class="flip" id="flip">
@@ -506,29 +689,22 @@ body.desk .exit-desk { display: inline-block; }
       <button class="btn primary" id="hand-close" type="button">Stick it</button>
     </div>
     <div class="more" id="more" hidden>
-    <div class="prow"><span class="plabel">Project</span><div class="seg" id="edit-projects" role="group" aria-label="Project"></div></div>
-    <div class="prow"><span class="plabel">Column</span>
-      <div class="seg" id="edit-cols" role="group" aria-label="Column">
-        <button type="button" data-v="todo">To do</button><button type="button" data-v="doing">Doing</button><button type="button" data-v="done">Done</button>
-      </div>
-    </div>
-    <div class="prow"><span class="plabel">Due</span>
-      <div class="seg" id="edit-due-quick" role="group" aria-label="Due date">
-        <button type="button" data-v="">No date</button><button type="button" data-v="0">Today</button><button type="button" data-v="1">TMR</button><button type="button" data-v="mon">Next week</button>
-      </div>
-      <input class="field" id="edit-due" type="date" aria-label="Pick a date">
-      <select class="field" id="edit-repeat" aria-label="Repeat">
+    <div class="mrow">
+      <label class="mfield">Project<select class="field" id="edit-project"></select></label>
+      <label class="mfield">Date<input class="field" id="edit-due" type="date"></label>
+      <label class="mfield">Repeat<select class="field" id="edit-repeat">
         <option value="">Doesn't repeat</option><option value="daily">Every day</option><option value="weekdays">Every weekday</option><option value="weekly">Every week</option><option value="monthly">Every month</option>
-      </select>
+      </select></label>
     </div>
-    <div class="prow"><span class="plabel">Priority</span>
-      <div class="seg" id="edit-prio" role="group" aria-label="Priority">
-        <button type="button" data-v="0">None</button><button type="button" data-v="1">! Low</button><button type="button" data-v="2">!! Medium</button><button type="button" data-v="3">!!! High</button>
+    <div class="mrow">
+      <div class="mfield"><span id="prio-label">Priority</span>
+        <div class="seg" id="edit-prio" role="group" aria-labelledby="prio-label">
+          <button type="button" data-v="0" aria-label="No priority">–</button><button type="button" data-v="1" aria-label="Low">!</button><button type="button" data-v="2" aria-label="Medium">!!</button><button type="button" data-v="3" aria-label="High">!!!</button>
+        </div>
       </div>
-    </div>
-    <div class="pactions">
-      <div class="left"><button class="btn" id="flip-btn" type="button">Flip to back</button></div>
-      <button class="btn danger" id="hand-delete" type="button">Throw away</button>
+      <span class="spacer"></span>
+      <button class="btn quiet" id="flip-btn" type="button">Flip to back</button>
+      <button class="btn quiet danger" id="hand-delete" type="button">Throw away</button>
     </div>
     </div>
   </div>
@@ -556,6 +732,24 @@ body.desk .exit-desk { display: inline-block; }
     <div class="pactions"><button class="btn primary" id="bg-done" type="button">Done</button></div>
   </div>
 </div>
+
+<!-- Azan sound sheet -->
+<div class="overlay" id="azan-sheet" hidden role="dialog" aria-modal="true" aria-labelledby="azan-title">
+  <div class="panel">
+    <h3 class="tape sheet-title" id="azan-title">Azan sound</h3>
+    <p class="sheet-text">Add the azan you love, such as Makkah or Mishary Alafasy. Save the MP3 to your iPad's Files app first, then choose it here.</p>
+    <div class="prow"><label class="plabel" for="azan-file">Recording</label><input class="field" id="azan-file" type="file" accept="audio/*,.mp3,.m4a"></div>
+    <p class="sheet-text" id="azan-current"></p>
+    <div class="pactions">
+      <div class="left"><button class="btn" id="azan-test" type="button">Play to test</button><button class="btn quiet" id="azan-stop" type="button">Stop</button></div>
+      <button class="btn primary" id="azan-done" type="button">Done</button>
+    </div>
+  </div>
+</div>
+
+<div class="banner" id="banner" hidden role="alert"><span id="banner-msg"></span><span class="spacer-x"></span><button class="card-btn primary" id="banner-stop" type="button">বন্ধ করুন</button></div>
+
+<script src="https://unpkg.com/adhan@4.4.3/lib/bundles/adhan.umd.min.js"></script>
 
 <div class="toast" id="toast" hidden role="status"><span id="toast-msg"></span><button id="toast-undo" type="button" hidden>Undo</button></div>
 
@@ -707,7 +901,7 @@ body.desk .exit-desk { display: inline-block; }
       const fail = () => toast("Couldn't load your notes. Check your connection, then reload the page.");
       db.collection("projects").onSnapshot((snap) => { projects = snap.docs.map((x) => ({ id: x.id, ...x.data() })); render(); }, fail);
       db.collection("notes").onSnapshot((snap) => { notes = snap.docs.map((x) => ({ id: x.id, ...x.data() })); render(); }, fail);
-      db.doc("settings/board").onSnapshot((snap) => { const b = snap.exists ? snap.data().bg : null; if (BGS.some((x) => x.id === b)) applyBg(b); });
+      db.doc("settings/board").onSnapshot((snap) => { if (snap.exists) { settings = { ...snap.data() }; onSettings(); } });
     } catch (e) { startLocal(); }
   }
 
@@ -849,6 +1043,25 @@ body.desk .exit-desk { display: inline-block; }
   });
   $("#search").addEventListener("input", (e) => { view.q = e.target.value.trim(); render(); });
 
+  /* ---------- floating options button ---------- */
+  const fab = $("#fab");
+  function setFab(open) {
+    fab.classList.toggle("open", open);
+    $("#fab-main").setAttribute("aria-expanded", String(open));
+    $("#fab-main").setAttribute("aria-label", open ? "Close options" : "Options");
+  }
+  $("#fab-main").addEventListener("click", () => setFab(!fab.classList.contains("open")));
+  $("#fab-items").addEventListener("click", (e) => { if (e.target.closest(".fab-item")) setFab(false); });
+  document.addEventListener("click", (e) => { if (fab.classList.contains("open") && !e.target.closest("#fab")) setFab(false); });
+  $("#search-btn").addEventListener("click", () => { $("#searchbar").hidden = false; $("#search").focus(); });
+  $("#search-close").addEventListener("click", () => {
+    $("#search").value = ""; view.q = ""; $("#searchbar").hidden = true; render();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && fab.classList.contains("open")) setFab(false);
+    if (e.key === "Escape" && document.activeElement === $("#search") && !$("#search").value) $("#searchbar").hidden = true;
+  });
+
   /* ---------- segmented controls ---------- */
   function seg(host, get, set) {
     const sync = () => host.querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.v === String(get()))));
@@ -863,30 +1076,12 @@ body.desk .exit-desk { display: inline-block; }
   function openEditor(note, isNew) {
     editing = { note: { checklist: [], ...note, checklist: (note.checklist || []).map((s) => ({ ...s })) }, isNew, prev: note };
     const N = editing.note;
-    const ph = $("#edit-projects");
-    ph.replaceChildren(...sortedProjects().map((p) => {
-      const b = document.createElement("button"); b.type = "button"; b.className = "pchip"; b.dataset.v = p.id;
-      b.style.setProperty("--c", `var(--n-${p.color})`);
-      const d = document.createElement("span"); d.className = "dot";
-      const s = document.createElement("span"); s.textContent = p.name;
-      b.append(d, s); return b;
-    }));
-    syncProj = seg(ph, () => N.projectId, (v) => { N.projectId = v; paintHand(); });
-    syncCols = seg($("#edit-cols"), () => N.column, (v) => {
-      if (N.column !== v) {
-        const list = notes.filter((n) => n.column === v && n.id !== N.id).sort((a, b) => a.order - b.order);
-        N.order = list.length ? list[list.length - 1].order + 1 : 1;
-        Object.assign(N, withColumn(N, v)); renderSteps();
-      }
-    });
+    const ps = $("#edit-project");
+    ps.replaceChildren(...sortedProjects().map((p) => { const o = document.createElement("option"); o.value = p.id; o.textContent = p.name; return o; }));
+    ps.value = N.projectId;
+    ps.onchange = () => { N.projectId = ps.value; paintHand(); };
     syncPrio = seg($("#edit-prio"), () => N.priority || 0, (v) => { N.priority = Number(v); });
-    const quickVal = () => !N.due ? "" : N.due === today() ? "0" : N.due === addDays(today(), 1) ? "1" : N.due === nextMonday() ? "mon" : "custom";
-    syncDue = seg($("#edit-due-quick"), quickVal, (v) => {
-      N.due = v === "" ? "" : v === "mon" ? nextMonday() : addDays(today(), Number(v));
-      $("#edit-due").value = N.due || "";
-      if (!N.due) { N.repeat = ""; $("#edit-repeat").value = ""; }
-      syncQuick();
-    });
+    syncDue = () => {};
     syncQuick = seg($("#quick-due"), () => N.due === today() ? "0" : N.due === addDays(today(), 1) ? "1" : "none", (v) => {
       const d = addDays(today(), Number(v));
       N.due = N.due === d ? "" : d;
@@ -1059,6 +1254,20 @@ body.desk .exit-desk { display: inline-block; }
     drag.el.classList.add("placeholder");
     document.body.classList.add("dragging");
     moveGhost();
+    requestAnimationFrame(edgeScroll);
+  }
+  // While a note is held near an edge, scroll the board (phone) or the page so you can reach other columns.
+  function edgeScroll() {
+    if (!drag || !drag.active) return;
+    const r = board.getBoundingClientRect();
+    if (board.scrollWidth > board.clientWidth) {
+      if (drag.x < r.left + 40) board.scrollLeft -= 12;
+      else if (drag.x > r.right - 40) board.scrollLeft += 12;
+    }
+    if (drag.y < 60) window.scrollBy(0, -12);
+    else if (drag.y > innerHeight - 60) window.scrollBy(0, 12);
+    moveGhost();
+    requestAnimationFrame(edgeScroll);
   }
   function moveGhost() {
     const { ghost, x, y } = drag;
@@ -1147,13 +1356,243 @@ body.desk .exit-desk { display: inline-block; }
     const b = e.target.closest(".bg-opt"); if (!b) return;
     applyBg(b.dataset.v);
     try { localStorage.setItem("sticky-desk-bg", bg); } catch (err) {}
-    if (mode === "account") { try { await db.doc("settings/board").set({ bg }); } catch (err) { toast("Couldn't save the background to your account. It's kept on this device."); } }
+    saveSettings({ bg });
   });
   $("#bg-btn").addEventListener("click", () => { $("#bg-sheet").hidden = false; $("#bgs .bg-opt[aria-pressed='true']")?.focus(); });
   const closeBg = () => { $("#bg-sheet").hidden = true; };
   $("#bg-done").addEventListener("click", closeBg);
   $("#bg-sheet").addEventListener("click", (e) => { if (e.target.id === "bg-sheet") closeBg(); });
   document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("#bg-sheet").hidden) closeBg(); });
+
+  /* ---------- settings shared by background, Quran and azan ---------- */
+  let settings = {};
+  try { settings = JSON.parse(localStorage.getItem("sticky-desk-settings") || "{}") || {}; } catch (e) {}
+  async function saveSettings(patch) {
+    settings = { ...settings, ...patch };
+    try { localStorage.setItem("sticky-desk-settings", JSON.stringify(settings)); } catch (e) {}
+    if (mode === "account") {
+      try { await db.doc("settings/board").set(settings); }
+      catch (e) { toast("Couldn't save that setting to your account. It's kept on this device."); }
+    }
+  }
+  function onSettings() {
+    if (BGS.some((x) => x.id === settings.bg)) applyBg(settings.bg);
+    renderQuran(); loadAzanSource();
+  }
+
+  /* ---------- prayer times for Dhaka ---------- */
+  const DHAKA = { lat: 23.8103, lng: 90.4125, tz: "Asia/Dhaka" };
+  const PRAYERS = [["fajr", "ফজর", "Fajr"], ["sunrise", "সূর্যোদয়", "Sunrise"], ["dhuhr", "যোহর", "Dhuhr"], ["asr", "আসর", "Asr"], ["maghrib", "মাগরিব", "Maghrib"], ["isha", "এশা", "Isha"]];
+  const bnDigits = (s) => String(s).replace(/\d/g, (d) => "০১২৩৪৫৬৭৮৯"[d]);
+  const arDigits = (s) => String(s).replace(/\d/g, (d) => "٠١٢٣٤٥٦٧٨٩"[d]);
+  const fmtTime = (d) => d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: DHAKA.tz });
+  function dhakaYMD(offsetDays = 0) {
+    const d = new Date(Date.now() + offsetDays * 86400000);
+    const p = Object.fromEntries(new Intl.DateTimeFormat("en-CA", { timeZone: DHAKA.tz, year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(d).map((x) => [x.type, x.value]));
+    return [Number(p.year), Number(p.month), Number(p.day)];
+  }
+  function timesFor(offset) {
+    const [y, m, d] = dhakaYMD(offset);
+    const params = adhan.CalculationMethod.Karachi();
+    params.madhab = adhan.Madhab.Hanafi;
+    return new adhan.PrayerTimes(new adhan.Coordinates(DHAKA.lat, DHAKA.lng), new Date(y, m - 1, d), params);
+  }
+  let pt = null, ptDay = "";
+  function renderPrayer() {
+    if (!window.adhan) { $("#pr-next").textContent = "Prayer times couldn't load. Check your connection, then reload the page."; return; }
+    const key = dhakaYMD().join("-");
+    if (key !== ptDay) { pt = timesFor(0); ptDay = key; }
+    const now = new Date();
+    const today5 = PRAYERS.filter(([k]) => k !== "sunrise");
+    const next = today5.find(([k]) => pt[k] > now);
+    const nextTime = next ? pt[next[0]] : timesFor(1).fajr;
+    const name = next ? next[1] : "ফজর (আগামীকাল)";
+    const mins = Math.max(0, Math.round((nextTime - now) / 60000));
+    const h = Math.floor(mins / 60), m = mins % 60;
+    $("#pr-next").textContent = `পরের নামাজ ${name} · ${h ? bnDigits(h) + " ঘণ্টা " : ""}${bnDigits(m)} মিনিট পর`;
+    $("#pr-date").textContent = now.toLocaleDateString("bn-BD", { weekday: "long", day: "numeric", month: "long", timeZone: DHAKA.tz });
+    $("#pr-times").replaceChildren(...PRAYERS.map(([k, bn, en]) => {
+      const li = document.createElement("li");
+      if (next && k === next[0]) li.className = "is-next"; else if (pt[k] <= now) li.className = "is-past";
+      const a = document.createElement("span"); a.className = "pn"; a.textContent = `${bn} · ${en}`;
+      const b = document.createElement("span"); b.className = "pt"; b.textContent = fmtTime(pt[k]);
+      li.append(a, b); return li;
+    }));
+    checkAzan(now);
+  }
+
+  /* ---------- azan: plays while this page is open ---------- */
+  const audio = new Audio();
+  audio.preload = "auto";
+  let audioReady = false, actx = null, playedKey = "", localAzanUrl = "";
+  const azanOn = () => !!settings.azanOn;
+  function syncAzanBtn() {
+    const b = $("#azan-toggle");
+    b.setAttribute("aria-pressed", String(azanOn()));
+    b.textContent = azanOn() ? "আযান চালু ✓" : "আযান চালু করুন";
+  }
+  function loadAzanSource() {
+    const src = localAzanUrl || (settings.azanId ? "/_blob/" + settings.azanId : "");
+    if (src && audio.dataset.src !== src) { audio.src = src; audio.dataset.src = src; audioReady = false; }
+    $("#azan-current").textContent = src
+      ? `Using: ${settings.azanName || "your azan recording"}`
+      : "No azan added yet, so a soft bell plays at prayer time.";
+    syncAzanBtn();
+  }
+  // Apple only lets a page play sound after a tap, so every tap quietly gets the audio ready.
+  function unlockAudio() {
+    try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); actx.resume(); } catch (e) {}
+    if (audio.src && !audioReady) {
+      audio.muted = true;
+      const p = audio.play();
+      if (p) p.then(() => { audio.pause(); audio.currentTime = 0; audio.muted = false; audioReady = true; }).catch(() => { audio.muted = false; });
+    }
+  }
+  ["click", "touchend"].forEach((t) => document.addEventListener(t, () => { if (azanOn()) unlockAudio(); }, { capture: true, passive: true }));
+  function chime() {
+    if (!actx) return;
+    const t0 = actx.currentTime + 0.05;
+    [523.25, 659.25, 783.99].forEach((f, i) => {
+      const o = actx.createOscillator(), g = actx.createGain();
+      o.type = "sine"; o.frequency.value = f; o.connect(g); g.connect(actx.destination);
+      const t = t0 + i * 0.9;
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.25, t + 0.03); g.gain.exponentialRampToValueAtTime(0.001, t + 2.4);
+      o.start(t); o.stop(t + 2.5);
+    });
+  }
+  function playAzan() {
+    if (audio.src) { audio.muted = false; audio.currentTime = 0; audio.play().catch(() => chime()); }
+    else chime();
+  }
+  function checkAzan(now) {
+    if (!azanOn() || !pt) return;
+    for (const [k, bn, en] of PRAYERS) {
+      if (k === "sunrise") continue;
+      const key = ptDay + k, dt = now - pt[k];
+      if (dt >= 0 && dt < 120000 && playedKey !== key) {
+        playedKey = key;
+        playAzan();
+        $("#banner-msg").textContent = `${bn} (${en}) এর সময় হয়েছে`;
+        $("#banner").hidden = false;
+      }
+    }
+  }
+  $("#banner-stop").addEventListener("click", () => { audio.pause(); $("#banner").hidden = true; });
+  $("#azan-toggle").addEventListener("click", () => {
+    const on = !azanOn();
+    unlockAudio();
+    saveSettings({ azanOn: on }); syncAzanBtn();
+    toast(on ? "Azan is on. Keep this page open, ideally in Desk mode, and it plays at each prayer time."
+             : "Azan is off.");
+  });
+  $("#azan-settings").addEventListener("click", () => { $("#azan-sheet").hidden = false; });
+  const closeAzan = () => { $("#azan-sheet").hidden = true; };
+  $("#azan-done").addEventListener("click", closeAzan);
+  $("#azan-sheet").addEventListener("click", (e) => { if (e.target.id === "azan-sheet") closeAzan(); });
+  $("#azan-test").addEventListener("click", () => {
+    unlockAudio();
+    if (audio.src) { audio.muted = false; audio.currentTime = 0; audio.play().then(() => { audioReady = true; }).catch(() => toast("Couldn't play that file. Try an MP3 or M4A recording.")); }
+    else chime();
+  });
+  $("#azan-stop").addEventListener("click", () => audio.pause());
+  $("#azan-file").addEventListener("change", async (e) => {
+    const f = e.target.files[0]; if (!f) return;
+    if (f.size > 20 * 1024 * 1024) { toast("That file is over 20 MB. Choose a shorter recording."); return; }
+    const assets = mode === "account" && window.claude?.use ? await window.claude.use("assets") : null;
+    if (assets) {
+      $("#azan-current").textContent = "Uploading…";
+      try {
+        const r = await assets.upload(f, { type: f.type || "audio/mpeg" });
+        await saveSettings({ azanId: r.id, azanName: f.name });
+        loadAzanSource();
+        toast("Azan saved. Tap Play to test it.");
+      } catch (err) { toast("Couldn't upload that file. Try an MP3, then try again."); loadAzanSource(); }
+    } else {
+      localAzanUrl = URL.createObjectURL(f);
+      settings.azanName = f.name;
+      loadAzanSource();
+      toast("Azan added for this visit. Open the board signed in to claude.ai to keep it.");
+    }
+  });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("#azan-sheet").hidden) closeAzan(); });
+
+  /* ---------- daily Quran: about one minute a day, in order ---------- */
+  let qIndex = null, qShown = -1;
+  const qCache = {};
+  async function loadQIndex() {
+    if (!qIndex) { const r = await fetch("q/index.json"); if (!r.ok) throw new Error("index"); qIndex = await r.json(); }
+    return qIndex;
+  }
+  async function surah(s) {
+    if (!qCache[s]) { const r = await fetch(`q/${String(s).padStart(3, "0")}.json`); if (!r.ok) throw new Error("surah"); qCache[s] = await r.json(); }
+    return qCache[s];
+  }
+  const todayDhaka = () => dhakaYMD().join("-");
+  function qState() {
+    const pos = Math.max(0, Number(settings.quranPos) || 0);
+    const done = settings.quranDoneOn === todayDhaka();
+    return { pos, done, show: done ? Math.max(0, pos - 1) : pos };
+  }
+  async function renderQuran() {
+    try {
+      const idx = await loadQIndex();
+      const st = qState(), n = idx.portions.length, i = st.show % n;
+      const [s, a, b] = idx.portions[i];
+      const ch = idx.chapters[s - 1];
+      $("#qr-ref").textContent = `${ch[0]} · ${ch[1]} · আয়াত ${bnDigits(a)}${b > a ? "–" + bnDigits(b) : ""}`;
+      $("#qr-progress").textContent = `পর্ব ${bnDigits(i + 1)} / ${bnDigits(n)}`;
+      $("#qr-done").textContent = st.done ? "আজ পড়া হয়েছে ✓ · আরও পড়ুন" : "পড়া হয়েছে ✓";
+      $("#qr-done").classList.toggle("primary", !st.done);
+      $("#qr-prev").disabled = i === 0;
+      if (i === qShown) return;
+      qShown = i;
+      const verses = await surah(s);
+      const kids = [];
+      if (a === 1 && s !== 1 && s !== 9) {
+        const bism = document.createElement("p"); bism.className = "ar"; bism.lang = "ar"; bism.dir = "rtl"; bism.style.textAlign = "center";
+        bism.textContent = (await surah(1))[0][0];
+        kids.push(bism);
+      }
+      for (let v = a; v <= b; v++) {
+        const [ar, bn] = verses[v - 1];
+        const box = document.createElement("div"); box.className = "ayah";
+        const pa = document.createElement("p"); pa.className = "ar"; pa.lang = "ar"; pa.dir = "rtl";
+        const na = document.createElement("span"); na.className = "num"; na.textContent = ` ﴿${arDigits(v)}﴾`;
+        pa.append(ar, na);
+        const pb = document.createElement("p"); pb.className = "bn"; pb.lang = "bn";
+        const nb = document.createElement("span"); nb.className = "num"; nb.textContent = `(${bnDigits(v)}) `;
+        pb.append(nb, bn);
+        box.append(pa, pb); kids.push(box);
+      }
+      $("#qr-body").replaceChildren(...kids);
+      $("#qr-body").scrollTop = 0;
+    } catch (e) {
+      const p = document.createElement("p"); p.className = "qr-empty";
+      p.textContent = "আজকের আয়াত লোড করা যায়নি। ইন্টারনেট সংযোগ দেখে পেজটি আবার খুলুন।";
+      $("#qr-body").replaceChildren(p);
+    }
+  }
+  $("#qr-done").addEventListener("click", () => {
+    const st = qState();
+    saveSettings({ quranPos: st.pos + 1, quranDoneOn: todayDhaka() });
+    renderQuran();
+    if (!st.done) toast("মাশাআল্লাহ! আজকের পড়া শেষ।");
+  });
+  $("#qr-prev").addEventListener("click", () => {
+    saveSettings({ quranPos: Math.max(0, qState().show - 1), quranDoneOn: "" });
+    renderQuran();
+  });
+
+  /* ---------- show or hide the prayer & Quran strip ---------- */
+  let stripOn = true;
+  try { stripOn = localStorage.getItem("sticky-desk-today") !== "0"; } catch (e) {}
+  function setStrip(on) {
+    stripOn = on; $("#today").hidden = !on;
+    $("#today-btn").setAttribute("aria-pressed", String(on));
+    try { localStorage.setItem("sticky-desk-today", on ? "1" : "0"); } catch (e) {}
+  }
+  setStrip(stripOn);
+  $("#today-btn").addEventListener("click", () => setStrip(!stripOn));
 
   /* ---------- desk mode: keep the iPad awake as a note display ---------- */
   let wake = null, clockTimer = null, lastDay = today();
@@ -1184,6 +1623,10 @@ body.desk .exit-desk { display: inline-block; }
   });
 
   render();
+  onSettings();
+  renderPrayer();
+  setInterval(renderPrayer, 15000);
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") renderPrayer(); });
   start();
 })();
 </script>

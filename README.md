@@ -15,6 +15,9 @@ Open `index.html` in Safari on iPad or Mac. On iPad, tap Share, then **Add to Ho
 - **Flip** a note to write details and a checklist of steps on the back. The front shows progress like "2/4".
 - **Doing** has a soft limit of 3 notes so you stay focused.
 - **Background** lets you pick the desk: wood, cork, whiteboard, linen, green felt or chalkboard.
+- **Prayer times for Dhaka** (Karachi method, Hanafi Asr) with the next prayer and a countdown. Turn on **Azan** and add your favourite azan recording; it plays at each prayer time while the page is open.
+- **Daily Quran**: about one minute a day, in order, Arabic with Bangla meaning (Muhiuddin Khan). Tap "পড়া হয়েছে ✓" to move on.
+- **Floating button** (bottom right) opens Search, Background, Prayer & Quran and Desk mode.
 - **Desk mode** keeps the screen awake and shows the date and time, so an iPad on a stand works as a sticky-note display.
 
 When opened as a standalone file, notes are saved in that browser.
@@ -22,3 +25,8 @@ When opened as a standalone file, notes are saved in that browser.
 ## Lock screen
 
 A web page can't show on the iPad lock screen. That needs a native app with a WidgetKit widget, built in Xcode on a Mac.
+
+## Credits
+
+- Quran Arabic text: Tanzil Project (tanzil.net). Bangla translation: Muhiuddin Khan, via Tanzil. Data from [fawazahmed0/quran-api](https://github.com/fawazahmed0/quran-api), stored in `q/`.
+- Prayer times: [adhan](https://github.com/batoulapps/adhan-js) (MIT).
