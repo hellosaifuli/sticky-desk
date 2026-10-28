@@ -9,6 +9,15 @@
 <title>Sticky Desk</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Sticky Desk">
+<meta name="format-detection" content="telephone=no">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#d8bf98" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#4a3727" media="(prefers-color-scheme: dark)">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Hind+Siliguri:wght@400;500;600&family=Kalam:wght@400;700&family=Permanent+Marker&family=Work+Sans:wght@400;500;600&display=swap">
@@ -77,24 +86,29 @@
 }
 
 /* ---------- Desk surfaces (chosen in the Background sheet) ---------- */
-:root { --texture: var(--wood-grain); --on-desk: var(--ui-fg); --texture-size: auto; }
+:root { --texture: var(--wood-grain); --on-desk: var(--ui-fg); --texture-size: 2700px 900px; }
 :root[data-bg="cork"] {
+  --texture-size: 220px 220px;
   --desk: #c8965e; --desk-shade: #a5713d; --on-desk: #2e1f10; --line: rgba(46, 31, 16, .5);
   --texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='c'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.55' numOctaves='2' seed='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .2 0 0 0 0 .08 0 0 0 -9 4.6'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23c)' opacity='.75'/%3E%3C/svg%3E");
 }
 :root[data-bg="white"] {
+  --texture-size: auto;
   --desk: #eceeec; --desk-shade: #d4d9d7; --on-desk: #2b2f33; --line: rgba(43, 47, 51, .4);
   --texture: linear-gradient(115deg, transparent 30%, rgba(255,255,255,.55) 45%, transparent 60%);
 }
 :root[data-bg="felt"] {
+  --texture-size: 180px 180px;
   --desk: #2f5443; --desk-shade: #1d382b; --on-desk: #eef3ea; --line: rgba(238, 243, 234, .4);
   --texture: var(--paper-noise);
 }
 :root[data-bg="slate"] {
+  --texture-size: 600px 600px;
   --desk: #2d3134; --desk-shade: #1c1f21; --on-desk: #eceae4; --line: rgba(236, 234, 228, .45);
   --texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='600'%3E%3Cfilter id='s'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.006' numOctaves='3' seed='11' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 1.2 0 0 0 -.55'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23s)' opacity='.12'/%3E%3C/svg%3E");
 }
 :root[data-bg="linen"] {
+  --texture-size: auto;
   --desk: #e8dfcf; --desk-shade: #d1c3a9; --on-desk: #3b2f21; --line: rgba(59, 47, 33, .45);
   --texture: repeating-linear-gradient(0deg, rgba(90, 70, 40, .06) 0 1px, transparent 1px 3px), repeating-linear-gradient(90deg, rgba(90, 70, 40, .05) 0 1px, transparent 1px 3px);
 }
@@ -109,6 +123,7 @@ body {
     radial-gradient(130% 90% at 25% -10%, rgba(255, 255, 255, .22), transparent 60%),
     radial-gradient(120% 80% at 100% 110%, var(--desk-shade), transparent 70%),
     var(--texture);
+  background-size: auto, auto, var(--texture-size);
   background-attachment: fixed;
   color: var(--on-desk);
   font-family: var(--font-ui);
@@ -199,6 +214,7 @@ body {
 .tab.add { background: transparent; color: var(--on-desk); box-shadow: none; border: 2px dashed color-mix(in srgb, var(--on-desk) 35%, transparent); border-bottom: 0; }
 .filters { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .chip {
+  min-height: 36px; flex: 0 0 auto;
   font-family: var(--font-hand); font-size: 1rem; color: var(--ui-fg);
   border: 0; cursor: pointer; padding: 6px 12px 4px; border-radius: 999px;
   background: color-mix(in srgb, var(--ui) 55%, transparent);
@@ -292,8 +308,8 @@ body {
 .note.done .text { text-decoration: line-through; text-decoration-thickness: .09em; text-decoration-color: rgba(28, 31, 58, .8); opacity: .62; }
 .meta { display: flex; justify-content: space-between; align-items: flex-end; gap: 6px; font-size: 8.5cqi; line-height: 1.1; min-height: 9cqi; }
 .due { font-weight: 700; }
-.due.overdue { color: var(--red-ink); }
-.due.today { text-decoration: underline; text-decoration-thickness: .12em; text-underline-offset: .15em; }
+.due.due-late { color: var(--red-ink); }
+.due.due-today { text-decoration: underline; text-decoration-thickness: .12em; text-underline-offset: .15em; }
 .sub { opacity: .8; font-variant-numeric: tabular-nums; }
 .tick { width: 15cqi; height: 15cqi; fill: none; stroke: var(--ink); stroke-width: 9; stroke-linecap: round; stroke-linejoin: round; opacity: .85; }
 .flag {
@@ -529,7 +545,7 @@ body.desk .rail-item, body.desk .rail-label { font-size: 1.1rem; }
 /* ---------- Toast ---------- */
 .toast {
   position: fixed; z-index: 70; left: 50%;
-  bottom: calc(var(--rail-h) + 16px);
+  top: calc(14px + env(safe-area-inset-top, 0px));
   transform: translateX(-50%);
   max-width: min(520px, calc(100vw - 32px));
   background: var(--ui); color: var(--ui-fg);
@@ -632,6 +648,8 @@ body.desk .exit-desk { display: inline-block; }
   .plabel { width: 100%; }
   .card { padding: 16px 14px 12px; }
   .rn-count { display: none; }
+  .filters { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin-inline: -4px; padding: 2px 4px; }
+  .filters::-webkit-scrollbar { display: none; }
   .rail-label { font-size: .88rem; padding: 2px 10px 0 10px; }
   .rail-item { font-size: .88rem; }
   .flip { width: min(300px, 72vw, 38vh); }
@@ -643,6 +661,52 @@ body.desk .exit-desk { display: inline-block; }
 @media (prefers-reduced-motion: reduce) {
   .note.settle, .flip { animation: none; }
   .flip-inner, .trash, .pad, .col, .tab { transition: none; }
+}
+
+/* ---------- iOS friendly + a touch of Liquid Glass on the controls ---------- */
+:root {
+  --glass-bg: rgba(255, 250, 242, .46);
+  --glass-edge: rgba(255, 255, 255, .62);
+  --glass-shine: linear-gradient(140deg, rgba(255,255,255,.55), rgba(255,255,255,.08) 42%, rgba(255,255,255,0) 60%, rgba(255,255,255,.18));
+  --glass-shadow: 0 10px 30px -10px rgba(50, 30, 10, .38), inset 0 1px 0 rgba(255,255,255,.75), inset 0 -1px 0 rgba(255,255,255,.18);
+  --glass-blur: blur(22px) saturate(175%);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --glass-bg: rgba(44, 33, 24, .5);
+    --glass-edge: rgba(255, 255, 255, .16);
+    --glass-shine: linear-gradient(140deg, rgba(255,255,255,.18), rgba(255,255,255,.03) 42%, rgba(255,255,255,0) 60%, rgba(255,255,255,.07));
+    --glass-shadow: 0 12px 32px -10px rgba(0, 0, 0, .6), inset 0 1px 0 rgba(255,255,255,.22), inset 0 -1px 0 rgba(255,255,255,.05);
+  }
+}
+:root[data-theme="dark"] {
+  --glass-bg: rgba(44, 33, 24, .5);
+  --glass-edge: rgba(255, 255, 255, .16);
+  --glass-shine: linear-gradient(140deg, rgba(255,255,255,.18), rgba(255,255,255,.03) 42%, rgba(255,255,255,0) 60%, rgba(255,255,255,.07));
+  --glass-shadow: 0 12px 32px -10px rgba(0, 0, 0, .6), inset 0 1px 0 rgba(255,255,255,.22), inset 0 -1px 0 rgba(255,255,255,.05);
+}
+html { overscroll-behavior-y: none; -webkit-text-size-adjust: 100%; }
+button, .note, .chip, .tab, .swatch { touch-action: manipulation; }
+input, select, textarea { font-size: max(16px, 1em); } /* 16px+ stops iOS zooming in on focus */
+.fab-main, .fab-item, .fab-item span, .searchbar, .panel, .toast, .exit-desk, .today-close, .chip, .trash {
+  background: var(--glass-shine), var(--glass-bg);
+  -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-edge);
+  box-shadow: var(--glass-shadow);
+  color: var(--ui-fg);
+}
+.fab-main { border-radius: 50%; }
+.fab-main:active, .fab-item:active, .chip:active { transform: scale(.94); }
+.fab.open .fab-item:active { transform: translate(var(--x), var(--y)) scale(.94); }
+.panel { border-radius: 22px; }
+.toast, .searchbar { border-radius: 16px; }
+.chip { border-radius: 999px; }
+.chip[aria-pressed="true"] { background: var(--glass-shine), var(--ui-fg); color: var(--desk); box-shadow: var(--glass-shadow); }
+.field, .search { background: color-mix(in srgb, var(--ui-fg) 9%, transparent); border-radius: 10px; }
+.overlay, .today { -webkit-backdrop-filter: blur(6px) saturate(120%); backdrop-filter: blur(6px) saturate(120%); background: color-mix(in srgb, var(--veil) 75%, transparent); }
+.seg button[aria-pressed="true"] { border-radius: 10px; }
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .fab-main, .fab-item, .fab-item span, .searchbar, .panel, .toast, .exit-desk, .today-close, .chip, .trash { background: var(--ui); }
 }
 </style>
 
@@ -872,7 +936,7 @@ body.desk .exit-desk { display: inline-block; }
     else if (n === -1) label = "Yesterday";
     else if (n > 1 && n < 7) label = d.toLocaleDateString(undefined, { weekday: "short" });
     else label = d.toLocaleDateString(undefined, { day: "numeric", month: "short" });
-    return { label, state: n < 0 ? "overdue" : n === 0 ? "today" : "" };
+    return { label, state: n < 0 ? "due-late" : n === 0 ? "due-today" : "" };
   }
   function advance(due, repeat) {
     let d = parse(due);
@@ -1032,7 +1096,7 @@ body.desk .exit-desk { display: inline-block; }
     const t = document.createElement("div"); t.className = "text"; t.textContent = n.text;
     const meta = document.createElement("div"); meta.className = "meta";
     const due = document.createElement("span");
-    if (di && n.column !== "done") { due.className = "due " + di.state; due.textContent = (di.state === "overdue" ? "Late · " : "") + di.label + (n.repeat ? " ↻" : ""); }
+    if (di && n.column !== "done") { due.className = "due " + di.state; due.textContent = (di.state === "due-late" ? "Late · " : "") + di.label + (n.repeat ? " ↻" : ""); }
     const sub = document.createElement("span"); sub.className = "sub";
     if (steps.length) sub.textContent = `${stepsDone}/${steps.length} ☐`;
     meta.append(due, sub);
