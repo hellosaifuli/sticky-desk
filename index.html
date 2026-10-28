@@ -101,6 +101,7 @@
 :root[data-bg="oak"] { --desk: #d8bf98; --desk-shade: #c4a67b; --on-desk: #3b2f21; --line: rgba(59, 47, 33, .5); }
 :root[data-bg="walnut"] { --desk: #4a3727; --desk-shade: #382819; --on-desk: #f1e5d0; --line: rgba(241, 229, 208, .38); }
 
+*, *::before, *::after { box-sizing: border-box; }
 html, body { min-height: 100%; }
 body {
   background-color: var(--desk);
@@ -630,6 +631,14 @@ body.desk .exit-desk { display: inline-block; }
   .ar { font-size: 1.45rem; }
   .plabel { width: 100%; }
   .card { padding: 16px 14px 12px; }
+  .rn-count { display: none; }
+  .rail-label { font-size: .88rem; padding: 2px 10px 0 10px; }
+  .rail-item { font-size: .88rem; }
+  .flip { width: min(300px, 72vw, 38vh); }
+  .quick #hand-close { flex: 1 1 100%; }
+  .quick .spacer { display: none; }
+  .quick #more-btn { margin-left: auto; }
+  .mfield .field { max-width: 100%; }
 }
 @media (prefers-reduced-motion: reduce) {
   .note.settle, .flip { animation: none; }
@@ -747,7 +756,7 @@ body.desk .exit-desk { display: inline-block; }
       <div class="seg" id="quick-due" role="group" aria-label="When"><button type="button" data-v="0">Today</button><button type="button" data-v="1">TMR</button></div>
       <div class="seg"><button type="button" id="quick-flag" aria-pressed="false">⚑ Flag</button></div>
       <span class="spacer"></span>
-      <button class="btn quiet" id="more-btn" type="button" aria-expanded="false" aria-controls="more">More options</button>
+      <button class="btn quiet" id="more-btn" type="button" aria-expanded="false" aria-controls="more">More</button>
       <button class="btn primary" id="hand-close" type="button">Stick it</button>
     </div>
     <div class="more" id="more" hidden>
@@ -1158,7 +1167,7 @@ body.desk .exit-desk { display: inline-block; }
     $("#edit-due").value = N.due || "";
     $("#edit-repeat").value = N.repeat || "";
     $("#quick-flag").setAttribute("aria-pressed", String(!!N.flagged));
-    $("#more").hidden = true; $("#more-btn").setAttribute("aria-expanded", "false"); $("#more-btn").textContent = "More options";
+    $("#more").hidden = true; $("#more-btn").setAttribute("aria-expanded", "false"); $("#more-btn").textContent = "More";
     editText.value = N.text || "";
     $("#edit-details").value = N.details || "";
     $("#add-step").value = "";
@@ -1174,7 +1183,7 @@ body.desk .exit-desk { display: inline-block; }
     const open = $("#more").hidden;
     $("#more").hidden = !open;
     e.currentTarget.setAttribute("aria-expanded", String(open));
-    e.currentTarget.textContent = open ? "Fewer options" : "More options";
+    e.currentTarget.textContent = open ? "Less" : "More";
   });
   // Return sticks the note; Shift+Return starts a new line.
   editText.addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); closeEditor(true); } });
@@ -1484,7 +1493,9 @@ body.desk .exit-desk { display: inline-block; }
     $("#pr-next").textContent = `পরের নামাজ ${name} · ${h ? bnDigits(h) + " ঘণ্টা " : ""}${bnDigits(m)} মিনিট পর`;
     $("#pr-date").textContent = now.toLocaleDateString("bn-BD", { weekday: "long", day: "numeric", month: "long", timeZone: DHAKA.tz });
     // The rail shows only the upcoming prayer; the full list stays in the Prayer & Quran sheet.
-    $("#rail-next").textContent = `${name} ${fmtTime(nextTime)} · ${h ? bnDigits(h) + " ঘণ্টা " : ""}${bnDigits(m)} মিনিট পর`;
+    const railMain = document.createElement("span"); railMain.textContent = `${next ? next[1] : "ফজর"} ${fmtTime(nextTime)}`;
+    const railCount = document.createElement("span"); railCount.className = "rn-count"; railCount.textContent = ` · ${h ? bnDigits(h) + " ঘণ্টা " : ""}${bnDigits(m)} মিনিট পর`;
+    $("#rail-next").replaceChildren(railMain, railCount);
     ticker.prayer = [];
     updateTicker();
     $("#pr-times").replaceChildren(...PRAYERS.map(([k, bn, en]) => {
