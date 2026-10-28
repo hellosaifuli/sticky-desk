@@ -25,6 +25,22 @@ Open `index.html` in Safari on iPad or Mac. On iPad, tap Share, then **Add to Ho
 
 When opened as a standalone file, notes are saved in that browser.
 
+## More features
+
+- **Smart typing**: write `PDF feedback tmr !! #beevo *` and the note sets its own date, priority, project and flag. Days (`today`, `tmr`, `friday`, `next week`, `in 3 days`), repeats (`every day`, `every weekday`, `weekly`, `monthly`), `!` to `!!!`, `*` for a flag, `#project`.
+- **Templates** for new notes: Design review, Bug fix, Meeting prep, Weekly plan.
+- **Ask Claude** (claude.ai version): break a note into steps, plan my day around the prayers, weekly review.
+- **Focus timer**: 25 minutes on any note; it pauses itself before the next prayer and adds a tally to the note.
+- **Done celebration**: paper confetti and a soft paper sound (turn sounds off in Settings).
+- **Archive**: Done notes older than a week move to the Archive so the board stays clean.
+- **Undo** anything with ⌘Z / Ctrl+Z, or the Undo button in messages.
+- **Night desk**: wood that turns dark after Maghrib and light again at Fajr.
+- **Ramadan mode** (auto from the Hijri calendar, or on/off): sehri and iftar countdown, and how many readings a day finish the Quran by Eid.
+- **Jumu'ah**: on Fridays, Dhuhr shows as Jumu'ah, the rail reminds you, and the Quran card offers Surah Al-Kahf.
+- **Quran streak**: days in a row you've read.
+- **Backup**: save everything to a file and restore it from Settings.
+- **Welcome tour** on first visit.
+
 ## Lock screen
 
 A web page can't show on the iPad lock screen. That needs a native app with a WidgetKit widget, built in Xcode on a Mac.

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
 </head>
 <body>
@@ -916,6 +916,63 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
 
 .quick-cam { width: 40px; height: 40px; box-shadow: none; }
 .quick-cam svg { width: 20px; height: 20px; }
+
+/* ---------- premium features ---------- */
+.nlp-hint { margin: -2px 2px 0; font: 500 .82rem var(--font-sys); color: var(--accent-ink); }
+:root[data-theme="dark"] .nlp-hint { color: #8fd4b4; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .nlp-hint { color: #8fd4b4; } }
+.nlp-hint.tip { color: var(--ui-muted); font-weight: 400; }
+.tpl-row { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding: 2px; }
+.tpl-row::-webkit-scrollbar { display: none; }
+.tpl { flex: 0 0 auto; font: 500 .85rem var(--font-sys); color: var(--ui-fg); cursor: pointer; padding: 8px 12px; border-radius: 999px;
+  border: 1px dashed color-mix(in srgb, var(--ui-fg) 35%, transparent); background: transparent; min-height: 36px; }
+.archive-btn { align-self: flex-start; border: 0; background: none; cursor: pointer; padding: 4px 6px; font: 600 .8rem var(--font-sys); color: var(--on-desk); opacity: .7; text-decoration: underline; text-underline-offset: 3px; min-height: 32px; }
+.archive-btn:hover { opacity: 1; }
+.arch-row { cursor: default; }
+#arch-list { max-height: 55vh; overflow-y: auto; }
+.set-h { margin: 6px 0 -4px; font: 700 .72rem var(--font-sys); letter-spacing: .07em; text-transform: uppercase; color: var(--ui-muted); }
+.set-row { display: flex; align-items: center; gap: 10px; font: 500 .95rem var(--font-sys); color: var(--ui-fg); min-height: 40px; }
+.set-row input { width: 22px; height: 22px; accent-color: var(--accent-ink); }
+.set-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.ai-out { max-height: 46vh; overflow-y: auto; background: var(--card); background-image: var(--paper-noise); color: var(--ink); border-radius: 4px; padding: 14px 16px; box-shadow: inset 0 1px 2px rgba(0,0,0,.08); }
+.ai-out .sheet-text { color: var(--ink); opacity: .7; }
+.ai-text { margin: 0; white-space: pre-wrap; font: 400 1.02rem/1.55 var(--font-hand); }
+.ramadan-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin-top: 10px; }
+.ramadan-seg .card-btn { padding: 4px 10px; min-height: 32px; color: var(--ink); background: rgba(28,31,58,.07); font: 500 .85rem var(--font-sys); border-radius: 8px; }
+.ramadan-seg .card-btn[aria-pressed="true"] { background: var(--accent-ink); color: #fbf6ea; }
+.confetti { position: fixed; inset: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 80; }
+/* focus pill */
+.focus-pill {
+  position: fixed; z-index: 45; left: 50%; transform: translateX(-50%);
+  bottom: calc(var(--rail-h) + 18px);
+  display: flex; align-items: center; gap: 10px; padding: 6px 6px 6px 14px; border-radius: 999px; max-width: calc(100vw - 32px);
+  border: 1px solid var(--glass-edge); background: var(--glass-shine), var(--glass-bg); box-shadow: var(--glass-shadow);
+  -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); color: var(--ui-fg); font-family: var(--font-sys);
+}
+.fp-dot { width: 9px; height: 9px; border-radius: 50%; background: #e0533c; animation: blink 1.6s ease-in-out infinite; flex: 0 0 auto; }
+.focus-pill.paused .fp-dot { background: var(--ui-muted); animation: none; }
+.fp-label { font-size: .85rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.fp-time { font: 700 1rem var(--font-sys); font-variant-numeric: tabular-nums; }
+.fp-btn { border: 0; cursor: pointer; border-radius: 999px; min-height: 34px; padding: 0 12px; font: 600 .82rem var(--font-sys); color: var(--ui-fg); background: color-mix(in srgb, var(--ui-fg) 10%, transparent); }
+/* welcome */
+.onboard { align-content: center; gap: 18px; }
+.ob-track { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; width: min(420px, 92vw); border-radius: 6px; }
+.ob-track::-webkit-scrollbar { display: none; }
+.ob-card { flex: 0 0 100%; scroll-snap-align: center; display: grid; gap: 10px; justify-items: center; text-align: center; padding: 26px 24px 28px;
+  background: var(--card); background-image: var(--paper-noise); color: var(--ink); }
+.ob-card h2 { margin: 6px 0 0; font: 700 1.35rem var(--font-sys-display); letter-spacing: -.02em; }
+.ob-card p { margin: 0; font: 400 .98rem/1.5 var(--font-sys); max-width: 32ch; opacity: .8; }
+.ob-art { height: 130px; width: 100%; display: grid; place-items: center; position: relative; }
+.ob-n { position: absolute; width: 74px; height: 74px; background: var(--c); background-image: var(--paper-noise); transform: rotate(var(--r)); box-shadow: 0 8px 12px -6px rgba(60,40,20,.4); }
+.ob-n:nth-child(1) { translate: -60px 6px; } .ob-n:nth-child(3) { translate: 60px -4px; }
+.ob-type { font: 1.3rem var(--font-hand); padding: 14px 18px; background: var(--n-yellow); background-image: var(--paper-noise); transform: rotate(-2deg); box-shadow: 0 8px 12px -6px rgba(60,40,20,.4); }
+.ob-type b { color: var(--accent-ink); font-weight: 700; }
+.ob-rail { font: 600 1rem var(--font-bn); padding: 8px 14px; background: var(--n-pink); background-image: var(--paper-noise); transform: rotate(-1.5deg); box-shadow: 0 2px 3px rgba(0,0,0,.2); }
+.ob-dots { display: flex; gap: 8px; justify-content: center; }
+.ob-dots span { width: 7px; height: 7px; border-radius: 50%; background: color-mix(in srgb, var(--ui-fg) 30%, transparent); transition: width .2s ease; }
+.ob-dots span.on { width: 20px; border-radius: 4px; background: var(--ui-fg); }
+.ob-actions { display: flex; gap: 12px; justify-content: center; }
+@media (prefers-reduced-motion: reduce) { .fp-dot { animation: none; } }
 </style>
 
 <main class="wrap">
@@ -938,6 +995,13 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
         <button class="card-btn" id="azan-toggle" type="button" lang="bn" aria-pressed="false">আযান চালু করুন</button>
         <button class="card-btn" id="azan-settings" type="button" lang="bn">আযানের শব্দ</button>
       </div>
+      <div class="ramadan-row">
+        <span class="card-sub" lang="bn">রমজান</span>
+        <div class="seg ramadan-seg" id="ramadan-seg" role="group" aria-label="Ramadan mode">
+          <button class="card-btn" type="button" data-v="auto">Auto</button><button class="card-btn" type="button" data-v="on">On</button><button class="card-btn" type="button" data-v="off">Off</button>
+        </div>
+        <span class="card-sub" id="ramadan-info" lang="bn"></span>
+      </div>
       <p class="card-note">Karachi method, Hanafi Asr, as used in Bangladesh. Your mosque may differ by a minute or two.</p>
     </section>
     <section class="card quran" aria-labelledby="qr-title">
@@ -946,6 +1010,8 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
       <div class="card-actions">
         <button class="card-btn" id="qr-prev" type="button" lang="bn">← আগের</button>
         <span class="card-sub" id="qr-progress"></span>
+        <button class="card-btn" id="qr-kahf" type="button" lang="bn" hidden>সূরা কাহফ পড়ুন</button>
+        <button class="card-btn" id="qr-back" type="button" lang="bn" hidden>আমার পড়ায় ফিরুন</button>
         <span class="spacer-x"></span>
         <button class="card-btn primary" id="qr-done" type="button" lang="bn">পড়া হয়েছে ✓</button>
       </div>
@@ -969,6 +1035,7 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
     </section>
     <section class="col" data-col="done" aria-labelledby="h-done">
       <div class="tape col-head"><h2 id="h-done">Done</h2><span class="count"></span></div>
+      <button class="archive-btn" id="archive-btn" type="button" hidden></button>
       <div class="notes"></div>
     </section>
   </section>
@@ -1003,14 +1070,17 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
     <button class="fab-item" id="search-btn" type="button" style="--x:0px;--y:-68px;--i:0" aria-label="Search notes">
       <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg><span>Search</span>
     </button>
-    <button class="fab-item" id="bg-btn" type="button" style="--x:0px;--y:-126px;--i:1" aria-label="Background">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="m3 16 5-5 4 4 3-3 6 6"/><circle cx="16" cy="8.5" r="1.6"/></svg><span>Background</span>
+    <button class="fab-item" id="bg-btn" type="button" style="--x:0px;--y:-126px;--i:1" aria-label="Settings">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v2.4M12 18.8v2.4M4.2 7.5l2.1 1.2M17.7 15.3l2.1 1.2M4.2 16.5l2.1-1.2M17.7 8.7l2.1-1.2"/><circle cx="12" cy="12" r="7"/></svg><span>Settings</span>
     </button>
     <button class="fab-item" id="today-btn" type="button" style="--x:0px;--y:-184px;--i:2" aria-controls="today" aria-label="Prayer times and Quran">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 3.5a8.5 8.5 0 1 0 5 15.4A7 7 0 0 1 15.5 3.5z"/></svg><span>Prayer &amp; Quran</span>
     </button>
     <button class="fab-item" id="desk-btn" type="button" style="--x:0px;--y:-242px;--i:3" aria-label="Desk mode">
       <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M8 20h8M12 16v4"/></svg><span>Desk mode</span>
+    </button>
+    <button class="fab-item" id="ai-btn" type="button" style="--x:0px;--y:-300px;--i:4" aria-label="Ask Claude" hidden>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg><span>Ask Claude</span>
     </button>
   </div>
   <button class="fab-main" id="fab-main" type="button" aria-expanded="false" aria-controls="fab-items" aria-label="Options">
@@ -1042,6 +1112,8 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
       <button class="btn quiet" id="more-btn" type="button" aria-expanded="false" aria-controls="more">More</button>
       <button class="btn primary" id="hand-close" type="button">Stick it</button>
     </div>
+    <p class="nlp-hint" id="nlp-hint" hidden></p>
+    <div class="tpl-row" id="tpl-row" role="group" aria-label="Start from a template" hidden></div>
     <div class="more" id="more" hidden>
     <div class="mrow">
       <label class="mfield">Project<select class="field" id="edit-project"></select></label>
@@ -1058,6 +1130,8 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
         </div>
       </div>
       <span class="spacer"></span>
+      <button class="btn quiet" id="focus-btn" type="button">⏱ Focus 25 min</button>
+      <button class="btn quiet" id="ai-steps" type="button" hidden>✨ Break into steps</button>
       <button class="btn quiet" id="remove-photo" type="button" hidden>Remove photo</button>
       <button class="btn quiet" id="flip-btn" type="button">Flip to back</button>
       <button class="btn quiet danger" id="hand-delete" type="button">Throw away</button>
@@ -1083,9 +1157,19 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
 <!-- Background sheet -->
 <div class="overlay" id="bg-sheet" hidden role="dialog" aria-modal="true" aria-labelledby="bg-title">
   <div class="panel">
-    <h3 class="tape sheet-title" id="bg-title">Background</h3>
-    <div class="bgs" id="bgs" role="group" aria-label="Background"></div>
-    <div class="pactions"><button class="btn primary" id="bg-done" type="button">Done</button></div>
+    <h3 class="tape sheet-title" id="bg-title">Settings</h3>
+    <h4 class="set-h">Desk</h4>
+    <div class="bgs" id="bgs" role="group" aria-label="Desk background"></div>
+    <h4 class="set-h">Sounds</h4>
+    <label class="set-row" for="set-sounds"><input type="checkbox" id="set-sounds"> Paper sound when you finish a note</label>
+    <h4 class="set-h">Backup</h4>
+    <div class="set-actions">
+      <button class="btn" id="backup-export" type="button">Save a backup</button>
+      <button class="btn" id="backup-import" type="button">Restore from backup</button>
+      <input type="file" id="backup-file" accept="application/json,.json" hidden>
+    </div>
+    <p class="sheet-text" id="backup-msg">Saves your notes, projects and settings to a file you can keep.</p>
+    <div class="pactions"><div class="left"><button class="btn quiet" id="show-welcome" type="button">Show the welcome again</button></div><button class="btn primary" id="bg-done" type="button">Done</button></div>
   </div>
 </div>
 
@@ -1106,6 +1190,57 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
 <div class="banner" id="banner" hidden role="alert"><span id="banner-msg" lang="bn"></span><span class="spacer-x"></span><button class="card-btn primary" id="banner-stop" type="button" lang="bn">বন্ধ করুন</button></div>
 
 <script src="https://unpkg.com/adhan@4.4.3/lib/bundles/adhan.umd.min.js"></script>
+
+<!-- Archive -->
+<div class="overlay" id="archive-sheet" hidden role="dialog" aria-modal="true" aria-labelledby="arch-title">
+  <div class="panel">
+    <h3 class="tape sheet-title" id="arch-title">Archive</h3>
+    <p class="sheet-text">Notes you finished more than a week ago. They stay here so the board keeps clean.</p>
+    <div class="sp-list" id="arch-list"></div>
+    <div class="pactions"><button class="btn primary" id="arch-done" type="button">Done</button></div>
+  </div>
+</div>
+
+<!-- Ask Claude -->
+<div class="overlay" id="ai-sheet" hidden role="dialog" aria-modal="true" aria-labelledby="ai-title">
+  <div class="panel">
+    <h3 class="tape sheet-title" id="ai-title">Ask Claude</h3>
+    <div class="set-actions"><button class="btn" id="ai-plan" type="button">Plan my day</button><button class="btn" id="ai-review" type="button">Weekly review</button></div>
+    <div class="ai-out" id="ai-out" aria-live="polite"><p class="sheet-text">Claude reads your notes and today's prayer times, then suggests what to do next.</p></div>
+    <div class="pactions"><button class="btn primary" id="ai-done" type="button">Done</button></div>
+  </div>
+</div>
+
+<!-- Welcome -->
+<div class="overlay onboard" id="onboard" hidden role="dialog" aria-modal="true" aria-label="Welcome to Sticky Desk">
+  <div class="ob-track" id="ob-track">
+    <section class="ob-card" aria-label="1 of 3">
+      <div class="ob-art"><span class="ob-n" style="--c:var(--n-yellow);--r:-6deg"></span><span class="ob-n" style="--c:var(--n-pink);--r:4deg"></span><span class="ob-n" style="--c:var(--n-blue);--r:-2deg"></span></div>
+      <h2>Your desk, on paper</h2>
+      <p>Tear off a note with the pad. Hold a note and drag it between To do, Doing and Done.</p>
+    </section>
+    <section class="ob-card" aria-label="2 of 3">
+      <div class="ob-art"><span class="ob-type">PDF feedback <b>tmr</b> <b>!!</b> <b>#beevo</b></span></div>
+      <h2>Just type it</h2>
+      <p>Write a day, some !, or a #project and the note sets its own date, priority and project.</p>
+    </section>
+    <section class="ob-card" aria-label="3 of 3">
+      <div class="ob-art"><span class="ob-rail" lang="bn">আসর 3:52 PM · ১ ঘণ্টা পর</span></div>
+      <h2>Prayer and Quran</h2>
+      <p>The strip at the bottom shows the next prayer and today's verses. Tap it to turn on the azan.</p>
+    </section>
+  </div>
+  <div class="ob-dots" id="ob-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+  <div class="ob-actions"><button class="btn quiet" id="ob-skip" type="button">Skip</button><button class="btn primary" id="ob-next" type="button">Next</button></div>
+</div>
+
+<div class="focus-pill" id="focus-pill" hidden>
+  <span class="fp-dot" aria-hidden="true"></span>
+  <span class="fp-label" id="fp-label"></span>
+  <span class="fp-time" id="fp-time" role="timer"></span>
+  <button class="fp-btn" id="fp-toggle" type="button">Pause</button>
+  <button class="fp-btn" id="fp-stop" type="button" aria-label="Stop focus">✕</button>
+</div>
 
 <div class="toast" id="toast" hidden role="status"><span id="toast-msg"></span><button id="toast-undo" type="button" hidden>Undo</button></div>
 
@@ -1194,7 +1329,7 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
     }
     return true;
   }
-  const inCol = (c) => notes.filter((n) => n.column === c && matches(n)).sort((a, b) => a.order - b.order);
+  const inCol = (c) => notes.filter((n) => n.column === c && !isArchived(n) && matches(n)).sort((a, b) => a.order - b.order);
 
   function toast(msg, undo) {
     $("#toast-msg").textContent = msg;
@@ -1219,6 +1354,7 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
   async function put(kind, obj) {
     const list = kind === "notes" ? notes : projects;
     const i = list.findIndex((x) => x.id === obj.id);
+    if (!undoing) remember(kind, i >= 0 ? list[i] : null, obj.id);
     if (i >= 0) list[i] = obj; else list.push(obj);
     render();
     if (mode === "account") {
@@ -1227,6 +1363,8 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
     } else saveLocal();
   }
   async function del(kind, id) {
+    const old = (kind === "notes" ? notes : projects).find((x) => x.id === id);
+    if (old && !undoing) remember(kind, old, id);
     if (kind === "notes") notes = notes.filter((n) => n.id !== id); else projects = projects.filter((p) => p.id !== id);
     render();
     if (mode === "account") {
@@ -1276,6 +1414,7 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
   }
   function afterDone(prev, next) {
     if (next.column !== "done" || prev.column === "done") return;
+    celebrate(next.id);
     if (next.repeat && next.due) {
       const top = notes.filter((x) => x.column === "todo").sort((a, b) => a.order - b.order)[0];
       const copy = {
@@ -1286,7 +1425,7 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
       put("notes", { ...next, repeat: "" });
       put("notes", copy);
       toast(`Done. The next one is in To do for ${dueInfo(copy.due).label}.`);
-    } else toast("Nice. That one's done.");
+    } else toast("Nice. That one's done.", true);
   }
   function checkWip(prev, next) {
     if (next.column !== "doing" || prev.column === "doing") return;
@@ -1325,7 +1464,7 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
     const due = document.createElement("span");
     if (di && n.column !== "done") { due.className = "due " + di.state; due.textContent = (di.state === "due-late" ? "Late · " : "") + di.label + (n.repeat ? " ↻" : ""); }
     const sub = document.createElement("span"); sub.className = "sub";
-    if (steps.length) sub.textContent = `${stepsDone}/${steps.length} ☐`;
+    sub.textContent = [steps.length ? `${stepsDone}/${steps.length} ☐` : "", n.focusCount ? `⏱${n.focusCount}` : ""].filter(Boolean).join("  ");
     meta.append(due, sub);
     paper.prepend(top); paper.append(t, meta);
     el.append(paper);
@@ -1390,6 +1529,8 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
       section.querySelector(".notes").replaceChildren(...kids);
       section.querySelector(".count").textContent = list.length;
     }
+    const archN = notes.filter((n) => isArchived(n) && matches(n)).length;
+    $("#archive-btn").hidden = !archN; $("#archive-btn").textContent = `Archive · ${archN}`;
     const doingAll = notes.filter((n) => n.column === "doing").length;
     $("#wip").textContent = `· max ${WIP_LIMIT}`;
     board.querySelector('[data-col="doing"] .col-head').classList.toggle("over-limit", doingAll > WIP_LIMIT);
@@ -1551,6 +1692,7 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
     $("#more").hidden = true; $("#more-btn").setAttribute("aria-expanded", "false"); $("#more-btn").textContent = "More"; hand.classList.remove("more-open");
     editText.value = N.text || "";
     showEditorPhoto();
+    prepEditorExtras(isNew);
     $("#edit-details").value = N.details || "";
     $("#add-step").value = "";
     renderSteps();
@@ -1611,7 +1753,10 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
     const { note, isNew, prev } = editing;
     const pending = $("#add-step").value.trim();
     if (pending) note.checklist.push({ t: pending, done: false });
-    note.text = editText.value.trim();
+    const parsed = parseQuick(editText.value);
+    note.text = parsed.text;
+    for (const k of ["due", "priority", "projectId", "repeat", "flagged"]) if (parsed[k] !== undefined) note[k] = parsed[k];
+    if (note.repeat && !note.due) note.due = today();
     note.checklist = note.checklist.filter((s) => s.t.trim());
     editing = null; hand.hidden = true;
     if (!save) { if (!isNew) removeNote(note.id); else render(); return; }
@@ -1689,10 +1834,7 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
     showEditorPhoto();
   });
 
-  $("#toast-undo").addEventListener("click", () => {
-    if (lastDeleted) { const n = lastDeleted; lastDeleted = null; put("notes", n); }
-    $("#toast").hidden = true;
-  });
+  $("#toast-undo").addEventListener("click", () => undo());
 
   /* ---------- project sheet ---------- */
   let syncSw, deleteArmed = false;
@@ -1753,7 +1895,7 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
       const list = notes.filter((x) => x.column === to).sort((a, b) => a.order - b.order);
       const moved = { ...withColumn(n, to), order: list.length ? list[list.length - 1].order + 1 : 1 };
       put("notes", moved); afterDone(n, moved); checkWip(n, moved);
-      if (to !== "done") toast(`Moved to ${{ todo: "To do", doing: "Doing" }[to]}.`);
+      if (to !== "done") toast(`Moved to ${{ todo: "To do", doing: "Doing" }[to]}.`, true);
       board.querySelector(`[data-id="${n.id}"]`)?.focus();
     }
   });
@@ -1868,11 +2010,13 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
     { id: "linen", name: "Linen", swatch: "#e8dfcf" },
     { id: "felt", name: "Green felt", swatch: "#2f5443" },
     { id: "slate", name: "Chalkboard", swatch: "#2d3134" },
+    { id: "night", name: "Wood, dark after Maghrib", swatch: "linear-gradient(135deg, #d8bf98 50%, #4a3727 50%)" },
   ];
   let bg = "auto";
   function applyBg(id) {
     bg = id;
-    if (id === "auto") delete document.documentElement.dataset.bg; else document.documentElement.dataset.bg = id;
+    if (id === "auto") delete document.documentElement.dataset.bg;
+    else document.documentElement.dataset.bg = id === "night" ? (isNightNow() ? "walnut" : "oak") : id;
     document.querySelectorAll(".bg-opt").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.v === id)));
   }
   try { const b = localStorage.getItem("sticky-desk-bg"); if (BGS.some((x) => x.id === b)) applyBg(b); } catch (e) {}
@@ -1933,28 +2077,41 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
     const key = dhakaYMD().join("-");
     if (key !== ptDay) { pt = timesFor(0); ptDay = key; }
     const now = new Date();
+    const friday = isFridayDhaka();
+    const pname = (k, bn) => (friday && k === "dhuhr" ? "জুমা" : bn);
     const today5 = PRAYERS.filter(([k]) => k !== "sunrise");
     const next = today5.find(([k]) => pt[k] > now);
     const nextTime = next ? pt[next[0]] : timesFor(1).fajr;
-    const name = next ? next[1] : "ফজর (আগামীকাল)";
+    const name = next ? pname(next[0], next[1]) : "ফজর (আগামীকাল)";
     const mins = Math.max(0, Math.round((nextTime - now) / 60000));
     const h = Math.floor(mins / 60), m = mins % 60;
     $("#pr-next").textContent = `পরের নামাজ ${name} · ${h ? bnDigits(h) + " ঘণ্টা " : ""}${bnDigits(m)} মিনিট পর`;
     $("#pr-date").textContent = now.toLocaleDateString("bn-BD", { weekday: "long", day: "numeric", month: "long", timeZone: DHAKA.tz });
     // The rail shows only the upcoming prayer; the full list stays in the Prayer & Quran sheet.
-    const railMain = document.createElement("span"); railMain.textContent = `${next ? next[1] : "ফজর"} ${fmtTime(nextTime)}`;
+    const railMain = document.createElement("span"); railMain.textContent = `${next ? pname(next[0], next[1]) : "ফজর"} ${fmtTime(nextTime)}`;
     const railCount = document.createElement("span"); railCount.className = "rn-count"; railCount.textContent = ` · ${h ? bnDigits(h) + " ঘণ্টা " : ""}${bnDigits(m)} মিনিট পর`;
+    if (isRamadan()) {
+      // Ramadan: the rail counts down to sehri's end or iftar instead
+      const fajrNext = now < pt.fajr ? pt.fajr : timesFor(1).fajr;
+      const [lab, at] = now >= pt.fajr && now < pt.maghrib ? ["ইফতার", pt.maghrib] : ["সেহরি শেষ", fajrNext];
+      const rm = Math.max(0, Math.round((at - now) / 60000)), rh = Math.floor(rm / 60);
+      railMain.textContent = `${lab} ${fmtTime(at)}`;
+      railCount.textContent = ` · ${rh ? bnDigits(rh) + " ঘণ্টা " : ""}${bnDigits(rm % 60)} মিনিট পর`;
+    }
     $("#rail-next").replaceChildren(railMain, railCount);
     $("#rail-label").setAttribute("aria-label", `Next prayer ${next ? next[2] : "Fajr"} at ${fmtTime(nextTime)}, in ${h ? h + " hours " : ""}${m} minutes. Opens prayer times and today's Quran.`);
-    ticker.prayer = [];
+    ticker.prayer = friday ? [{ t: "জুমা মোবারক · আজ সূরা আল-কাহফ পড়ার দিন", cls: "head" }, { t: "◆", cls: "sep" }] : [];
     updateTicker();
     $("#pr-times").replaceChildren(...PRAYERS.map(([k, bn, en]) => {
       const li = document.createElement("li");
       if (next && k === next[0]) li.className = "is-next"; else if (pt[k] <= now) li.className = "is-past";
-      const a = document.createElement("span"); a.className = "pn"; a.textContent = `${bn} · ${en}`;
+      const a = document.createElement("span"); a.className = "pn"; a.textContent = `${pname(k, bn)} · ${friday && k === "dhuhr" ? "Jumu'ah" : en}`;
       const b = document.createElement("span"); b.className = "pt"; b.textContent = fmtTime(pt[k]);
       li.append(a, b); return li;
     }));
+    if (bg === "night") applyBg("night");
+    renderRamadanInfo(now);
+    focusPrayerCheck(now);
     checkAzan(now);
   }
 
@@ -2073,13 +2230,16 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
   async function renderQuran() {
     try {
       const idx = await loadQIndex();
-      const st = qState(), n = idx.portions.length, i = st.show % n;
+      const st = qState(), n = idx.portions.length, i = (qBrowse ?? st.show) % n;
       const [s, a, b] = idx.portions[i];
       const ch = idx.chapters[s - 1];
       $("#qr-ref").textContent = `${ch[0]} · ${ch[1]} · আয়াত ${bnDigits(a)}${b > a ? "–" + bnDigits(b) : ""}`;
-      $("#qr-progress").textContent = `পর্ব ${bnDigits(i + 1)} / ${bnDigits(n)}`;
-      $("#qr-done").textContent = st.done ? "আজ পড়া হয়েছে ✓ · আরও পড়ুন" : "পড়া হয়েছে ✓";
-      $("#qr-done").classList.toggle("primary", !st.done);
+      const streak = qStreakNow();
+      $("#qr-progress").textContent = qBrowse != null ? "সূরা আল-কাহফ" : `পর্ব ${bnDigits(i + 1)} / ${bnDigits(n)}` + (streak > 1 ? ` · টানা ${bnDigits(streak)} দিন` : "") + ramadanGoal(n - st.pos);
+      $("#qr-done").textContent = qBrowse != null ? "পরের অংশ →" : st.done ? "আজ পড়া হয়েছে ✓ · আরও পড়ুন" : "পড়া হয়েছে ✓";
+      $("#qr-done").classList.toggle("primary", qBrowse == null && !st.done);
+      $("#qr-kahf").hidden = !(isFridayDhaka() && qBrowse == null);
+      $("#qr-back").hidden = qBrowse == null;
       $("#qr-prev").disabled = i === 0;
       if (i === qShown) return;
       qShown = i;
@@ -2114,13 +2274,25 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
       $("#qr-body").replaceChildren(p);
     }
   }
-  $("#qr-done").addEventListener("click", () => {
+  $("#qr-done").addEventListener("click", async () => {
+    if (qBrowse != null) {
+      const idx = await loadQIndex(); const nx = qBrowse + 1;
+      if (idx.portions[nx]?.[0] === 18) qBrowse = nx; else { qBrowse = null; toast("সূরা আল-কাহফ শেষ। মাশাআল্লাহ!"); }
+      renderQuran(); return;
+    }
     const st = qState();
-    saveSettings({ quranPos: st.pos + 1, quranDoneOn: todayDhaka() });
+    const patch = { quranPos: st.pos + 1, quranDoneOn: todayDhaka() };
+    if (!st.done) {
+      const y = dhakaYMD(-1).join("-");
+      patch.qStreak = settings.qLastDay === y ? (settings.qStreak || 0) + 1 : settings.qLastDay === todayDhaka() ? (settings.qStreak || 1) : 1;
+      patch.qLastDay = todayDhaka();
+    }
+    saveSettings(patch);
     renderQuran();
-    if (!st.done) toast("মাশাআল্লাহ! আজকের পড়া শেষ।");
+    if (!st.done) toast(patch.qStreak > 1 ? `মাশাআল্লাহ! টানা ${bnDigits(patch.qStreak)} দিন পড়লেন।` : "মাশাআল্লাহ! আজকের পড়া শেষ।");
   });
-  $("#qr-prev").addEventListener("click", () => {
+  $("#qr-prev").addEventListener("click", async () => {
+    if (qBrowse != null) { const idx = await loadQIndex(); if (idx.portions[qBrowse - 1]?.[0] === 18) qBrowse--; renderQuran(); return; }
     saveSettings({ quranPos: Math.max(0, qState().show - 1), quranDoneOn: "" });
     renderQuran();
   });
@@ -2151,7 +2323,7 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
 
   /* ---------- sheets: keep focus inside, return it to where you were ---------- */
   if (!document.documentElement.lang) document.documentElement.lang = "en";
-  const SHEETS = ["#hand", "#proj-sheet", "#bg-sheet", "#azan-sheet", "#today", "#spotlight"].map((q) => $(q));
+  const SHEETS = ["#hand", "#proj-sheet", "#bg-sheet", "#azan-sheet", "#today", "#spotlight", "#archive-sheet", "#ai-sheet", "#onboard"].map((q) => $(q));
   const BEHIND = () => [...document.querySelectorAll(".wrap > *:not(#today):not(#today-close), #fab, #rail, #searchbar, #exit-desk, #trash")];
   const openers = new Map();
   new MutationObserver(() => {
@@ -2234,6 +2406,388 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
   $("#exit-desk").addEventListener("click", () => setDesk(false));
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible" && document.body.classList.contains("desk")) requestWake();
+  });
+
+  /* =====================================================================
+     Premium features
+     ===================================================================== */
+
+  /* ---------- undo history (⌘Z / Ctrl+Z, and Undo in messages) ---------- */
+  const undoStack = [];
+  let undoing = false;
+  function remember(kind, before, id) {
+    undoStack.push({ kind, id, before: before ? JSON.parse(JSON.stringify(before)) : null });
+    if (undoStack.length > 60) undoStack.shift();
+  }
+  function undo() {
+    const h = undoStack.pop();
+    $("#toast").hidden = true;
+    if (!h) { toast("Nothing to undo."); return; }
+    undoing = true;
+    try { if (h.before) put(h.kind, h.before); else del(h.kind, h.id); } finally { undoing = false; }
+  }
+  document.addEventListener("keydown", (e) => {
+    if (!(e.metaKey || e.ctrlKey) || e.shiftKey || e.key.toLowerCase() !== "z") return;
+    if (e.target.closest?.("input, textarea, select, [contenteditable]")) return;
+    e.preventDefault(); undo();
+  });
+
+  /* ---------- archive: Done notes older than a week ---------- */
+  function isArchived(n) { return n.column === "done" && n.doneAt && Date.now() - n.doneAt > 7 * 864e5; }
+  function renderArchive() {
+    const list = notes.filter(isArchived).sort((a, b) => b.doneAt - a.doneAt);
+    const host = $("#arch-list");
+    if (!list.length) { const p = document.createElement("p"); p.className = "sp-none"; p.textContent = "Nothing archived yet."; host.replaceChildren(p); return; }
+    host.replaceChildren(...list.map((n) => {
+      const row = document.createElement("div"); row.className = "sp-row arch-row";
+      const sw = document.createElement("span"); sw.className = "sp-swatch"; sw.style.setProperty("--c", `var(--n-${colorOf(n)})`);
+      const t = document.createElement("span"); t.className = "sp-text";
+      const a = document.createElement("span"); a.className = "sp-title"; a.textContent = (n.text || "Photo note").replace(/\n/g, " ");
+      const c = document.createElement("span"); c.className = "sp-sub"; c.textContent = `${projOf(n)?.name || ""} · finished ${new Date(n.doneAt).toLocaleDateString(undefined, { day: "numeric", month: "short" })}`;
+      t.append(a, c);
+      const back = document.createElement("button"); back.type = "button"; back.className = "btn quiet"; back.textContent = "Put back";
+      back.setAttribute("aria-label", `Put "${a.textContent}" back in To do`);
+      back.addEventListener("click", () => { put("notes", { ...withColumn(n, "todo") }); renderArchive(); toast("Back in To do.", true); });
+      row.append(sw, t, back); return row;
+    }));
+  }
+  $("#archive-btn").addEventListener("click", () => { renderArchive(); $("#archive-sheet").hidden = false; });
+  $("#arch-done").addEventListener("click", () => { $("#archive-sheet").hidden = true; });
+  $("#archive-sheet").addEventListener("click", (e) => { if (e.target.id === "archive-sheet") $("#archive-sheet").hidden = true; });
+
+  /* ---------- smart typing: "PDF feedback tmr !! #beevo" ---------- */
+  const WEEKDAYS = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+  const REPEAT_NAME = { daily: "every day", weekdays: "every weekday", weekly: "every week", monthly: "every month" };
+  function parseQuick(raw) {
+    const out = {};
+    let t = " " + (raw || "") + " ";
+    const take = (re, fn) => { t = t.replace(re, (m, ...g) => (fn(...g) === false ? m : " ")); };
+    take(/(?<=\s)(every ?weekday|weekdays|every ?day|daily|every ?week|weekly|every ?month|monthly)(?=\s)/gi, (w) => {
+      w = w.toLowerCase().replace(/\s/g, "");
+      out.repeat = /weekday/.test(w) ? "weekdays" : /day|daily/.test(w) ? "daily" : /week/.test(w) ? "weekly" : "monthly";
+    });
+    take(/(?<=\s)(today|tonight)(?=\s)/gi, () => { out.due = today(); });
+    take(/(?<=\s)(tmr|tmrw|tomorrow)(?=\s)/gi, () => { out.due = addDays(today(), 1); });
+    take(/(?<=\s)next week(?=\s)/gi, () => { out.due = nextMonday(); });
+    take(/(?<=\s)in (\d{1,2}) days?(?=\s)/gi, (n) => { out.due = addDays(today(), Number(n)); });
+    take(/(?<=\s)(sunday|monday|tuesday|wednesday|thursday|friday|saturday)(?=\s)/gi, (d) => {
+      const want = WEEKDAYS.indexOf(d.toLowerCase()), now = new Date().getDay();
+      out.due = addDays(today(), ((want - now + 7) % 7) || 7);
+    });
+    take(/(?<=\s)(!{1,3})(?=\s)/g, (b) => { out.priority = b.length; });
+    take(/(?<=\s)\*(?=\s)/g, () => { out.flagged = true; });
+    take(/(?<=\s)#([^\s#]+)(?=\s)/g, (tag) => {
+      const key = tag.toLowerCase();
+      const p = sortedProjects().find((x) => x.name.toLowerCase().replace(/\s+/g, "").startsWith(key));
+      if (!p) return false;
+      out.projectId = p.id;
+    });
+    out.text = t.replace(/[ \t]+/g, " ").replace(/ *\n */g, "\n").trim();
+    out.changed = ["due", "priority", "projectId", "repeat", "flagged"].some((k) => out[k] !== undefined);
+    return out;
+  }
+  function hintFor(p) {
+    const bits = [];
+    if (p.due) bits.push(dueInfo(p.due).label);
+    if (p.repeat) bits.push(REPEAT_NAME[p.repeat]);
+    if (p.priority) bits.push("!".repeat(p.priority));
+    if (p.flagged) bits.push("flagged");
+    if (p.projectId) bits.push(projects.find((x) => x.id === p.projectId)?.name);
+    return bits.join(" · ");
+  }
+  function updateHint() {
+    const h = $("#nlp-hint"), v = editText.value;
+    const p = parseQuick(v);
+    if (p.changed) { h.hidden = false; h.classList.remove("tip"); h.textContent = "Sets " + hintFor(p); }
+    else if (editing?.isNew && !v.trim()) { h.hidden = false; h.classList.add("tip"); h.textContent = "Tip: add tmr, friday, !!, * or #project as you type."; }
+    else h.hidden = true;
+    $("#tpl-row").hidden = !(editing?.isNew && !v.trim());
+  }
+  editText.addEventListener("input", updateHint);
+
+  /* ---------- templates for new notes ---------- */
+  const TEMPLATES = [
+    ["Design review", "Design review", ["Check it against the brief", "Review spacing and type", "Test on iPhone and iPad", "Collect feedback", "Write next steps"]],
+    ["Bug fix", "Fix bug", ["Reproduce it", "Find the cause", "Fix and test", "Ask for review"]],
+    ["Meeting prep", "Meeting prep", ["Set the agenda", "Gather the files", "Write three questions", "Share notes after"]],
+    ["Weekly plan", "Plan the week", ["Review last week", "Pick three big tasks", "Block focus time", "Check deadlines"]],
+  ];
+  $("#tpl-row").replaceChildren(...TEMPLATES.map(([label, text, steps]) => {
+    const b = document.createElement("button"); b.type = "button"; b.className = "tpl"; b.textContent = label;
+    b.addEventListener("click", () => {
+      if (!editing) return;
+      editText.value = text;
+      editing.note.checklist = steps.map((x) => ({ t: x, done: false }));
+      renderSteps(); updateHint();
+      toast(`Added ${steps.length} steps on the back of the note.`);
+      editText.focus();
+    });
+    return b;
+  }));
+
+  /* ---------- Claude: steps, plan my day, weekly review (claude.ai only) ---------- */
+  let sampler = null, samplerChecked = false;
+  async function getSampler() {
+    if (samplerChecked) return sampler;
+    samplerChecked = true;
+    if (mode !== "account" || !window.claude?.use) return null;
+    sampler = await window.claude.use("sample").catch(() => null);
+    return sampler;
+  }
+  const aiError = (e) => toast(e?.code === "not_granted" ? "Claude isn't allowed on this page. You can allow it in the page's Permissions." : e?.code === "rate_limited" ? "Claude is busy. Try again in a minute." : "Couldn't reach Claude right now. Try again in a moment.");
+  function prepEditorExtras(isNew) {
+    updateHint();
+    $("#ai-steps").hidden = !sampler;
+    $("#focus-btn").textContent = focus && focus.noteId === editing?.note.id ? "⏱ Focusing on this" : "⏱ Focus 25 min";
+  }
+  $("#ai-steps").addEventListener("click", async () => {
+    const s = await getSampler(); if (!s || !editing) return;
+    const task = parseQuick(editText.value).text;
+    if (!task) { toast("Write the task first, then Claude can split it into steps."); return; }
+    const btn = $("#ai-steps"); btn.disabled = true; btn.textContent = "Thinking…";
+    try {
+      const r = await s(`Break this task into 3 to 6 short, concrete steps someone can tick off. Task: "${task}".${editing.note.details ? " Extra notes: " + editing.note.details : ""} Reply with one step per line, no numbers, no bullets, nothing else.`, { modelTier: "quick" });
+      const steps = (r.text || "").split("\n").map((x) => x.replace(/^[\s\-*•\d.)]+/, "").trim()).filter(Boolean).slice(0, 8);
+      if (steps.length && editing) { editing.note.checklist.push(...steps.map((x) => ({ t: x, done: false }))); renderSteps(); setFlip(true); }
+    } catch (e) { aiError(e); }
+    finally { btn.disabled = false; btn.textContent = "✨ Break into steps"; }
+  });
+  function boardSummary() {
+    return notes.map((n) => ({
+      task: (n.text || "(photo)").replace(/\n/g, " "), column: COL_NAME[n.column], project: projOf(n)?.name || "",
+      due: n.due || undefined, priority: n.priority || undefined, flagged: n.flagged || undefined,
+      steps: (n.checklist || []).length ? `${n.checklist.filter((x) => x.done).length}/${n.checklist.length}` : undefined,
+      finished: n.doneAt ? new Date(n.doneAt).toISOString().slice(0, 10) : undefined,
+    }));
+  }
+  async function askClaude(kind) {
+    const s = await getSampler(); if (!s) return;
+    const out = $("#ai-out"); const p = document.createElement("p"); p.className = "ai-text"; p.textContent = "Thinking…"; out.replaceChildren(p);
+    const prayers = pt ? "Prayer times in Dhaka today: " + PRAYERS.map(([k, , en]) => `${en} ${fmtTime(pt[k])}`).join(", ") + "." : "";
+    const when = new Date().toLocaleString("en-GB", { timeZone: DHAKA.tz, weekday: "long", day: "numeric", month: "long", hour: "numeric", minute: "2-digit" });
+    const prompt = kind === "plan"
+      ? `It is ${when} in Dhaka. ${prayers} My tasks as JSON: ${JSON.stringify(boardSummary())}. Suggest a realistic plan for the rest of today. Pick at most four open tasks, late and high-priority first, and put them in time blocks that fit between the prayers. One line per block, like "2:00–3:30 PM · Task". Plain text, no markdown. End with one short, warm sentence.`
+      : `It is ${when}. My tasks as JSON, with finish dates: ${JSON.stringify(boardSummary())}. Write a short weekly review in plain text with three short sections: Finished this week, Still open or late, Focus next week (three items). No markdown symbols.`;
+    try {
+      const r = await s(prompt, { modelTier: "default", onText: ({ text }) => { p.textContent = text; } });
+      p.textContent = r.text;
+    } catch (e) { p.textContent = ""; aiError(e); }
+  }
+  $("#ai-btn").addEventListener("click", () => { $("#ai-sheet").hidden = false; });
+  $("#ai-plan").addEventListener("click", () => askClaude("plan"));
+  $("#ai-review").addEventListener("click", () => askClaude("review"));
+  $("#ai-done").addEventListener("click", () => { $("#ai-sheet").hidden = true; });
+  $("#ai-sheet").addEventListener("click", (e) => { if (e.target.id === "ai-sheet") $("#ai-sheet").hidden = true; });
+  // Show the Claude features once we know this view can use them
+  setTimeout(async () => { const s = await getSampler(); $("#ai-btn").hidden = !s; }, 1500);
+
+  /* ---------- sounds and the Done celebration ---------- */
+  function ensureAudio() { try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); actx.resume(); } catch (e) {} return actx; }
+  ["pointerdown", "keydown"].forEach((t) => document.addEventListener(t, () => { if (settings.sounds !== false) ensureAudio(); }, { capture: true, passive: true, once: true }));
+  function paperSound() {
+    if (settings.sounds === false) return;
+    const ac = ensureAudio(); if (!ac) return;
+    const t0 = ac.currentTime + 0.01, len = 0.32;
+    const buf = ac.createBuffer(1, Math.floor(ac.sampleRate * len), ac.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 2);
+    const src = ac.createBufferSource(); src.buffer = buf;
+    const f = ac.createBiquadFilter(); f.type = "bandpass"; f.frequency.setValueAtTime(2400, t0); f.frequency.exponentialRampToValueAtTime(900, t0 + len); f.Q.value = 0.8;
+    const g = ac.createGain(); g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(0.35, t0 + 0.03); g.gain.exponentialRampToValueAtTime(0.0001, t0 + len);
+    src.connect(f); f.connect(g); g.connect(ac.destination); src.start(t0);
+    const o = ac.createOscillator(), og = ac.createGain(); o.type = "sine"; o.frequency.value = 1046.5;
+    og.gain.setValueAtTime(0.0001, t0 + 0.12); og.gain.exponentialRampToValueAtTime(0.12, t0 + 0.14); og.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.7);
+    o.connect(og); og.connect(ac.destination); o.start(t0 + 0.12); o.stop(t0 + 0.75);
+  }
+  function celebrate(id) {
+    paperSound();
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    requestAnimationFrame(() => {
+      const el = board.querySelector(`[data-id="${id}"]`);
+      const r = el ? el.getBoundingClientRect() : { left: innerWidth / 2, top: innerHeight / 2, width: 0, height: 0 };
+      const cx = r.left + r.width / 2, cy = r.top + r.height / 3;
+      const cs = getComputedStyle(document.documentElement);
+      const colors = ["--n-pink", "--n-yellow", "--n-blue", "--n-green", "--n-orange", "--n-lilac"].map((v) => cs.getPropertyValue(v).trim());
+      const dpr = Math.min(2, devicePixelRatio || 1);
+      const cv = document.createElement("canvas"); cv.className = "confetti"; cv.width = innerWidth * dpr; cv.height = innerHeight * dpr;
+      document.body.append(cv);
+      const ctx = cv.getContext("2d"); ctx.scale(dpr, dpr);
+      const bits = Array.from({ length: 46 }, () => ({
+        x: cx, y: cy, vx: (Math.random() - 0.5) * 9, vy: -Math.random() * 9 - 3, w: 6 + Math.random() * 7, h: 6 + Math.random() * 7,
+        r: Math.random() * Math.PI, vr: (Math.random() - 0.5) * 0.3, c: colors[Math.floor(Math.random() * colors.length)],
+      }));
+      const start = performance.now();
+      const step = (now) => {
+        const k = (now - start) / 1300;
+        ctx.clearRect(0, 0, innerWidth, innerHeight);
+        for (const b of bits) {
+          b.vy += 0.32; b.vx *= 0.985; b.x += b.vx; b.y += b.vy; b.r += b.vr;
+          ctx.save(); ctx.globalAlpha = Math.max(0, 1 - k); ctx.translate(b.x, b.y); ctx.rotate(b.r);
+          ctx.fillStyle = b.c; ctx.fillRect(-b.w / 2, -b.h / 2, b.w, b.h); ctx.restore();
+        }
+        if (k < 1) requestAnimationFrame(step); else cv.remove();
+      };
+      requestAnimationFrame(step);
+    });
+  }
+
+  /* ---------- focus timer that steps aside for prayer ---------- */
+  const FOCUS_MIN = 25;
+  let focus = null, focusTimer = null;
+  try { focus = JSON.parse(localStorage.getItem("sticky-desk-focus") || "null"); } catch (e) {}
+  const saveFocus = () => { try { focus ? localStorage.setItem("sticky-desk-focus", JSON.stringify(focus)) : localStorage.removeItem("sticky-desk-focus"); } catch (e) {} };
+  const focusLeft = () => (focus ? (focus.paused ? focus.left : focus.endsAt - Date.now()) : 0);
+  function renderFocus() {
+    const pill = $("#focus-pill");
+    if (!focus) { pill.hidden = true; clearInterval(focusTimer); focusTimer = null; return; }
+    const n = notes.find((x) => x.id === focus.noteId);
+    const left = Math.max(0, focusLeft()), mm = Math.floor(left / 60000), ss = Math.floor((left % 60000) / 1000);
+    pill.hidden = false;
+    pill.classList.toggle("paused", !!focus.paused);
+    $("#fp-label").textContent = focus.paused && focus.reason ? focus.reason : (n?.text || "Focus").split("\n")[0].slice(0, 28);
+    $("#fp-time").textContent = `${mm}:${String(ss).padStart(2, "0")}`;
+    $("#fp-toggle").textContent = focus.paused ? "Resume" : "Pause";
+    if (!focus.paused && left <= 0) finishFocus();
+  }
+  function startFocus(noteId) {
+    ensureAudio();
+    focus = { noteId, endsAt: Date.now() + FOCUS_MIN * 60000, paused: false, left: 0, skip: "" };
+    saveFocus(); renderFocus();
+    clearInterval(focusTimer); focusTimer = setInterval(renderFocus, 1000);
+    toast(`Focus for ${FOCUS_MIN} minutes. It pauses itself before the next prayer.`);
+  }
+  function finishFocus() {
+    const n = notes.find((x) => x.id === focus.noteId);
+    if (n) put("notes", { ...n, focusCount: (n.focusCount || 0) + 1 });
+    focus = null; saveFocus(); renderFocus();
+    chime(); toast("Focus session done. Take a five-minute break.");
+  }
+  function focusPrayerCheck(now) {
+    if (!focus || focus.paused || !pt) return;
+    for (const [k, bn] of PRAYERS) {
+      if (k === "sunrise") continue;
+      const until = pt[k] - now, key = ptDay + k;
+      if (until <= 5 * 60000 && until > -20 * 60000 && focus.skip !== key) {
+        focus.left = focus.endsAt - Date.now(); focus.paused = true; focus.reason = `${bn}-এর জন্য বিরতি`; focus.skip = key;
+        saveFocus(); renderFocus(); toast(`Focus paused for ${bn}. Tap Resume after salah.`); return;
+      }
+    }
+  }
+  $("#fp-toggle").addEventListener("click", () => {
+    if (!focus) return;
+    if (focus.paused) { focus.endsAt = Date.now() + focus.left; focus.paused = false; focus.reason = ""; }
+    else { focus.left = focus.endsAt - Date.now(); focus.paused = true; focus.reason = ""; }
+    saveFocus(); renderFocus();
+  });
+  $("#fp-stop").addEventListener("click", () => { focus = null; saveFocus(); renderFocus(); });
+  $("#focus-btn").addEventListener("click", () => {
+    if (!editing) return;
+    const id = editing.note.id;
+    closeEditor(true);
+    if (notes.some((n) => n.id === id)) startFocus(id);
+  });
+  if (focus) { renderFocus(); focusTimer = setInterval(renderFocus, 1000); }
+
+  /* ---------- night desk, Ramadan, Jumu'ah, Quran streak ---------- */
+  function isNightNow() {
+    const now = new Date();
+    if (pt) return now >= pt.maghrib || now < pt.fajr;
+    const h = now.getHours(); return h >= 18 || h < 6;
+  }
+  function hijri() {
+    try {
+      const parts = new Intl.DateTimeFormat("en-u-ca-islamic-umalqura", { day: "numeric", month: "numeric", timeZone: DHAKA.tz }).formatToParts(new Date());
+      const get = (t) => Number(parts.find((x) => x.type === t)?.value);
+      return { month: get("month"), day: get("day") };
+    } catch (e) { return { month: 0, day: 0 }; }
+  }
+  function isRamadan() {
+    const m = settings.ramadan || "auto";
+    return m === "on" || (m === "auto" && hijri().month === 9);
+  }
+  function isFridayDhaka() {
+    return new Intl.DateTimeFormat("en-US", { weekday: "short", timeZone: DHAKA.tz }).format(new Date()) === "Fri";
+  }
+  function renderRamadanInfo() {
+    const info = $("#ramadan-info");
+    info.textContent = isRamadan() && pt ? `ইফতার ${fmtTime(pt.maghrib)} · সেহরি শেষ ${fmtTime(pt.fajr)}` : "";
+    syncRamadan?.();
+  }
+  let syncRamadan = null;
+  syncRamadan = seg($("#ramadan-seg"), () => settings.ramadan || "auto", (v) => { saveSettings({ ramadan: v }); renderPrayer(); renderQuran(); });
+  function ramadanGoal(left) {
+    if (!isRamadan()) return "";
+    const daysLeft = Math.max(1, 30 - (hijri().month === 9 ? hijri().day : 0) + 1);
+    return ` · খতমের জন্য দিনে ${bnDigits(Math.ceil(left / daysLeft))} পর্ব`;
+  }
+  function qStreakNow() {
+    const last = settings.qLastDay;
+    return last === todayDhaka() || last === dhakaYMD(-1).join("-") ? settings.qStreak || 0 : 0;
+  }
+  let qBrowse = null;
+  $("#qr-kahf").addEventListener("click", async () => { const idx = await loadQIndex(); qBrowse = idx.portions.findIndex((x) => x[0] === 18); renderQuran(); });
+  $("#qr-back").addEventListener("click", () => { qBrowse = null; renderQuran(); });
+
+  /* ---------- settings: sounds, backup, welcome ---------- */
+  const syncSoundBox = () => { $("#set-sounds").checked = settings.sounds !== false; };
+  $("#bg-btn").addEventListener("click", syncSoundBox);
+  $("#set-sounds").addEventListener("change", (e) => { saveSettings({ sounds: e.target.checked }); if (e.target.checked) paperSound(); });
+  $("#backup-export").addEventListener("click", async () => {
+    const data = JSON.stringify({ app: "sticky-desk", version: 1, exportedAt: new Date().toISOString(), projects, notes, settings }, null, 2);
+    const filename = `sticky-desk-backup-${today()}.json`;
+    const dl = window.claude?.use ? await window.claude.use("downloads").catch(() => null) : null;
+    if (dl) {
+      try { await dl.save({ filename, data }); $("#backup-msg").textContent = "Backup saved."; }
+      catch (e) { if (e?.code !== "cancelled" && e?.code !== "declined") $("#backup-msg").textContent = "Couldn't save the backup file. Try again."; }
+      return;
+    }
+    const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([data], { type: "application/json" })); a.download = filename;
+    document.body.append(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+    $("#backup-msg").textContent = `Saved ${filename}.`;
+  });
+  let pendingRestore = null;
+  $("#backup-import").addEventListener("click", () => {
+    if (pendingRestore) {
+      const { notes: ns, projects: ps } = pendingRestore; pendingRestore = null;
+      ps.forEach((x) => put("projects", x)); ns.forEach((x) => put("notes", x));
+      $("#backup-import").textContent = "Restore from backup";
+      $("#backup-msg").textContent = `Restored ${ns.length} notes and ${ps.length} projects.`;
+      return;
+    }
+    $("#backup-file").click();
+  });
+  $("#backup-file").addEventListener("change", async (e) => {
+    const f = e.target.files[0]; e.target.value = ""; if (!f) return;
+    try {
+      const data = JSON.parse(await f.text());
+      if (data.app !== "sticky-desk" || !Array.isArray(data.notes) || !Array.isArray(data.projects)) throw new Error("shape");
+      pendingRestore = data;
+      $("#backup-import").textContent = `Tap again to restore ${data.notes.length} notes`;
+      $("#backup-msg").textContent = "Notes with the same name in the backup replace the ones on your board. Others are added.";
+    } catch (err) { $("#backup-msg").textContent = "That file isn't a Sticky Desk backup. Choose the .json file you saved from here."; }
+  });
+
+  /* ---------- welcome (first visit) ---------- */
+  const ob = $("#onboard"), obTrack = $("#ob-track");
+  const obIndex = () => Math.round(obTrack.scrollLeft / Math.max(1, obTrack.clientWidth));
+  function syncOb() {
+    const i = obIndex();
+    $("#ob-dots").querySelectorAll("span").forEach((d, k) => d.classList.toggle("on", k === i));
+    $("#ob-next").textContent = i >= 2 ? "Start" : "Next";
+  }
+  function closeOb() { ob.hidden = true; try { localStorage.setItem("sticky-desk-onboarded", "1"); } catch (e) {} }
+  obTrack.addEventListener("scroll", syncOb, { passive: true });
+  $("#ob-next").addEventListener("click", () => {
+    const i = obIndex();
+    if (i >= 2) closeOb(); else obTrack.scrollTo({ left: (i + 1) * obTrack.clientWidth, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+  });
+  $("#ob-skip").addEventListener("click", closeOb);
+  $("#show-welcome").addEventListener("click", () => { $("#bg-sheet").hidden = true; ob.hidden = false; obTrack.scrollLeft = 0; syncOb(); });
+  let seen = false; try { seen = !!localStorage.getItem("sticky-desk-onboarded"); } catch (e) { seen = true; }
+  if (!seen) setTimeout(() => { ob.hidden = false; syncOb(); }, 500);
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "Escape") return;
+    if (!ob.hidden) closeOb();
+    ["#archive-sheet", "#ai-sheet"].forEach((q) => { if (!$(q).hidden) $(q).hidden = true; });
   });
 
   render();
