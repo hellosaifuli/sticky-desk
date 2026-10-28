@@ -913,6 +913,9 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
 }
 .sheet-x svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; }
 .sheet-x:active { transform: scale(.92); }
+
+.quick-cam { width: 40px; height: 40px; box-shadow: none; }
+.quick-cam svg { width: 20px; height: 20px; }
 </style>
 
 <main class="wrap">
@@ -921,9 +924,6 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
     <span class="clock" id="clock"></span></div>
     <span class="spacer"></span>
     <div class="tools">
-      <button class="cam-btn" id="cam-btn" type="button" aria-label="Take a photo for a new note">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.6l1.3-1.8A1.5 1.5 0 0 1 10.6 3.5h2.8a1.5 1.5 0 0 1 1.2.7L15.9 6h1.6A2.5 2.5 0 0 1 20 8.5v8A2.5 2.5 0 0 1 17.5 19h-11A2.5 2.5 0 0 1 4 16.5z"/><circle cx="12" cy="12.3" r="3.6"/></svg>
-      </button>
       <input type="file" id="cam-input" accept="image/*" capture="environment" hidden>
       <button class="pad" id="pad" type="button" aria-label="Tear off a new note">+ new<br>note</button>
     </div>
@@ -1037,6 +1037,7 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
     <div class="quick">
       <div class="seg" id="quick-due" role="group" aria-label="When"><button type="button" data-v="0">Today</button><button type="button" data-v="1" aria-label="Tomorrow">TMR</button></div>
       <div class="seg"><button type="button" id="quick-flag" aria-pressed="false">⚑ Flag</button></div>
+      <button class="cam-btn quick-cam" id="quick-cam" type="button" aria-label="Add a photo to this note"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.6l1.3-1.8A1.5 1.5 0 0 1 10.6 3.5h2.8a1.5 1.5 0 0 1 1.2.7L15.9 6h1.6A2.5 2.5 0 0 1 20 8.5v8A2.5 2.5 0 0 1 17.5 19h-11A2.5 2.5 0 0 1 4 16.5z"/><circle cx="12" cy="12.3" r="3.6"/></svg></button>
       <span class="spacer"></span>
       <button class="btn quiet" id="more-btn" type="button" aria-expanded="false" aria-controls="more">More</button>
       <button class="btn primary" id="hand-close" type="button">Stick it</button>
@@ -1549,10 +1550,7 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
     $("#quick-flag").setAttribute("aria-pressed", String(!!N.flagged));
     $("#more").hidden = true; $("#more-btn").setAttribute("aria-expanded", "false"); $("#more-btn").textContent = "More"; hand.classList.remove("more-open");
     editText.value = N.text || "";
-    const eSrc = photoSrc(N);
-    $("#edit-photo").hidden = !eSrc; if (eSrc) $("#edit-photo").src = eSrc;
-    $(".face.front").classList.toggle("has-photo", !!eSrc);
-    $("#remove-photo").hidden = !eSrc;
+    showEditorPhoto();
     $("#edit-details").value = N.details || "";
     $("#add-step").value = "";
     renderSteps();
@@ -1664,27 +1662,31 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
     } catch (e) { /* a declined or failed read just leaves the field for typing */ }
     finally { editText.placeholder = ph; }
   }
-  $("#cam-btn").addEventListener("click", () => {
-    if (!projects.length) { toast("Make a project first, then add a photo note."); return openProject(null); }
-    $("#cam-input").click();
-  });
+  $("#quick-cam").addEventListener("click", () => $("#cam-input").click());
+  function showEditorPhoto() {
+    const src = editing ? photoSrc(editing.note) : "";
+    $("#edit-photo").hidden = !src; if (src) $("#edit-photo").src = src;
+    $(".face.front").classList.toggle("has-photo", !!src);
+    $("#remove-photo").hidden = !src;
+    $("#quick-cam").setAttribute("aria-label", src ? "Retake the photo" : "Add a photo to this note");
+  }
   $("#cam-input").addEventListener("change", async (e) => {
     const f = e.target.files[0]; e.target.value = ""; if (!f) return;
     let blob;
     try { blob = await shrinkPhoto(f); } catch (err) { toast("Couldn't open that photo. Try taking it again."); return; }
-    const note = blankNote();
+    if (!editing) return;
     const assets = mode === "account" && window.claude?.use ? await window.claude.use("assets").catch(() => null) : null;
     try {
-      if (assets) { const r = await assets.upload(blob, { type: "image/jpeg" }); note.photoId = r.id; }
-      else note.photoData = await blobToDataURL(blob);
+      if (assets) { const r = await assets.upload(blob, { type: "image/jpeg" }); delete editing.note.photoData; editing.note.photoId = r.id; }
+      else { delete editing.note.photoId; editing.note.photoData = await blobToDataURL(blob); }
     } catch (err) { toast("Couldn't save that photo. Check your connection, then try again."); return; }
-    openEditor(note, true);
+    showEditorPhoto();
     readHandwriting(blob);
   });
   $("#remove-photo").addEventListener("click", () => {
     if (!editing) return;
     delete editing.note.photoId; delete editing.note.photoData;
-    $("#edit-photo").hidden = true; $(".face.front").classList.remove("has-photo"); $("#remove-photo").hidden = true;
+    showEditorPhoto();
   });
 
   $("#toast-undo").addEventListener("click", () => {

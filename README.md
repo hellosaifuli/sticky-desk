@@ -9,7 +9,7 @@ Open `index.html` in Safari on iPad or Mac. On iPad, tap Share, then **Add to Ho
 - **Tap** a note to write on it. Apple Pencil Scribble works in the note.
 - **Hold and drag** a note to another column, or onto the bin to throw it away.
 - **Tap the pad** to tear off a new note.
-- **Tap the camera** to photograph a real sticky note or whiteboard. The photo is taped onto a new note. In the claude.ai version, Claude also reads the handwriting into the note's text.
+- **Tap the camera inside a note** to photograph a real sticky note or whiteboard. The photo is taped onto a new note. In the claude.ai version, Claude also reads the handwriting into the note's text.
 - **Projects** are folder tabs, each with its own paper colour. "All projects" shows everything together.
 - **Today, Scheduled, Flagged** filter the board like Apple Reminders' smart lists. Search finds notes by their words, steps or project.
 - **On each note:** due date (Today, TMR, a date; red when late), priority (`!` to `!!!`), a flag tab, and a repeat (daily, weekdays, weekly, monthly). Finishing a repeating note puts the next one in To do.
