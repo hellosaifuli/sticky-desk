@@ -1462,9 +1462,9 @@ body.desk .exit-desk { display: inline-block; }
     const h = Math.floor(mins / 60), m = mins % 60;
     $("#pr-next").textContent = `পরের নামাজ ${name} · ${h ? bnDigits(h) + " ঘণ্টা " : ""}${bnDigits(m)} মিনিট পর`;
     $("#pr-date").textContent = now.toLocaleDateString("bn-BD", { weekday: "long", day: "numeric", month: "long", timeZone: DHAKA.tz });
-    $("#rail-next").textContent = `${name} · ${h ? bnDigits(h) + " ঘণ্টা " : ""}${bnDigits(m)} মিনিট পর`;
-    ticker.prayer = [{ t: "আজকের নামাজ · ঢাকা", cls: "head" }];
-    for (const [k, bn] of PRAYERS) ticker.prayer.push({ t: `${bn} ${fmtTime(pt[k])}`, cls: next && k === next[0] ? "now" : "" }, { t: "◆", cls: "sep" });
+    // The rail shows only the upcoming prayer; the full list stays in the Prayer & Quran sheet.
+    $("#rail-next").textContent = `${name} ${fmtTime(nextTime)} · ${h ? bnDigits(h) + " ঘণ্টা " : ""}${bnDigits(m)} মিনিট পর`;
+    ticker.prayer = [];
     updateTicker();
     $("#pr-times").replaceChildren(...PRAYERS.map(([k, bn, en]) => {
       const li = document.createElement("li");
