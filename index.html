@@ -116,7 +116,7 @@ body {
 .wrap {
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
-  padding-block: 18px 150px;
+  padding-block: 18px calc(var(--rail-h) + 20px);
   max-width: 1400px;
   margin: 0 auto;
   display: grid;
@@ -206,7 +206,12 @@ body {
 .chip .n { opacity: .6; font-variant-numeric: tabular-nums; margin-left: 4px; }
 
 /* ---------- Board ---------- */
-.board { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 44px; align-items: stretch; margin-top: 6px; }
+.board {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 44px; align-items: stretch; margin-top: 6px;
+  /* columns reach down to the rail, so the whole height is a drop target */
+  min-height: calc(100vh - var(--board-top, 280px) - var(--rail-h) - 28px);
+  min-height: calc(100dvh - var(--board-top, 280px) - var(--rail-h) - 28px);
+}
 .col {
   position: relative; min-width: 0; display: grid; gap: 16px; align-content: start;
   padding: 10px; margin: -10px; border-radius: 6px;
@@ -678,7 +683,6 @@ body.desk .exit-desk { display: inline-block; }
       <div class="notes"></div>
     </section>
   </main>
-  <p class="status" id="status">Unpacking your notes…</p>
 </div>
 
 <div class="trash" id="trash" aria-hidden="true">
@@ -898,10 +902,14 @@ body.desk .exit-desk { display: inline-block; }
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => { $("#toast").hidden = true; lastDeleted = null; }, undo ? 6000 : 4200);
   }
+  // Only say something when notes stay in this browser, and only the first time.
   function setStatus() {
-    $("#status").textContent = mode === "account"
-      ? "Saved to your account, so the board looks the same on your iPad, phone and laptop."
-      : "Saved in this browser only. Open the board while signed in to claude.ai to keep it on every device.";
+    if (mode !== "local") return;
+    try {
+      if (localStorage.getItem("sticky-desk-told-local")) return;
+      localStorage.setItem("sticky-desk-told-local", "1");
+    } catch (e) { return; }
+    toast("Your notes are saved in this browser.");
   }
 
   /* ---------- storage ---------- */
@@ -1708,6 +1716,13 @@ body.desk .exit-desk { display: inline-block; }
   });
 
   render();
+  // Measure where the board starts so its columns can fill the rest of the screen.
+  const sizeBoard = () => document.documentElement.style.setProperty("--board-top", Math.round(board.getBoundingClientRect().top + window.scrollY) + "px");
+  sizeBoard();
+  addEventListener("resize", sizeBoard);
+  new ResizeObserver(sizeBoard).observe($(".top"));
+  new ResizeObserver(sizeBoard).observe($("#tabs"));
+  new ResizeObserver(sizeBoard).observe($("#filters"));
   onSettings();
   renderPrayer();
   setInterval(renderPrayer, 15000);
