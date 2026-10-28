@@ -381,6 +381,8 @@ body.dragging .trash { transform: none; }
   font-family: var(--font-hand); font-size: 1rem; color: var(--ui-fg);
   background: color-mix(in srgb, var(--ui-fg) 8%, transparent); border: 0; border-radius: 3px; padding: 5px 8px 3px;
 }
+.quick { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.more { display: grid; gap: 12px; padding-top: 12px; border-top: 1px dashed color-mix(in srgb, var(--ui-fg) 25%, transparent); }
 .pactions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: flex-end; }
 .pactions .left { margin-right: auto; display: flex; gap: 10px; }
 .swatches { display: flex; flex-wrap: wrap; gap: 10px; }
@@ -479,7 +481,7 @@ body.desk .exit-desk { display: inline-block; }
 <div class="overlay" id="hand" hidden role="dialog" aria-modal="true" aria-label="Edit note">
   <div class="flip" id="flip">
     <div class="flip-inner">
-      <div class="face paper front"><textarea id="edit-text" maxlength="160" placeholder="Write a task…" aria-label="Note text"></textarea></div>
+      <div class="face paper front"><textarea id="edit-text" maxlength="160" placeholder="What do you need to do?" aria-label="Note text"></textarea></div>
       <div class="face paper back" id="back">
         <span class="back-label">Details</span>
         <textarea id="edit-details" maxlength="1200" placeholder="Links, context, anything you need" aria-label="Details"></textarea>
@@ -490,6 +492,14 @@ body.desk .exit-desk { display: inline-block; }
     </div>
   </div>
   <div class="panel">
+    <div class="quick">
+      <div class="seg" id="quick-due" role="group" aria-label="When"><button type="button" data-v="0">Today</button><button type="button" data-v="1">TMR</button></div>
+      <div class="seg"><button type="button" id="quick-flag" aria-pressed="false">⚑ Flag</button></div>
+      <span class="spacer"></span>
+      <button class="btn quiet" id="more-btn" type="button" aria-expanded="false" aria-controls="more">More options</button>
+      <button class="btn primary" id="hand-close" type="button">Stick it</button>
+    </div>
+    <div class="more" id="more" hidden>
     <div class="prow"><span class="plabel">Project</span><div class="seg" id="edit-projects" role="group" aria-label="Project"></div></div>
     <div class="prow"><span class="plabel">Column</span>
       <div class="seg" id="edit-cols" role="group" aria-label="Column">
@@ -509,12 +519,11 @@ body.desk .exit-desk { display: inline-block; }
       <div class="seg" id="edit-prio" role="group" aria-label="Priority">
         <button type="button" data-v="0">None</button><button type="button" data-v="1">! Low</button><button type="button" data-v="2">!! Medium</button><button type="button" data-v="3">!!! High</button>
       </div>
-      <div class="seg"><button type="button" id="edit-flag" aria-pressed="false">⚑ Flag</button></div>
     </div>
     <div class="pactions">
       <div class="left"><button class="btn" id="flip-btn" type="button">Flip to back</button></div>
       <button class="btn danger" id="hand-delete" type="button">Throw away</button>
-      <button class="btn primary" id="hand-close" type="button">Stick it</button>
+    </div>
     </div>
   </div>
 </div>
@@ -843,7 +852,7 @@ body.desk .exit-desk { display: inline-block; }
   }
 
   /* ---------- note in hand ---------- */
-  let syncCols, syncPrio, syncDue, syncProj;
+  let syncCols, syncPrio, syncDue, syncProj, syncQuick = () => {};
   function paintHand() { const c = projects.find((p) => p.id === editing.note.projectId)?.color || "pink"; $("#flip").style.setProperty("--c", `var(--n-${c})`); document.querySelectorAll(".face").forEach((f) => f.style.setProperty("--c", `var(--n-${c})`)); }
   function openEditor(note, isNew) {
     editing = { note: { checklist: [], ...note, checklist: (note.checklist || []).map((s) => ({ ...s })) }, isNew, prev: note };
@@ -870,10 +879,19 @@ body.desk .exit-desk { display: inline-block; }
       N.due = v === "" ? "" : v === "mon" ? nextMonday() : addDays(today(), Number(v));
       $("#edit-due").value = N.due || "";
       if (!N.due) { N.repeat = ""; $("#edit-repeat").value = ""; }
+      syncQuick();
+    });
+    syncQuick = seg($("#quick-due"), () => N.due === today() ? "0" : N.due === addDays(today(), 1) ? "1" : "none", (v) => {
+      const d = addDays(today(), Number(v));
+      N.due = N.due === d ? "" : d;
+      $("#edit-due").value = N.due || "";
+      if (!N.due) { N.repeat = ""; $("#edit-repeat").value = ""; }
+      syncDue();
     });
     $("#edit-due").value = N.due || "";
     $("#edit-repeat").value = N.repeat || "";
-    $("#edit-flag").setAttribute("aria-pressed", String(!!N.flagged));
+    $("#quick-flag").setAttribute("aria-pressed", String(!!N.flagged));
+    $("#more").hidden = true; $("#more-btn").setAttribute("aria-expanded", "false"); $("#more-btn").textContent = "More options";
     editText.value = N.text || "";
     $("#edit-details").value = N.details || "";
     $("#add-step").value = "";
@@ -884,12 +902,20 @@ body.desk .exit-desk { display: inline-block; }
     hand.hidden = false;
     setTimeout(() => { editText.focus(); editText.setSelectionRange(editText.value.length, editText.value.length); }, 60);
   }
-  $("#edit-due").addEventListener("change", (e) => { editing.note.due = e.target.value; if (!e.target.value) { editing.note.repeat = ""; $("#edit-repeat").value = ""; } syncDue(); });
+  $("#edit-due").addEventListener("change", (e) => { editing.note.due = e.target.value; if (!e.target.value) { editing.note.repeat = ""; $("#edit-repeat").value = ""; } syncDue(); syncQuick(); });
+  $("#more-btn").addEventListener("click", (e) => {
+    const open = $("#more").hidden;
+    $("#more").hidden = !open;
+    e.currentTarget.setAttribute("aria-expanded", String(open));
+    e.currentTarget.textContent = open ? "Fewer options" : "More options";
+  });
+  // Return sticks the note; Shift+Return starts a new line.
+  editText.addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); closeEditor(true); } });
   $("#edit-repeat").addEventListener("change", (e) => {
     editing.note.repeat = e.target.value;
-    if (e.target.value && !editing.note.due) { editing.note.due = today(); $("#edit-due").value = editing.note.due; syncDue(); }
+    if (e.target.value && !editing.note.due) { editing.note.due = today(); $("#edit-due").value = editing.note.due; syncDue(); syncQuick(); }
   });
-  $("#edit-flag").addEventListener("click", (e) => { editing.note.flagged = !editing.note.flagged; e.currentTarget.setAttribute("aria-pressed", String(editing.note.flagged)); });
+  $("#quick-flag").addEventListener("click", (e) => { editing.note.flagged = !editing.note.flagged; e.currentTarget.setAttribute("aria-pressed", String(editing.note.flagged)); });
   $("#edit-details").addEventListener("input", (e) => { editing.note.details = e.target.value; });
 
   function renderSteps() {
