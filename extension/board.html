@@ -85,9 +85,9 @@
 }
 
 /* ---------- Desk surfaces (chosen in the Background sheet) ---------- */
-:root { --texture: var(--wood-grain); --on-desk: var(--ui-fg); --texture-size: 2700px 900px; }
+:root { --texture: var(--wood-grain); --on-desk: var(--ui-fg); --texture-size: 100% 100%; --texture-repeat: no-repeat; }
 :root[data-bg="cork"] {
-  --texture-size: 220px 220px;
+  --texture-size: 220px 220px; --texture-repeat: repeat;
   --desk: #c8965e; --desk-shade: #a5713d; --on-desk: #2e1f10; --line: rgba(46, 31, 16, .5);
   --texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='c'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.55' numOctaves='2' seed='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .2 0 0 0 0 .08 0 0 0 -9 4.6'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23c)' opacity='.75'/%3E%3C/svg%3E");
 }
@@ -97,12 +97,12 @@
   --texture: linear-gradient(115deg, transparent 30%, rgba(255,255,255,.55) 45%, transparent 60%);
 }
 :root[data-bg="felt"] {
-  --texture-size: 180px 180px;
+  --texture-size: 180px 180px; --texture-repeat: repeat;
   --desk: #2f5443; --desk-shade: #1d382b; --on-desk: #eef3ea; --line: rgba(238, 243, 234, .4);
   --texture: var(--paper-noise);
 }
 :root[data-bg="slate"] {
-  --texture-size: 600px 600px;
+  --texture-size: 100% 100%; --texture-repeat: no-repeat;
   --desk: #2d3134; --desk-shade: #1c1f21; --on-desk: #eceae4; --line: rgba(236, 234, 228, .45);
   --texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='600'%3E%3Cfilter id='s'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.006' numOctaves='3' seed='11' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 1.2 0 0 0 -.55'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23s)' opacity='.12'/%3E%3C/svg%3E");
 }
@@ -123,6 +123,7 @@ body {
     radial-gradient(120% 80% at 100% 110%, var(--desk-shade), transparent 70%),
     var(--texture);
   background-size: auto, auto, var(--texture-size);
+  background-repeat: no-repeat, no-repeat, var(--texture-repeat);
   background-attachment: fixed;
   color: var(--on-desk);
   font-family: var(--font-ui);
