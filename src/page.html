@@ -3982,7 +3982,13 @@ select.field {
       $("#push-status").textContent = "Connecting…";
       const key = await rpc("sd_push_public_key", {});
       const { reg } = await pushSubscription();
-      const sub = (await reg.pushManager.getSubscription()) || await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToBytes(key) });
+      const want = b64ToBytes(key);
+      let sub = await reg.pushManager.getSubscription();
+      // a sign-up made for another sender (for example the old server) can't be used: replace it,
+      // which also stops the old sender reaching this device
+      const have = sub?.options?.applicationServerKey ? new Uint8Array(sub.options.applicationServerKey) : null;
+      if (sub && (!have || have.length !== want.length || have.some((v, i) => v !== want[i]))) { await sub.unsubscribe().catch(() => {}); sub = null; }
+      if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: want });
       await sendPrefs(sub);
       pushPrefs.on = true; savePush(); renderPush();
       toast("Notifications are on. Tap Send a test to check.");
