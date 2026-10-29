@@ -546,7 +546,13 @@ document.getElementById("si-form").addEventListener("submit", (e) => e.preventDe
 
   /* ---------- note in hand ---------- */
   let syncCols, syncPrio, syncDue, syncProj, syncQuick = () => {};
-  function paintHand() { const c = projects.find((p) => p.id === editing.note.projectId)?.color || "pink"; $("#flip").style.setProperty("--c", `var(--n-${c})`); document.querySelectorAll(".face").forEach((f) => f.style.setProperty("--c", `var(--n-${c})`)); }
+  function paintHand() {
+    const p = projects.find((x) => x.id === editing.note.projectId), c = p?.color || "pink";
+    $("#flip").style.setProperty("--c", `var(--n-${c})`); hand.style.setProperty("--c", `var(--n-${c})`);
+    document.querySelectorAll(".face").forEach((f) => f.style.setProperty("--c", `var(--n-${c})`));
+    document.querySelectorAll("#proj-dots .pdot").forEach((d) => d.setAttribute("aria-checked", String(d.dataset.p === editing.note.projectId)));
+    const nm = $("#pdot-name"); if (nm) nm.textContent = p?.name || "";
+  }
   function openEditor(note, isNew) {
     editing = { note: { checklist: [], ...note, checklist: (note.checklist || []).map((s) => ({ ...s })) }, isNew, prev: note };
     const N = editing.note;
@@ -562,6 +568,15 @@ document.getElementById("si-form").addEventListener("submit", (e) => e.preventDe
     ps.replaceChildren(...sortedProjects().map((p) => { const o = document.createElement("option"); o.value = p.id; o.textContent = p.name; return o; }));
     ps.value = N.projectId;
     ps.onchange = () => { N.projectId = ps.value; paintHand(); };
+    const dots = $("#proj-dots");
+    dots.hidden = projects.length < 2;
+    dots.replaceChildren(...sortedProjects().map((p, i) => {
+      const b = document.createElement("button"); b.type = "button"; b.className = "pdot"; b.dataset.p = p.id;
+      b.setAttribute("role", "radio"); b.setAttribute("aria-label", p.name); b.title = p.name;
+      b.style.setProperty("--c", `var(--n-${COLORS.includes(p.color) ? p.color : "pink"})`); b.style.setProperty("--t", [-6, 4, -3, 5, -4, 3, -5][i % 7] + "deg");
+      b.addEventListener("click", () => { N.projectId = p.id; ps.value = p.id; paintHand(); });
+      return b;
+    }), Object.assign(document.createElement("span"), { className: "pdot-name", id: "pdot-name" }));
     syncPrio = seg($("#edit-prio"), () => N.priority || 0, (v) => { N.priority = Number(v); });
     syncDue = () => {};
     syncQuick = seg($("#quick-due"), () => N.due === today() ? "0" : N.due === addDays(today(), 1) ? "1" : "none", (v) => {
@@ -575,7 +590,7 @@ document.getElementById("si-form").addEventListener("submit", (e) => e.preventDe
     $("#edit-repeat").value = N.repeat || "";
     $("#edit-waiting").value = N.waitingOn || "";
     $("#quick-flag").setAttribute("aria-pressed", String(!!N.flagged));
-    $("#more").hidden = true; $("#more-btn").setAttribute("aria-expanded", "false"); $("#more-btn").textContent = "More"; hand.classList.remove("more-open");
+    $("#more").hidden = true; $("#more-btn").setAttribute("aria-expanded", "false"); $("#more-btn").lastChild.textContent = "More"; hand.classList.remove("more-open");
     editText.value = N.text || "";
     showEditorPhoto();
     prepEditorExtras(isNew);
@@ -595,7 +610,7 @@ document.getElementById("si-form").addEventListener("submit", (e) => e.preventDe
     hand.classList.toggle("more-open", open);
     $("#more").hidden = !open;
     e.currentTarget.setAttribute("aria-expanded", String(open));
-    e.currentTarget.textContent = open ? "Less" : "More";
+    e.currentTarget.lastChild.textContent = open ? "Less" : "More";
   });
   // Return sticks the note; Shift+Return starts a new line.
   editText.addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); closeEditor(true); } });
