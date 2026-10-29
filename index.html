@@ -1130,6 +1130,16 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
 .stepper output { min-width: 22px; text-align: center; font: 600 .95rem var(--font-sys); font-variant-numeric: tabular-nums; }
 .kb-only { display: none; }
 @media (hover: hover) and (pointer: fine) { .kb-only { display: flex; } }
+.push-opts { gap: 4px; }
+.push-row { display: flex; align-items: center; gap: 10px; min-height: 44px; font: 400 .95rem var(--font-sys); color: var(--ui-fg); }
+.push-row span { flex: 1; }
+.push-hour { width: auto; min-height: 34px; padding: 4px 8px; font-size: 16px; }
+.push-opts .btn { justify-self: start; margin-top: 4px; }
+.copy-list { display: grid; gap: 8px; }
+.copy-row { display: grid; grid-template-columns: 1fr auto; gap: 4px 8px; align-items: center; }
+.copy-row b { grid-column: 1 / -1; font: 600 .75rem var(--font-sys); text-transform: uppercase; letter-spacing: .05em; color: var(--ui-muted); }
+.copy-row code { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 500 .82rem ui-monospace, Menlo, monospace; padding: 8px 10px; border-radius: 8px; background: color-mix(in srgb, var(--ui-fg) 7%, transparent); color: var(--ui-fg); }
+.copy-row .btn { min-height: 36px; padding: 6px 12px; }
 /* iOS switch */
 .switch { -webkit-appearance: none; appearance: none; flex: 0 0 auto; width: 51px; height: 31px; border-radius: 999px; position: relative; cursor: pointer; margin: 0;
   background: color-mix(in srgb, var(--ui-fg) 22%, transparent); transition: background .2s ease; }
@@ -1509,6 +1519,31 @@ kbd { display: inline-grid; place-items: center; min-width: 26px; height: 26px; 
       <div class="set-item"><span class="set-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M9 5v14M15 5v14"/></svg></span><span class="set-text"><span class="set-label" id="set-wip-label">Doing limit</span></span>
         <div class="stepper" role="group" aria-labelledby="set-wip-label"><button type="button" id="set-wip-down" aria-label="Lower the Doing limit">−</button><output id="set-wip" aria-live="polite">3</output><button type="button" id="set-wip-up" aria-label="Raise the Doing limit">+</button></div></div>
       <button class="set-item kb-only" id="set-keys" type="button"><span class="set-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="2.5" y="6" width="19" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg></span><span class="set-text"><span class="set-label">Keyboard shortcuts</span></span><span class="set-value">?</span><span class="set-chev" aria-hidden="true">›</span></button>
+    </div>
+
+    <div class="cloud-only" id="alerts-section">
+    <p class="set-h">Lock screen</p>
+    <div class="set-group">
+      <label class="set-item" for="push-on"><span class="set-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></svg></span><span class="set-text"><span class="set-label">Notifications</span><span class="set-sub" id="push-status" role="status">Due notes and prayer times, even with the app closed</span></span><input type="checkbox" class="switch" id="push-on"></label>
+      <div class="set-expand push-opts" id="push-opts" hidden>
+        <label class="push-row"><span>Prayer times</span><input type="checkbox" class="switch" id="push-prayer"></label>
+        <label class="push-row"><span>Due notes each morning at</span><select class="field push-hour" id="push-hour"></select><input type="checkbox" class="switch" id="push-due"></label>
+        <button class="btn" id="push-test" type="button">Send a test</button>
+      </div>
+      <button class="set-item" id="set-siri" type="button" aria-expanded="false" aria-controls="siri-box"><span class="set-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7"/></svg></span><span class="set-text"><span class="set-label">"Hey Siri, add sticky note"</span></span><span class="set-chev" aria-hidden="true">›</span></button>
+      <div class="set-expand siri-box" id="siri-box" hidden>
+        <ol class="set-steps">
+          <li>Open the <strong>Shortcuts</strong> app, tap <strong>+</strong> and name it <strong>Add sticky note</strong>.</li>
+          <li>Add <strong>Dictate Text</strong>.</li>
+          <li>Add <strong>Get Contents of URL</strong> and paste the address below. Tap <strong>›</strong>, set Method to <strong>POST</strong>.</li>
+          <li>Under Headers add <strong>apikey</strong> and <strong>Content-Type</strong> = application/json.</li>
+          <li>Set Request Body to <strong>JSON</strong> with <strong>p_key</strong> (your Siri key) and <strong>p_text</strong> = Dictated Text.</li>
+          <li>Say <strong>"Hey Siri, add sticky note"</strong>. Words like "tomorrow" or "Friday" set the date.</li>
+        </ol>
+        <div class="copy-list" id="siri-fields"></div>
+        <button class="btn" id="siri-make" type="button">Make my Siri key</button>
+      </div>
+    </div>
     </div>
 
     <p class="set-h">Prayer</p>
@@ -3555,6 +3590,7 @@ kbd { display: inline-grid; place-items: center; min-width: 26px; height: 26px; 
       }
       if (changed) { saveLocal(); render(); }
     } finally { applying = false; }
+    if (notes.some((x) => x.parse)) setTimeout(tidyIncoming, 0);
   }
   async function flush() {
     if (!cloud || !outbox.size || busy) return;
@@ -3599,6 +3635,127 @@ kbd { display: inline-grid; place-items: center; min-width: 26px; height: 26px; 
     setInterval(showSyncStatus, 15000);
     document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") { flush(); pull(); } });
     addEventListener("online", () => { syncProblem = ""; flush(); pull(); });
+  }
+
+  /* ---------- works offline: the service worker keeps a copy of the app ---------- */
+  const SW_OK = CLOUD_OK && "serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost");
+  if (SW_OK) addEventListener("load", () => { navigator.serviceWorker.register("/sw.js").catch(() => {}); });
+  addEventListener("offline", () => toast("You're offline. Notes still save here and sync when you're back."));
+
+  /* ---------- lock screen notifications (Web Push) ---------- */
+  const PUSH_KEY = "sticky-desk-push";
+  let pushPrefs = { on: false, prayer: true, due: true, hour: 9 };
+  try { pushPrefs = { ...pushPrefs, ...JSON.parse(localStorage.getItem(PUSH_KEY) || "{}") }; } catch (e) {}
+  const savePush = () => { try { localStorage.setItem(PUSH_KEY, JSON.stringify(pushPrefs)); } catch (e) {} };
+  const isiOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  const standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+  const pushSupported = () => SW_OK && "PushManager" in window && "Notification" in window;
+  const b64ToBytes = (b64) => { const s = atob((b64 + "=".repeat((4 - (b64.length % 4)) % 4)).replace(/-/g, "+").replace(/_/g, "/")); return Uint8Array.from(s, (c) => c.charCodeAt(0)); };
+  function pushBlocker() {
+    if (!CLOUD_OK || location.protocol === "chrome-extension:") return "Turn these on from the Sticky Desk website or the Home Screen app.";
+    if (isiOS && !standalone) return "First add Sticky Desk to your Home Screen (Share › Add to Home Screen), then open it from there.";
+    if (!pushSupported()) return "This browser can't show notifications from websites.";
+    if (!cloud) return "Sign in above first. Notifications come from your synced board.";
+    if (Notification.permission === "denied") return "Notifications are blocked for this site. Allow them in your browser or iPhone Settings › Notifications.";
+    return "";
+  }
+  function renderPush() {
+    const block = pushBlocker();
+    $("#push-on").checked = !block && pushPrefs.on;
+    $("#push-on").disabled = !!block && !pushPrefs.on;
+    $("#push-status").textContent = block || (pushPrefs.on ? "On for this device" : "Due notes and prayer times, even with the app closed");
+    $("#push-opts").hidden = !!block || !pushPrefs.on;
+    $("#push-prayer").checked = pushPrefs.prayer; $("#push-due").checked = pushPrefs.due; $("#push-hour").value = String(pushPrefs.hour);
+  }
+  if (!CLOUD_OK) $("#alerts-section").hidden = true;
+  $("#push-hour").replaceChildren(...[5, 6, 7, 8, 9, 10, 11, 12].map((h) => { const o = document.createElement("option"); o.value = String(h); o.textContent = h === 12 ? "12 PM" : h + " AM"; return o; }));
+  async function pushSubscription() { const reg = await navigator.serviceWorker.ready; return { reg, sub: await reg.pushManager.getSubscription() }; }
+  async function sendPrefs(sub) {
+    const r = await rpc("sd_push_subscribe", { p_key: cloud.token, p_sub: sub.toJSON(), p_prefs: { prayer: pushPrefs.prayer, due: pushPrefs.due, hour: pushPrefs.hour } });
+    if (!r.ok) throw new Error(r.error);
+  }
+  async function turnPushOn() {
+    $("#push-status").textContent = "Asking for permission…";
+    const perm = await Notification.requestPermission();
+    if (perm !== "granted") { pushPrefs.on = false; savePush(); renderPush(); return; }
+    try {
+      $("#push-status").textContent = "Connecting…";
+      const key = await rpc("sd_push_public_key", {});
+      const { reg } = await pushSubscription();
+      const sub = (await reg.pushManager.getSubscription()) || await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToBytes(key) });
+      await sendPrefs(sub);
+      pushPrefs.on = true; savePush(); renderPush();
+      toast("Notifications are on. Tap Send a test to check.");
+    } catch (e) {
+      pushPrefs.on = false; savePush(); renderPush();
+      $("#push-status").textContent = "Couldn't turn notifications on. Check your connection, then try again.";
+    }
+  }
+  async function turnPushOff() {
+    pushPrefs.on = false; savePush(); renderPush();
+    try { const { sub } = await pushSubscription(); if (sub) { await rpc("sd_push_unsubscribe", { p_key: cloud.token, p_endpoint: sub.endpoint }).catch(() => {}); await sub.unsubscribe(); } } catch (e) {}
+  }
+  $("#push-on").addEventListener("change", (e) => { if (e.target.checked) turnPushOn(); else turnPushOff(); });
+  const changePref = async (patch) => {
+    pushPrefs = { ...pushPrefs, ...patch }; savePush();
+    try { const { sub } = await pushSubscription(); if (sub) await sendPrefs(sub); } catch (e) { toast("Couldn't save that. Check your connection."); }
+  };
+  $("#push-prayer").addEventListener("change", (e) => changePref({ prayer: e.target.checked }));
+  $("#push-due").addEventListener("change", (e) => changePref({ due: e.target.checked }));
+  $("#push-hour").addEventListener("change", (e) => changePref({ hour: Number(e.target.value), due: true }).then(renderPush));
+  $("#push-test").addEventListener("click", async () => {
+    try {
+      const r = await rpc("sd_push_test", { p_key: cloud.token });
+      if (r.ok) toast("Test sent. It should arrive in a few seconds.");
+      else toast(r.error === "slow_down" ? "That's a lot of tests. Try again in a few minutes." : r.error === "no_devices" ? "Turn notifications off and on again, then retry." : "Couldn't send a test.");
+    } catch (e) { toast("Couldn't send a test. Check your connection."); }
+  });
+
+  renderPush();
+
+  /* ---------- Siri: an Apple Shortcut posts dictated text to sd_quick_add ---------- */
+  function siriFields(token) {
+    const rows = [["Address", `${SB_URL}/rest/v1/rpc/sd_quick_add`], ["apikey header", SB_KEY], ["p_key", token]];
+    $("#siri-fields").replaceChildren(...rows.map(([label, value]) => {
+      const row = document.createElement("div"); row.className = "copy-row";
+      const b = document.createElement("b"); b.textContent = label;
+      const c = document.createElement("code"); c.textContent = value;
+      const btn = document.createElement("button"); btn.type = "button"; btn.className = "btn quiet"; btn.textContent = "Copy";
+      btn.setAttribute("aria-label", "Copy " + label);
+      btn.addEventListener("click", async () => {
+        try { await navigator.clipboard.writeText(value); toast(`${label} copied.`); }
+        catch (e) { const r = document.createRange(); r.selectNodeContents(c); getSelection().removeAllRanges(); getSelection().addRange(r); toast("Selected. Copy it from the menu."); }
+      });
+      row.append(b, c, btn); return row;
+    }));
+  }
+  $("#set-siri").addEventListener("click", () => {
+    const box = $("#siri-box"), open = box.hidden;
+    box.hidden = !open; $("#set-siri").setAttribute("aria-expanded", String(open));
+    if (open && !cloud) { $("#siri-fields").replaceChildren(); $("#siri-make").textContent = "Sign in first"; $("#siri-make").disabled = true; }
+    else if (open) { $("#siri-make").disabled = false; $("#siri-make").textContent = $("#siri-fields").childElementCount ? "Make a new key" : "Make my Siri key"; }
+  });
+  $("#siri-make").addEventListener("click", async () => {
+    const b = $("#siri-make"); b.disabled = true; b.textContent = "Making a key…";
+    try {
+      const r = await rpc("sd_new_token", { p_key: cloud.token, p_label: "siri" });
+      if (!r.ok) throw new Error(r.error);
+      siriFields(r.token); b.textContent = "Make a new key";
+    } catch (e) { b.textContent = "Couldn't make a key. Try again"; }
+    b.disabled = false;
+  });
+
+  // Notes from Siri arrive as plain words; tidy them with the same smart typing as the note sheet
+  function tidyIncoming() {
+    for (const n of notes.filter((x) => x.parse)) {
+      const p = parseQuick(n.text);
+      const next = { ...n, text: p.text || n.text };
+      for (const k of ["due", "priority", "projectId", "repeat", "flagged"]) if (p[k] !== undefined) next[k] = p[k];
+      if (next.repeat && !next.due) next.due = today();
+      delete next.parse;
+      put("notes", next);
+      if (n.source === "siri") toast(`Added from Siri: ${next.text}`);
+    }
   }
 
   /* ---------- sign-in sheet ---------- */
@@ -3726,7 +3883,7 @@ kbd { display: inline-grid; place-items: center; min-width: 26px; height: 26px; 
     try { await navigator.clipboard.writeText(ta.value); toast("Widget script copied. Paste it into a new Scriptable script."); }
     catch (e) { ta.focus(); ta.select(); toast("Select all and copy the script."); }
   });
-  $("#bg-btn").addEventListener("click", renderAccount);
+  $("#bg-btn").addEventListener("click", () => { renderAccount(); renderPush(); });
 
   function cloudBoot() {
     renderAccount();

@@ -1128,6 +1128,16 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
 .stepper output { min-width: 22px; text-align: center; font: 600 .95rem var(--font-sys); font-variant-numeric: tabular-nums; }
 .kb-only { display: none; }
 @media (hover: hover) and (pointer: fine) { .kb-only { display: flex; } }
+.push-opts { gap: 4px; }
+.push-row { display: flex; align-items: center; gap: 10px; min-height: 44px; font: 400 .95rem var(--font-sys); color: var(--ui-fg); }
+.push-row span { flex: 1; }
+.push-hour { width: auto; min-height: 34px; padding: 4px 8px; font-size: 16px; }
+.push-opts .btn { justify-self: start; margin-top: 4px; }
+.copy-list { display: grid; gap: 8px; }
+.copy-row { display: grid; grid-template-columns: 1fr auto; gap: 4px 8px; align-items: center; }
+.copy-row b { grid-column: 1 / -1; font: 600 .75rem var(--font-sys); text-transform: uppercase; letter-spacing: .05em; color: var(--ui-muted); }
+.copy-row code { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 500 .82rem ui-monospace, Menlo, monospace; padding: 8px 10px; border-radius: 8px; background: color-mix(in srgb, var(--ui-fg) 7%, transparent); color: var(--ui-fg); }
+.copy-row .btn { min-height: 36px; padding: 6px 12px; }
 /* iOS switch */
 .switch { -webkit-appearance: none; appearance: none; flex: 0 0 auto; width: 51px; height: 31px; border-radius: 999px; position: relative; cursor: pointer; margin: 0;
   background: color-mix(in srgb, var(--ui-fg) 22%, transparent); transition: background .2s ease; }
@@ -1507,6 +1517,31 @@ kbd { display: inline-grid; place-items: center; min-width: 26px; height: 26px; 
       <div class="set-item"><span class="set-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M9 5v14M15 5v14"/></svg></span><span class="set-text"><span class="set-label" id="set-wip-label">Doing limit</span></span>
         <div class="stepper" role="group" aria-labelledby="set-wip-label"><button type="button" id="set-wip-down" aria-label="Lower the Doing limit">−</button><output id="set-wip" aria-live="polite">3</output><button type="button" id="set-wip-up" aria-label="Raise the Doing limit">+</button></div></div>
       <button class="set-item kb-only" id="set-keys" type="button"><span class="set-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="2.5" y="6" width="19" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg></span><span class="set-text"><span class="set-label">Keyboard shortcuts</span></span><span class="set-value">?</span><span class="set-chev" aria-hidden="true">›</span></button>
+    </div>
+
+    <div class="cloud-only" id="alerts-section">
+    <p class="set-h">Lock screen</p>
+    <div class="set-group">
+      <label class="set-item" for="push-on"><span class="set-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></svg></span><span class="set-text"><span class="set-label">Notifications</span><span class="set-sub" id="push-status" role="status">Due notes and prayer times, even with the app closed</span></span><input type="checkbox" class="switch" id="push-on"></label>
+      <div class="set-expand push-opts" id="push-opts" hidden>
+        <label class="push-row"><span>Prayer times</span><input type="checkbox" class="switch" id="push-prayer"></label>
+        <label class="push-row"><span>Due notes each morning at</span><select class="field push-hour" id="push-hour"></select><input type="checkbox" class="switch" id="push-due"></label>
+        <button class="btn" id="push-test" type="button">Send a test</button>
+      </div>
+      <button class="set-item" id="set-siri" type="button" aria-expanded="false" aria-controls="siri-box"><span class="set-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7"/></svg></span><span class="set-text"><span class="set-label">"Hey Siri, add sticky note"</span></span><span class="set-chev" aria-hidden="true">›</span></button>
+      <div class="set-expand siri-box" id="siri-box" hidden>
+        <ol class="set-steps">
+          <li>Open the <strong>Shortcuts</strong> app, tap <strong>+</strong> and name it <strong>Add sticky note</strong>.</li>
+          <li>Add <strong>Dictate Text</strong>.</li>
+          <li>Add <strong>Get Contents of URL</strong> and paste the address below. Tap <strong>›</strong>, set Method to <strong>POST</strong>.</li>
+          <li>Under Headers add <strong>apikey</strong> and <strong>Content-Type</strong> = application/json.</li>
+          <li>Set Request Body to <strong>JSON</strong> with <strong>p_key</strong> (your Siri key) and <strong>p_text</strong> = Dictated Text.</li>
+          <li>Say <strong>"Hey Siri, add sticky note"</strong>. Words like "tomorrow" or "Friday" set the date.</li>
+        </ol>
+        <div class="copy-list" id="siri-fields"></div>
+        <button class="btn" id="siri-make" type="button">Make my Siri key</button>
+      </div>
+    </div>
     </div>
 
     <p class="set-h">Prayer</p>

@@ -1896,6 +1896,7 @@ document.getElementById("si-form").addEventListener("submit", (e) => e.preventDe
       }
       if (changed) { saveLocal(); render(); }
     } finally { applying = false; }
+    if (notes.some((x) => x.parse)) setTimeout(tidyIncoming, 0);
   }
   async function flush() {
     if (!cloud || !outbox.size || busy) return;
@@ -1940,6 +1941,127 @@ document.getElementById("si-form").addEventListener("submit", (e) => e.preventDe
     setInterval(showSyncStatus, 15000);
     document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") { flush(); pull(); } });
     addEventListener("online", () => { syncProblem = ""; flush(); pull(); });
+  }
+
+  /* ---------- works offline: the service worker keeps a copy of the app ---------- */
+  const SW_OK = CLOUD_OK && "serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost");
+  if (SW_OK) addEventListener("load", () => { navigator.serviceWorker.register("/sw.js").catch(() => {}); });
+  addEventListener("offline", () => toast("You're offline. Notes still save here and sync when you're back."));
+
+  /* ---------- lock screen notifications (Web Push) ---------- */
+  const PUSH_KEY = "sticky-desk-push";
+  let pushPrefs = { on: false, prayer: true, due: true, hour: 9 };
+  try { pushPrefs = { ...pushPrefs, ...JSON.parse(localStorage.getItem(PUSH_KEY) || "{}") }; } catch (e) {}
+  const savePush = () => { try { localStorage.setItem(PUSH_KEY, JSON.stringify(pushPrefs)); } catch (e) {} };
+  const isiOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  const standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+  const pushSupported = () => SW_OK && "PushManager" in window && "Notification" in window;
+  const b64ToBytes = (b64) => { const s = atob((b64 + "=".repeat((4 - (b64.length % 4)) % 4)).replace(/-/g, "+").replace(/_/g, "/")); return Uint8Array.from(s, (c) => c.charCodeAt(0)); };
+  function pushBlocker() {
+    if (!CLOUD_OK || location.protocol === "chrome-extension:") return "Turn these on from the Sticky Desk website or the Home Screen app.";
+    if (isiOS && !standalone) return "First add Sticky Desk to your Home Screen (Share › Add to Home Screen), then open it from there.";
+    if (!pushSupported()) return "This browser can't show notifications from websites.";
+    if (!cloud) return "Sign in above first. Notifications come from your synced board.";
+    if (Notification.permission === "denied") return "Notifications are blocked for this site. Allow them in your browser or iPhone Settings › Notifications.";
+    return "";
+  }
+  function renderPush() {
+    const block = pushBlocker();
+    $("#push-on").checked = !block && pushPrefs.on;
+    $("#push-on").disabled = !!block && !pushPrefs.on;
+    $("#push-status").textContent = block || (pushPrefs.on ? "On for this device" : "Due notes and prayer times, even with the app closed");
+    $("#push-opts").hidden = !!block || !pushPrefs.on;
+    $("#push-prayer").checked = pushPrefs.prayer; $("#push-due").checked = pushPrefs.due; $("#push-hour").value = String(pushPrefs.hour);
+  }
+  if (!CLOUD_OK) $("#alerts-section").hidden = true;
+  $("#push-hour").replaceChildren(...[5, 6, 7, 8, 9, 10, 11, 12].map((h) => { const o = document.createElement("option"); o.value = String(h); o.textContent = h === 12 ? "12 PM" : h + " AM"; return o; }));
+  async function pushSubscription() { const reg = await navigator.serviceWorker.ready; return { reg, sub: await reg.pushManager.getSubscription() }; }
+  async function sendPrefs(sub) {
+    const r = await rpc("sd_push_subscribe", { p_key: cloud.token, p_sub: sub.toJSON(), p_prefs: { prayer: pushPrefs.prayer, due: pushPrefs.due, hour: pushPrefs.hour } });
+    if (!r.ok) throw new Error(r.error);
+  }
+  async function turnPushOn() {
+    $("#push-status").textContent = "Asking for permission…";
+    const perm = await Notification.requestPermission();
+    if (perm !== "granted") { pushPrefs.on = false; savePush(); renderPush(); return; }
+    try {
+      $("#push-status").textContent = "Connecting…";
+      const key = await rpc("sd_push_public_key", {});
+      const { reg } = await pushSubscription();
+      const sub = (await reg.pushManager.getSubscription()) || await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToBytes(key) });
+      await sendPrefs(sub);
+      pushPrefs.on = true; savePush(); renderPush();
+      toast("Notifications are on. Tap Send a test to check.");
+    } catch (e) {
+      pushPrefs.on = false; savePush(); renderPush();
+      $("#push-status").textContent = "Couldn't turn notifications on. Check your connection, then try again.";
+    }
+  }
+  async function turnPushOff() {
+    pushPrefs.on = false; savePush(); renderPush();
+    try { const { sub } = await pushSubscription(); if (sub) { await rpc("sd_push_unsubscribe", { p_key: cloud.token, p_endpoint: sub.endpoint }).catch(() => {}); await sub.unsubscribe(); } } catch (e) {}
+  }
+  $("#push-on").addEventListener("change", (e) => { if (e.target.checked) turnPushOn(); else turnPushOff(); });
+  const changePref = async (patch) => {
+    pushPrefs = { ...pushPrefs, ...patch }; savePush();
+    try { const { sub } = await pushSubscription(); if (sub) await sendPrefs(sub); } catch (e) { toast("Couldn't save that. Check your connection."); }
+  };
+  $("#push-prayer").addEventListener("change", (e) => changePref({ prayer: e.target.checked }));
+  $("#push-due").addEventListener("change", (e) => changePref({ due: e.target.checked }));
+  $("#push-hour").addEventListener("change", (e) => changePref({ hour: Number(e.target.value), due: true }).then(renderPush));
+  $("#push-test").addEventListener("click", async () => {
+    try {
+      const r = await rpc("sd_push_test", { p_key: cloud.token });
+      if (r.ok) toast("Test sent. It should arrive in a few seconds.");
+      else toast(r.error === "slow_down" ? "That's a lot of tests. Try again in a few minutes." : r.error === "no_devices" ? "Turn notifications off and on again, then retry." : "Couldn't send a test.");
+    } catch (e) { toast("Couldn't send a test. Check your connection."); }
+  });
+
+  renderPush();
+
+  /* ---------- Siri: an Apple Shortcut posts dictated text to sd_quick_add ---------- */
+  function siriFields(token) {
+    const rows = [["Address", `${SB_URL}/rest/v1/rpc/sd_quick_add`], ["apikey header", SB_KEY], ["p_key", token]];
+    $("#siri-fields").replaceChildren(...rows.map(([label, value]) => {
+      const row = document.createElement("div"); row.className = "copy-row";
+      const b = document.createElement("b"); b.textContent = label;
+      const c = document.createElement("code"); c.textContent = value;
+      const btn = document.createElement("button"); btn.type = "button"; btn.className = "btn quiet"; btn.textContent = "Copy";
+      btn.setAttribute("aria-label", "Copy " + label);
+      btn.addEventListener("click", async () => {
+        try { await navigator.clipboard.writeText(value); toast(`${label} copied.`); }
+        catch (e) { const r = document.createRange(); r.selectNodeContents(c); getSelection().removeAllRanges(); getSelection().addRange(r); toast("Selected. Copy it from the menu."); }
+      });
+      row.append(b, c, btn); return row;
+    }));
+  }
+  $("#set-siri").addEventListener("click", () => {
+    const box = $("#siri-box"), open = box.hidden;
+    box.hidden = !open; $("#set-siri").setAttribute("aria-expanded", String(open));
+    if (open && !cloud) { $("#siri-fields").replaceChildren(); $("#siri-make").textContent = "Sign in first"; $("#siri-make").disabled = true; }
+    else if (open) { $("#siri-make").disabled = false; $("#siri-make").textContent = $("#siri-fields").childElementCount ? "Make a new key" : "Make my Siri key"; }
+  });
+  $("#siri-make").addEventListener("click", async () => {
+    const b = $("#siri-make"); b.disabled = true; b.textContent = "Making a key…";
+    try {
+      const r = await rpc("sd_new_token", { p_key: cloud.token, p_label: "siri" });
+      if (!r.ok) throw new Error(r.error);
+      siriFields(r.token); b.textContent = "Make a new key";
+    } catch (e) { b.textContent = "Couldn't make a key. Try again"; }
+    b.disabled = false;
+  });
+
+  // Notes from Siri arrive as plain words; tidy them with the same smart typing as the note sheet
+  function tidyIncoming() {
+    for (const n of notes.filter((x) => x.parse)) {
+      const p = parseQuick(n.text);
+      const next = { ...n, text: p.text || n.text };
+      for (const k of ["due", "priority", "projectId", "repeat", "flagged"]) if (p[k] !== undefined) next[k] = p[k];
+      if (next.repeat && !next.due) next.due = today();
+      delete next.parse;
+      put("notes", next);
+      if (n.source === "siri") toast(`Added from Siri: ${next.text}`);
+    }
   }
 
   /* ---------- sign-in sheet ---------- */
@@ -2067,7 +2189,7 @@ document.getElementById("si-form").addEventListener("submit", (e) => e.preventDe
     try { await navigator.clipboard.writeText(ta.value); toast("Widget script copied. Paste it into a new Scriptable script."); }
     catch (e) { ta.focus(); ta.select(); toast("Select all and copy the script."); }
   });
-  $("#bg-btn").addEventListener("click", renderAccount);
+  $("#bg-btn").addEventListener("click", () => { renderAccount(); renderPush(); });
 
   function cloudBoot() {
     renderAccount();

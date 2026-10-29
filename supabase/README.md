@@ -22,3 +22,10 @@ Internal helpers (`sd_board_for`, `sd_issue_token`, `sd_valid_name`, `sd_valid_p
 
 - Make `sd_sign_out` delete the token row.
 - Remove the test board left from setup (`qa-sticky`, plus one unnamed test board).
+
+## Notifications and Siri (added later)
+
+- `sd_push_subs`, `sd_push_log`, `sd_push_queue`, `sd_push_keys`: devices that turned on notifications, what was already sent, test messages, and the sender's keys. All private (RLS on, no API access).
+- `sd_push_subscribe` / `sd_push_unsubscribe` / `sd_push_test` / `sd_push_public_key`: called by the app.
+- `sd_quick_add(p_key, p_text)`: used by the "Add sticky note" Apple Shortcut. Adds a note to the top of To do; the app then reads dates like "tomorrow" out of the text.
+- Edge function `sd-push-tick`, run every minute by the `sd-push-tick` pg_cron job through `sd_push_kick()`. Sends test messages, each Dhaka prayer time and the morning "due today" note. It makes its own keys on first run, and only answers calls carrying the secret kept in `sd_push_keys`.
