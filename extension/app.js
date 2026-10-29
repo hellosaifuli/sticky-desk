@@ -93,12 +93,16 @@ document.getElementById("si-form").addEventListener("submit", (e) => e.preventDe
   const shownInCol = (c) => !grouped() ? inCol(c)
     : inCol(c).sort((a, b) => projRank(a) - projRank(b) || a.order - b.order).filter((n) => !view.collapsed.includes(n.projectId));
 
-  function toast(msg, undo) {
+  let toastAction = null;
+  // toast(msg, true) offers Undo; toast(msg, false, { label, run }) offers another action instead
+  function toast(msg, undo, action) {
     $("#toast-msg").textContent = msg;
-    $("#toast-undo").hidden = !undo;
+    toastAction = action || null;
+    $("#toast-undo").textContent = action ? action.label : "Undo";
+    $("#toast-undo").hidden = !undo && !action;
     $("#toast").hidden = false;
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => { $("#toast").hidden = true; lastDeleted = null; }, undo ? 6000 : 4200);
+    toastTimer = setTimeout(() => { $("#toast").hidden = true; lastDeleted = null; toastAction = null; }, action ? 9000 : undo ? 6000 : 4200);
   }
   // Only say something when notes stay in this browser, and only the first time.
   function setStatus() {
@@ -290,8 +294,12 @@ document.getElementById("si-form").addEventListener("submit", (e) => e.preventDe
     const sub = document.createElement("span"); sub.className = "sub";
     sub.textContent = [steps.length ? `${stepsDone}/${steps.length} ☐` : "", n.focusCount ? `⏱${n.focusCount}` : ""].filter(Boolean).join("  ");
     if (age.level) { const a = document.createElement("span"); a.className = "age"; a.textContent = `${age.days} days`; sub.prepend(a); }
+    if (n.nextStep && n.column !== "done") {
+      el.setAttribute("aria-label", el.getAttribute("aria-label").replace(/\. Tap to edit\.$/, `, next step: ${n.nextStep}. Tap to edit.`));
+    }
     meta.append(due, sub);
     paper.prepend(top); paper.append(t, meta);
+    if (n.nextStep && n.column !== "done") { const ns = document.createElement("div"); ns.className = "next-step"; ns.textContent = "→ " + n.nextStep; t.after(ns); }
     el.append(paper);
     return el;
   }
@@ -589,6 +597,7 @@ document.getElementById("si-form").addEventListener("submit", (e) => e.preventDe
     setDueField(N.due);
     $("#edit-repeat").value = N.repeat || "";
     $("#edit-waiting").value = N.waitingOn || "";
+    $("#edit-next").value = N.nextStep || "";
     $("#quick-flag").setAttribute("aria-pressed", String(!!N.flagged));
     $("#more").hidden = true; $("#more-btn").setAttribute("aria-expanded", "false"); $("#more-btn").lastChild.textContent = "More"; hand.classList.remove("more-open");
     editText.value = N.text || "";
@@ -620,6 +629,7 @@ document.getElementById("si-form").addEventListener("submit", (e) => e.preventDe
   });
   $("#quick-flag").addEventListener("click", (e) => { editing.note.flagged = !editing.note.flagged; e.currentTarget.setAttribute("aria-pressed", String(editing.note.flagged)); });
   $("#edit-details").addEventListener("input", (e) => { editing.note.details = e.target.value; });
+  $("#edit-next").addEventListener("input", (e) => { editing.note.nextStep = e.target.value.trim(); });
   $("#edit-waiting").addEventListener("input", (e) => {
     const N = editing.note, v = e.target.value.trim();
     if (v && !N.waitingOn) N.waitingSince = Date.now();
@@ -748,7 +758,10 @@ document.getElementById("si-form").addEventListener("submit", (e) => e.preventDe
     showEditorPhoto();
   });
 
-  $("#toast-undo").addEventListener("click", () => undo());
+  $("#toast-undo").addEventListener("click", () => {
+    if (toastAction) { const a = toastAction; toastAction = null; $("#toast").hidden = true; a.run(); }
+    else undo();
+  });
 
   /* ---------- project sheet ---------- */
   let syncSw, deleteArmed = false;
@@ -822,6 +835,7 @@ document.getElementById("si-form").addEventListener("submit", (e) => e.preventDe
     else if (e.key === "/") { e.preventDefault(); openSpotlight(); }
     else if (e.key === "?") { e.preventDefault(); openKeys(); }
     else if (e.key === "w" || e.key === "W") { e.preventDefault(); openWeek(); }
+    else if (e.key === "s" || e.key === "S") { e.preventDefault(); openStandup(); }
     else if ((e.key === "g" || e.key === "G") && view.project === "all") { e.preventDefault(); view.group = !view.group; saveView(); render(); toast(view.group ? "Rows by project." : "One list per column.", true); }
   });
   const typing = (e) => e.target.closest?.("input, textarea, select, [contenteditable]");
@@ -837,9 +851,137 @@ document.getElementById("si-form").addEventListener("submit", (e) => e.preventDe
     refocus(n.id);
   }
 
+  /* ---------- the IT day: standup in the morning, wrap-up in the evening ---------- */
+  // Bangladesh work week: Friday and Saturday are the weekend
+  const isWorkday = (d) => d.getDay() !== 5 && d.getDay() !== 6;
+  function lastWorkdayStart() {
+    const d = new Date(); d.setHours(0, 0, 0, 0);
+    do d.setDate(d.getDate() - 1); while (!isWorkday(d));
+    return d;
+  }
+  const noteLine = (n) => (n.text || "Photo note").replace(/\s+/g, " ").trim();
+  function standupData() {
+    const since = lastWorkdayStart();
+    const done = notes.filter((n) => n.column === "done" && n.doneAt >= since.getTime()).sort((a, b) => a.doneAt - b.doneAt);
+    const doing = notes.filter((n) => n.column === "doing" && !n.waitingOn).sort((a, b) => a.order - b.order);
+    const dueToday = notes.filter((n) => n.column === "todo" && n.due && n.due <= today() && !n.waitingOn);
+    const blocked = notes.filter((n) => n.waitingOn && n.column !== "done");
+    return { since, done, today: [...doing, ...dueToday], blocked };
+  }
+  function standupText() {
+    const d = standupData();
+    const list = (arr, fmt) => arr.length ? arr.map((n) => "• " + fmt(n)).join("\n") : "• Nothing";
+    return [
+      `*Since ${d.since.toLocaleDateString(undefined, { weekday: "long" })}*`, list(d.done, noteLine),
+      "*Today*", list(d.today, (n) => noteLine(n) + (n.nextStep ? ` (next: ${n.nextStep})` : "")),
+      "*Blockers*", d.blocked.length ? list(d.blocked, (n) => `${noteLine(n)} — waiting on ${n.waitingOn}`) : "• None",
+    ].join("\n");
+  }
+  function openStandup() {
+    const d = standupData();
+    $("#su-date").textContent = new Date().toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" });
+    const sec = (title, arr, fmt, empty) => {
+      const box = document.createElement("section"); box.className = "su-sec";
+      const h = document.createElement("h4"); h.textContent = title; box.append(h);
+      const ul = document.createElement("ul");
+      if (!arr.length) { const li = document.createElement("li"); li.className = "su-empty"; li.textContent = empty; ul.append(li); }
+      for (const n of arr) {
+        const li = document.createElement("li");
+        const sw = document.createElement("span"); sw.className = "su-dot"; sw.style.setProperty("--c", `var(--n-${colorOf(n)})`);
+        const t = document.createElement("span"); t.textContent = noteLine(n);
+        li.append(sw, t);
+        const extra = fmt(n); if (extra) { const x = document.createElement("small"); x.textContent = extra; li.append(x); }
+        ul.append(li);
+      }
+      box.append(ul); return box;
+    };
+    $("#su-body").replaceChildren(
+      sec(`Since ${d.since.toLocaleDateString(undefined, { weekday: "long" })}`, d.done, () => "", "Nothing finished yet. That's fine."),
+      sec("Today", d.today, (n) => n.nextStep ? "next: " + n.nextStep : n.column === "todo" ? "due today" : "", "Nothing in Doing. Pick something to start."),
+      sec("Blockers", d.blocked, (n) => `waiting on ${n.waitingOn}` + (n.waitingSince ? ` since ${sinceLabel(n.waitingSince)}` : ""), "No blockers"),
+    );
+    setFab(false);
+    $("#standup-sheet").hidden = false; setTimeout(() => $("#su-copy").focus(), 60);
+  }
+  const closeStandup = () => { $("#standup-sheet").hidden = true; };
+  $("#standup-btn").addEventListener("click", openStandup);
+  $("#su-close").addEventListener("click", closeStandup);
+  $("#standup-sheet").addEventListener("click", (e) => { if (e.target.id === "standup-sheet") closeStandup(); });
+  $("#su-copy").addEventListener("click", async () => {
+    const text = standupText();
+    try { await navigator.clipboard.writeText(text); toast("Copied. Paste it into Slack or Teams."); }
+    catch (e) { toast("Couldn't copy here. Select the notes and copy them."); }
+  });
+  $("#su-wrap").addEventListener("click", () => { closeStandup(); openWrap(); });
+
+  // Wrap-up: write where you stopped on each note in Doing, so tomorrow starts in seconds, not half an hour
+  function openWrap() {
+    const doing = notes.filter((n) => n.column === "doing").sort((a, b) => a.order - b.order);
+    const doneToday = notes.filter((n) => n.column === "done" && isToday(n.doneAt)).length;
+    $("#wrap-text").textContent = (doneToday ? `You finished ${doneToday} today. ` : "") +
+      (doing.length ? "Before you go, jot down where you stopped on each one. Tomorrow you'll start from that line." : "Nothing in Doing. Clear desk, clear head.");
+    $("#wrap-list").replaceChildren(...doing.map((n) => {
+      const row = document.createElement("label"); row.className = "wrap-row";
+      const top = document.createElement("span"); top.className = "wrap-note";
+      const sw = document.createElement("span"); sw.className = "su-dot"; sw.style.setProperty("--c", `var(--n-${colorOf(n)})`);
+      const t = document.createElement("span"); t.textContent = noteLine(n); top.append(sw, t);
+      const inp = document.createElement("input"); inp.className = "field"; inp.type = "text"; inp.maxLength = 80; inp.dataset.id = n.id;
+      inp.placeholder = "Next step, e.g. test on Safari"; inp.value = n.nextStep || ""; inp.setAttribute("aria-label", `Next step for ${t.textContent}`);
+      row.append(top, inp); return row;
+    }));
+    setFab(false);
+    $("#wrap-sheet").hidden = false;
+    setTimeout(() => ($("#wrap-list input") || $("#wrap-done")).focus(), 60);
+  }
+  function saveWrap() {
+    document.querySelectorAll("#wrap-list input").forEach((inp) => {
+      const n = notes.find((x) => x.id === inp.dataset.id); const v = inp.value.trim();
+      if (n && v !== (n.nextStep || "")) put("notes", { ...n, nextStep: v });
+    });
+  }
+  $("#wrap-done").addEventListener("click", () => {
+    saveWrap(); $("#wrap-sheet").hidden = true;
+    try { localStorage.setItem("sticky-desk-wrapped", today()); } catch (e) {}
+    toast("Done for today. Your next steps will be waiting tomorrow.");
+  });
+  $("#wrap-later").addEventListener("click", () => { saveWrap(); $("#wrap-sheet").hidden = true; });
+  $("#wrap-sheet").addEventListener("click", (e) => { if (e.target.id === "wrap-sheet") { saveWrap(); $("#wrap-sheet").hidden = true; } });
+
+  // gentle nudges: a standup offer in the morning, a wrap-up offer after 5 PM, once each per workday
+  function dailyNudge() {
+    if (editing || anySheetOpen() || document.body.classList.contains("desk")) return;
+    const now = new Date(); if (!isWorkday(now)) return;
+    const seen = (k) => { try { return localStorage.getItem(k) === today(); } catch (e) { return true; } };
+    const mark = (k) => { try { localStorage.setItem(k, today()); } catch (e) {} };
+    if (now.getHours() >= 17 && !seen("sticky-desk-wrapped") && !seen("sticky-desk-wrap-asked") && notes.some((n) => n.column === "doing")) {
+      mark("sticky-desk-wrap-asked");
+      toast("Wrapping up? Leave yourself a note for tomorrow.", false, { label: "Wrap up", run: openWrap });
+    } else if (now.getHours() >= 8 && now.getHours() < 12 && !seen("sticky-desk-standup-asked") && notes.some((n) => n.column === "doing" || n.doneAt)) {
+      mark("sticky-desk-standup-asked");
+      toast("Morning. Your standup notes are ready.", false, { label: "Standup", run: openStandup });
+    }
+  }
+  setTimeout(dailyNudge, 2500);
+  setInterval(dailyNudge, 5 * 60000);
+
+  // welcome back: after a long break, show where you left off
+  const ACTIVE_KEY = "sticky-desk-last-active";
+  function welcomeBack() {
+    let last = 0; try { last = Number(localStorage.getItem(ACTIVE_KEY)) || 0; } catch (e) {}
+    try { localStorage.setItem(ACTIVE_KEY, String(Date.now())); } catch (e) {}
+    if (!last || Date.now() - last < 45 * 60000 || editing || anySheetOpen()) return;
+    const n = notes.filter((x) => x.column === "doing" && x.nextStep).sort((a, b) => (b.touchedAt || 0) - (a.touchedAt || 0))[0];
+    if (n) toast(`Welcome back. You were on "${noteLine(n)}". Next: ${n.nextStep}`, false, { label: "Open", run: () => openEditor(n, false) });
+  }
+  setTimeout(welcomeBack, 1800);
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") welcomeBack();
+    else { try { localStorage.setItem(ACTIVE_KEY, String(Date.now())); } catch (e) {} }
+  });
+
   /* ---------- keyboard shortcut sheet ---------- */
   const KEYS = [
-    ["N", "New note"], ["/", "Search"], ["W", "Your week"], ["G", "Rows by project"], ["?", "This list"],
+    ["N", "New note"], ["/", "Search"], ["S", "Standup notes"], ["W", "Your week"], ["G", "Rows by project"], ["?", "This list"],
     ["Tab", "Move between notes"], ["Enter", "Open the note"], ["← →", "Move it to the next column"],
     ["1 2 3", "Send it to To do, Doing or Done"], ["⇧ ↑  ⇧ ↓", "Send it to the top or bottom"],
     ["F", "Flag or unflag"], ["⌫", "Throw it away (Undo is in the toast)"], ["⌘ Z", "Undo"], ["Esc", "Close a sheet"],

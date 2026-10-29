@@ -1270,6 +1270,24 @@ body:not(.show-rail) { --rail-h: env(safe-area-inset-bottom, 0px); }
   .week-row { flex-wrap: wrap; }
   .week-acts { width: 100%; justify-content: flex-end; }
 }
+/* next step: a pencil line on the note */
+.next-step { font: 400 7.4cqi/1.2 var(--font-hand); color: color-mix(in srgb, var(--ink) 72%, transparent); text-align: center; margin-top: -1cqi;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.note.has-photo .next-step { display: none; }
+/* standup page */
+.standup-panel { width: min(560px, 100%); gap: 14px; }
+.su-body { display: grid; gap: 14px; }
+.su-sec h4 { margin: 0 0 4px; font: 400 1.15rem var(--font-marker); letter-spacing: .03em; }
+.su-sec ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; }
+.su-sec li { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; font: 400 1.08rem/1.35 var(--font-hand); }
+.su-sec li small { flex-basis: 100%; padding-left: 20px; margin-top: -2px; font: 400 .8rem var(--font-sys); opacity: .65; }
+.su-sec .su-empty { opacity: .55; }
+.su-dot { flex: 0 0 auto; width: 12px; height: 12px; border-radius: 2px; background: var(--c); background-image: var(--paper-noise); transform: rotate(-6deg) translateY(1px); box-shadow: 0 1px 2px rgba(0,0,0,.2); }
+/* wrap-up */
+.wrap-panel { width: min(560px, 100%); }
+.wrap-list { display: grid; gap: 12px; max-height: 46vh; overflow-y: auto; }
+.wrap-row { display: grid; gap: 6px; }
+.wrap-note { display: flex; align-items: baseline; gap: 8px; font: 600 .95rem var(--font-sys); color: var(--ui-fg); }
 /* keyboard shortcut sheet */
 .keys-panel { width: min(520px, 100%); }
 .keys { display: grid; grid-template-columns: auto 1fr; gap: 10px 18px; margin: 0; align-items: center; }
@@ -1469,7 +1487,10 @@ kbd { display: inline-grid; place-items: center; min-width: 26px; height: 26px; 
     <button class="fab-item" id="week-btn" type="button" style="--x:0px;--y:-300px;--i:4" aria-label="Your week">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19V11M10 19V6M15 19v-5M20 19V9"/></svg><span>Your week</span>
     </button>
-    <button class="fab-item" id="ai-btn" type="button" style="--x:0px;--y:-358px;--i:5" aria-label="Ask Claude" hidden>
+    <button class="fab-item" id="standup-btn" type="button" style="--x:0px;--y:-358px;--i:5" aria-label="Standup notes">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h14v10H9l-4 4z"/><path d="M8.5 9h7M8.5 12h4"/></svg><span>Standup</span>
+    </button>
+    <button class="fab-item" id="ai-btn" type="button" style="--x:0px;--y:-416px;--i:6" aria-label="Ask Claude" hidden>
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg><span>Ask Claude</span>
     </button>
   </div>
@@ -1511,6 +1532,7 @@ kbd { display: inline-grid; place-items: center; min-width: 26px; height: 26px; 
       <label class="mfield">Project<select class="field" id="edit-project"></select></label>
       <label class="mfield">Column<select class="field" id="edit-col"><option value="todo">To do</option><option value="doing">Doing</option><option value="done">Done</option></select></label>
       <label class="mfield">Date<span class="date-wrap" id="date-wrap"><input class="field" id="edit-due" type="date"><span class="date-ph" aria-hidden="true">Pick a date</span></span></label>
+      <label class="mfield">Next step<input class="field" id="edit-next" type="text" maxlength="80" placeholder="Where you'll pick it up, e.g. fix the login error" autocomplete="off"></label>
       <label class="mfield">Waiting on<input class="field" id="edit-waiting" type="text" maxlength="40" placeholder="Who or what? e.g. Rahim's review" autocomplete="off"></label>
       <label class="mfield">Repeat<select class="field" id="edit-repeat">
         <option value="">Doesn't repeat</option><option value="daily">Every day</option><option value="weekdays">Every weekday</option><option value="weekly">Every week</option><option value="monthly">Every month</option>
@@ -1692,6 +1714,28 @@ kbd { display: inline-grid; place-items: center; min-width: 26px; height: 26px; 
     <p class="sheet-text" id="wip-text"></p>
     <div class="sp-list" id="wip-list"></div>
     <div class="pactions"><button class="btn quiet" id="wip-back" type="button">Put it back</button><button class="btn primary" id="wip-anyway" type="button">Start anyway</button></div>
+  </div>
+</div>
+
+<!-- Standup -->
+<div class="overlay" id="standup-sheet" hidden role="dialog" aria-modal="true" aria-labelledby="su-title">
+  <div class="panel standup-panel">
+    <div class="week-page su-page">
+      <h3 class="week-title" id="su-title">Standup</h3>
+      <p class="week-range" id="su-date"></p>
+      <div class="su-body" id="su-body"></div>
+    </div>
+    <div class="pactions"><button class="btn quiet" id="su-wrap" type="button">Wrap up the day</button><button class="btn" id="su-close" type="button">Close</button><button class="btn primary" id="su-copy" type="button">Copy for Slack</button></div>
+  </div>
+</div>
+
+<!-- Wrap up the day -->
+<div class="overlay" id="wrap-sheet" hidden role="dialog" aria-modal="true" aria-labelledby="wrap-title">
+  <div class="panel wrap-panel">
+    <h3 class="tape sheet-title" id="wrap-title">Wrap up the day</h3>
+    <p class="sheet-text" id="wrap-text"></p>
+    <div class="wrap-list" id="wrap-list"></div>
+    <div class="pactions"><button class="btn quiet" id="wrap-later" type="button">Not now</button><button class="btn primary" id="wrap-done" type="button">Done for today</button></div>
   </div>
 </div>
 

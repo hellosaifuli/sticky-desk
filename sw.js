@@ -1,5 +1,5 @@
 // Sticky Desk service worker: opens without internet, and shows lock screen notifications.
-const CACHE = "sticky-desk-v3";
+const CACHE = "sticky-desk-v4";
 const SHELL = ["/", "/manifest.webmanifest", "/icon-180.png", "/icon-192.png", "/icon-512.png", "/q/index.json"];
 
 self.addEventListener("install", (e) => {
