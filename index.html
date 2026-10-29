@@ -1379,6 +1379,27 @@ kbd { display: inline-grid; place-items: center; min-width: 26px; height: 26px; 
   #hand .flip, #hand .panel, .proj-dots { animation: none; }
   .tag, .tag svg, .pdot, .stick-btn, .stick-btn svg { transition: none !important; animation: none !important; }
 }
+
+/* ================= Tidy fields: one grid, sentence-case labels, padded arrows ================= */
+#more .mrow:first-child { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px 14px; align-items: end; }
+@media (max-width: 760px) {
+  #more .mrow:first-child { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  /* on phones the two typed fields get a full row each, after the dropdowns */
+  #more .mfield:has(#edit-next), #more .mfield:has(#edit-waiting) { grid-column: 1 / -1; order: 2; }
+}
+#more .mfield, .plabel { font: 500 .82rem var(--font-sys); text-transform: none; letter-spacing: 0; color: var(--ui-muted); }
+#more .mfield > span:first-child { font: inherit; }
+#more .mfield .field, #more .date-wrap { width: 100%; max-width: none; }
+#more .mfield input.field { padding-inline: 12px; text-overflow: ellipsis; }
+#more .mfield input.field::placeholder { color: var(--ui-muted); opacity: .8; }
+/* every dropdown gets the same chevron, inset from the edge */
+select.field {
+  -webkit-appearance: none; appearance: none; padding-left: 12px; padding-right: 36px; cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1.5 1.5 6 6l4.5-4.5' fill='none' stroke='%238a7c68' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 13px center; background-size: 11px 8px;
+  text-overflow: ellipsis; white-space: nowrap; overflow: hidden;
+}
+#edit-due { padding-inline: 12px; }
 </style>
 
 <main class="wrap">
@@ -1534,8 +1555,8 @@ kbd { display: inline-grid; place-items: center; min-width: 26px; height: 26px; 
       <label class="mfield">Project<select class="field" id="edit-project"></select></label>
       <label class="mfield">Column<select class="field" id="edit-col"><option value="todo">To do</option><option value="doing">Doing</option><option value="done">Done</option></select></label>
       <label class="mfield">Date<span class="date-wrap" id="date-wrap"><input class="field" id="edit-due" type="date"><span class="date-ph" aria-hidden="true">Pick a date</span></span></label>
-      <label class="mfield">Next step<input class="field" id="edit-next" type="text" maxlength="80" placeholder="Where you'll pick it up, e.g. fix the login error" autocomplete="off"></label>
-      <label class="mfield">Waiting on<input class="field" id="edit-waiting" type="text" maxlength="40" placeholder="Who or what? e.g. Rahim's review" autocomplete="off"></label>
+      <label class="mfield">Next step<input class="field" id="edit-next" type="text" maxlength="80" placeholder="e.g. fix the login bug" autocomplete="off"></label>
+      <label class="mfield">Waiting on<input class="field" id="edit-waiting" type="text" maxlength="40" placeholder="e.g. Rahim's review" autocomplete="off"></label>
       <label class="mfield">Repeat<select class="field" id="edit-repeat">
         <option value="">Doesn't repeat</option><option value="daily">Every day</option><option value="weekdays">Every weekday</option><option value="weekly">Every week</option><option value="monthly">Every month</option>
       </select></label>
