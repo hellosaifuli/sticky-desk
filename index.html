@@ -199,6 +199,8 @@ body {
 /* ---------- Project folder tabs + smart lists ---------- */
 .tabs { display: flex; gap: 6px; overflow-x: auto; padding: 6px 2px 0; scrollbar-width: none; border-bottom: 2px solid color-mix(in srgb, var(--on-desk) 18%, transparent); }
 .tabs::-webkit-scrollbar { display: none; }
+.tabs { overscroll-behavior-x: contain; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+.tab, .tab * { -webkit-user-drag: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
 .tab {
   flex: 0 0 auto; display: inline-flex; align-items: center; gap: 8px;
   font-family: var(--font-hand); font-size: 1.05rem; color: var(--ink);
@@ -1051,6 +1053,65 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
 .si-go:disabled { opacity: .6; }
 .si-go::after { content: " →"; }
 @media (prefers-reduced-motion: reduce) { .si-note { animation: none; } }
+
+/* ---------- Settings: iOS-style grouped list ---------- */
+.settings-panel { width: min(540px, 100%); max-height: calc(100dvh - 40px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)); overflow-y: auto; gap: 8px; padding: 10px 16px 18px; overscroll-behavior: contain; }
+.set-top { position: sticky; top: -10px; z-index: 1; display: flex; align-items: flex-end; justify-content: space-between; padding: 12px 4px 10px; margin: -10px -16px 4px; padding-inline: 20px;
+  background: linear-gradient(var(--glass-bg) 70%, transparent); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); }
+.set-title { margin: 0; font: 700 2rem/1.1 var(--font-sys-display); letter-spacing: -.025em; color: var(--ui-fg); }
+.set-done { border: 0; background: none; cursor: pointer; font: 600 1.05rem var(--font-sys); color: #007aff; padding: 8px 4px; min-height: 44px; }
+:root[data-theme="dark"] .set-done { color: #0a84ff; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .set-done { color: #0a84ff; } }
+.set-h { margin: 14px 18px 4px; font: 500 .78rem var(--font-sys); letter-spacing: .02em; text-transform: uppercase; color: var(--ui-muted); }
+.set-group { border-radius: 14px; overflow: hidden; background: color-mix(in srgb, var(--ui) 82%, transparent); box-shadow: 0 1px 0 rgba(255,255,255,.35) inset, 0 6px 18px -12px var(--shadow); }
+.set-item {
+  width: 100%; display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 8px 14px;
+  border: 0; background: transparent; color: var(--ui-fg); text-align: left; cursor: pointer; font: inherit; position: relative;
+}
+.set-item + .set-item::before, .set-expand + .set-item::before {
+  content: ""; position: absolute; top: 0; right: 0; left: 52px; height: 1px; background: color-mix(in srgb, var(--ui-fg) 12%, transparent);
+}
+.set-item:active, button.set-item:hover { background: color-mix(in srgb, var(--ui-fg) 6%, transparent); }
+.set-ico { flex: 0 0 auto; width: 26px; height: 26px; display: grid; place-items: center; color: var(--ui-muted); }
+.set-ico svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.set-text { flex: 1; min-width: 0; display: grid; gap: 1px; }
+.set-label { font: 500 1rem/1.25 var(--font-sys); }
+.set-sub { font: 400 .8rem/1.3 var(--font-sys); color: var(--ui-muted); }
+.set-value { flex: 0 1 auto; font: 400 .92rem var(--font-sys); color: var(--ui-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 45%; }
+.set-chev { flex: 0 0 auto; font: 400 1.5rem/1 var(--font-sys); color: color-mix(in srgb, var(--ui-fg) 35%, transparent); transition: transform .2s ease; }
+.set-item[aria-expanded="true"] .set-chev { transform: rotate(90deg); }
+.set-item.is-danger .set-label, .set-item.is-danger .set-ico { color: #e5484d; }
+.set-account { min-height: 72px; padding: 12px 14px; }
+.set-account .set-label { font: 600 1.15rem var(--font-sys); }
+.set-avatar { flex: 0 0 auto; width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center;
+  font: 600 1.4rem var(--font-sys-display); color: var(--ink);
+  background: var(--n-yellow); background-image: var(--paper-noise); box-shadow: 0 3px 8px -4px var(--shadow), inset 0 0 0 1px rgba(0,0,0,.06); }
+.set-avatar.is-empty { background: color-mix(in srgb, var(--ui-fg) 14%, transparent); }
+.set-avatar svg { width: 28px; height: 28px; fill: none; stroke: var(--ui-fg); stroke-width: 1.8; stroke-linecap: round; }
+.set-expand { padding: 4px 14px 14px 52px; display: grid; gap: 10px; }
+.set-expand .bgs { grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; }
+.set-expand .bg-opt { font-size: .85rem; }
+.set-expand .bg-sw { height: 46px; }
+.set-steps { margin: 0; padding-left: 1.2em; display: grid; gap: 4px; font: 400 .88rem/1.4 var(--font-sys); color: var(--ui-fg); }
+.set-foot { margin: 6px 18px 0; font: 400 .8rem/1.4 var(--font-sys); color: var(--ui-muted); }
+/* iOS switch */
+.switch { -webkit-appearance: none; appearance: none; flex: 0 0 auto; width: 51px; height: 31px; border-radius: 999px; position: relative; cursor: pointer; margin: 0;
+  background: color-mix(in srgb, var(--ui-fg) 22%, transparent); transition: background .2s ease; }
+.switch::before { content: ""; position: absolute; top: 2px; left: 2px; width: 27px; height: 27px; border-radius: 50%; background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,.25); transition: transform .22s cubic-bezier(.3,.7,.2,1.2); }
+.switch:checked { background: #34c759; }
+.switch:checked::before { transform: translateX(20px); }
+.switch:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+@media (max-width: 760px) {
+  #bg-sheet { padding: calc(8px + env(safe-area-inset-top, 0px)) 0 0; align-content: end; }
+  .settings-panel { width: 100%; max-height: calc(100dvh - 8px - env(safe-area-inset-top, 0px)); border-radius: 22px 22px 0 0; padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px)); }
+  .set-expand { padding-left: 14px; }
+}
+@media (prefers-reduced-motion: reduce) { .switch, .switch::before, .set-chev { transition: none; } }
+
+/* the settings panel scrolls as one column; groups never shrink */
+.settings-panel { display: block; }
+.settings-panel > .set-group, .settings-panel > #acct-section { margin-top: 6px; }
+.set-group, .set-item, .set-expand { flex-shrink: 0; }
 </style>
 
 <main class="wrap">
@@ -1234,46 +1295,70 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
 
 <!-- Background sheet -->
 <div class="overlay" id="bg-sheet" hidden role="dialog" aria-modal="true" aria-labelledby="bg-title">
-  <div class="panel">
-    <h3 class="tape sheet-title" id="bg-title">Settings</h3>
+  <div class="panel settings-panel">
+    <div class="set-top">
+      <h3 class="set-title" id="bg-title">Settings</h3>
+      <button class="set-done" id="bg-done" type="button">Done</button>
+    </div>
+
     <div id="acct-section" hidden>
-      <h4 class="set-h">Sync</h4>
-      <div id="acct-out">
-        <p class="sheet-text">Sign in with a name and PIN to keep one board on your iPhone, iPad and Mac.</p>
-        <div class="set-actions"><button class="btn" id="acct-signin" type="button">Sign in or create a board</button></div>
+      <div id="acct-out" class="set-group">
+        <button class="set-item set-account" id="acct-signin" type="button">
+          <span class="set-avatar is-empty" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="9" r="3.6"/><path d="M5 19.5c1.4-3.2 4-4.8 7-4.8s5.6 1.6 7 4.8"/></svg></span>
+          <span class="set-text"><span class="set-label">Sign in to sync</span><span class="set-sub">One board on your iPhone, iPad and Mac</span></span><span class="set-chev" aria-hidden="true">›</span>
+        </button>
       </div>
       <div id="acct-in" hidden>
-        <p class="sheet-text acct-line"><strong id="acct-name"></strong><span aria-hidden="true"> · </span><span id="acct-status" role="status"></span></p>
-        <div class="set-actions">
-          <button class="btn" id="acct-pin" type="button">Change PIN</button>
-          <button class="btn" id="acct-widget" type="button">Set up widget</button>
-          <button class="btn quiet danger" id="acct-signout" type="button">Sign out</button>
+        <div class="set-group">
+          <div class="set-item set-account">
+            <span class="set-avatar" id="acct-avatar" aria-hidden="true"></span>
+            <span class="set-text"><span class="set-label" id="acct-name"></span><span class="set-sub" id="acct-status" role="status"></span></span>
+          </div>
         </div>
-        <div class="pin-change" id="pin-change" hidden>
-          <label class="mfield">Current PIN<input class="field" id="pc-old" type="password" inputmode="numeric" maxlength="8" autocomplete="current-password"></label>
-          <label class="mfield">New PIN<input class="field" id="pc-new" type="password" inputmode="numeric" maxlength="8" autocomplete="new-password"></label>
-          <button class="btn primary" id="pc-save" type="button">Save PIN</button>
-          <p class="sheet-text" id="pc-msg" role="status"></p>
-        </div>
-        <div class="widget-box" id="widget-box" hidden>
-          <p class="sheet-text">1. Install the free <strong>Scriptable</strong> app. 2. Tap + to make a new script, paste this in and name it Sticky Desk. 3. Add a Scriptable widget to your Home Screen or Lock Screen, tap it, and choose Sticky Desk.</p>
-          <textarea class="field widget-code" id="widget-code" readonly rows="6" aria-label="Widget script"></textarea>
-          <div class="set-actions"><button class="btn" id="widget-copy" type="button">Copy script</button></div>
+        <p class="set-h">Sync</p>
+        <div class="set-group">
+          <button class="set-item" id="acct-pin" type="button"><span class="set-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14.5 10.5a4 4 0 1 0-3.3 3.9L13 16.2V18h2v2h2.5l1-1v-2.3l-4.3-4.3"/><circle cx="10.5" cy="9.5" r="1"/></svg></span><span class="set-text"><span class="set-label">Change PIN</span></span><span class="set-chev" aria-hidden="true">›</span></button>
+          <div class="set-expand pin-change" id="pin-change" hidden>
+            <label class="mfield">Current PIN<input class="field" id="pc-old" type="password" inputmode="numeric" maxlength="8" autocomplete="current-password"></label>
+            <label class="mfield">New PIN<input class="field" id="pc-new" type="password" inputmode="numeric" maxlength="8" autocomplete="new-password"></label>
+            <button class="btn primary" id="pc-save" type="button">Save PIN</button>
+            <p class="sheet-text" id="pc-msg" role="status"></p>
+          </div>
+          <button class="set-item" id="acct-widget" type="button"><span class="set-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg></span><span class="set-text"><span class="set-label">Home Screen widget</span></span><span class="set-chev" aria-hidden="true">›</span></button>
+          <div class="set-expand widget-box" id="widget-box" hidden>
+            <ol class="set-steps"><li>Install <strong>Scriptable</strong> from the App Store.</li><li>Tap <strong>+</strong>, paste the script and name it Sticky Desk.</li><li>Add a Scriptable widget, tap it and choose Sticky Desk.</li></ol>
+            <textarea class="field widget-code" id="widget-code" readonly rows="6" aria-label="Widget script"></textarea>
+            <button class="btn" id="widget-copy" type="button">Copy script</button>
+          </div>
+          <button class="set-item is-danger" id="acct-signout" type="button"><span class="set-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14 7V5.5A1.5 1.5 0 0 0 12.5 4h-6A1.5 1.5 0 0 0 5 5.5v13A1.5 1.5 0 0 0 6.5 20h6a1.5 1.5 0 0 0 1.5-1.5V17"/><path d="M10 12h10M17 9l3 3-3 3"/></svg></span><span class="set-text"><span class="set-label">Sign out</span></span></button>
         </div>
       </div>
     </div>
-    <h4 class="set-h">Desk</h4>
-    <div class="bgs" id="bgs" role="group" aria-label="Desk background"></div>
-    <h4 class="set-h">Sounds</h4>
-    <label class="set-row" for="set-sounds"><input type="checkbox" id="set-sounds"> Paper sound when you finish a note</label>
-    <h4 class="set-h">Backup</h4>
-    <div class="set-actions">
-      <button class="btn" id="backup-export" type="button">Save a backup</button>
-      <button class="btn" id="backup-import" type="button">Restore from backup</button>
+
+    <p class="set-h">Desk</p>
+    <div class="set-group">
+      <button class="set-item" id="set-bg-row" type="button" aria-expanded="false" aria-controls="bgs"><span class="set-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="14" rx="2"/><path d="M3.5 15l5-4.5 4 3.5 3-2.5 5 4"/></svg></span><span class="set-text"><span class="set-label">Background</span></span><span class="set-value" id="set-bg-value"></span><span class="set-chev" aria-hidden="true">›</span></button>
+      <div class="set-expand" id="bgs-wrap" hidden><div class="bgs" id="bgs" role="group" aria-label="Desk background"></div></div>
+      <label class="set-item" for="set-sounds"><span class="set-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 9.5h3l4-3.5v12l-4-3.5H5z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg></span><span class="set-text"><span class="set-label">Paper sound</span></span><input type="checkbox" class="switch" id="set-sounds"></label>
+    </div>
+
+    <p class="set-h">Prayer</p>
+    <div class="set-group">
+      <button class="set-item" id="set-azan" type="button"><span class="set-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M15.5 3.5a8.5 8.5 0 1 0 5 15.4A7 7 0 0 1 15.5 3.5z"/></svg></span><span class="set-text"><span class="set-label">Azan sound</span></span><span class="set-value" id="set-azan-value"></span><span class="set-chev" aria-hidden="true">›</span></button>
+    </div>
+
+    <p class="set-h">Backup</p>
+    <div class="set-group">
+      <button class="set-item" id="backup-export" type="button"><span class="set-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 4v11M7.5 10.5 12 15l4.5-4.5"/><path d="M5 17v1.5A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5V17"/></svg></span><span class="set-text"><span class="set-label">Save a backup</span></span><span class="set-chev" aria-hidden="true">›</span></button>
+      <button class="set-item" id="backup-import" type="button"><span class="set-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 15V4M7.5 8.5 12 4l4.5 4.5"/><path d="M5 17v1.5A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5V17"/></svg></span><span class="set-text"><span class="set-label" id="backup-import-label">Restore from backup</span></span><span class="set-chev" aria-hidden="true">›</span></button>
       <input type="file" id="backup-file" accept="application/json,.json" hidden>
     </div>
-    <p class="sheet-text" id="backup-msg">Saves your notes, projects and settings to a file you can keep.</p>
-    <div class="pactions"><div class="left"><button class="btn quiet" id="show-welcome" type="button">Show the welcome again</button></div><button class="btn primary" id="bg-done" type="button">Done</button></div>
+    <p class="set-foot" id="backup-msg">Saves your notes, projects and settings to a file you can keep.</p>
+
+    <div class="set-group">
+      <button class="set-item" id="show-welcome" type="button"><span class="set-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/></svg></span><span class="set-text"><span class="set-label">Show the welcome again</span></span><span class="set-chev" aria-hidden="true">›</span></button>
+    </div>
+    
   </div>
 </div>
 
@@ -1662,6 +1747,7 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
     if (settleId) board.querySelector(`[data-id="${settleId}"]`)?.classList.add("settle");
   }
 
+  $("#tabs").addEventListener("dragstart", (e) => e.preventDefault());
   $("#tabs").addEventListener("click", (e) => {
     const b = e.target.closest(".tab"); if (!b) return;
     const id = b.dataset.p;
@@ -2874,7 +2960,7 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
     if (pendingRestore) {
       const { notes: ns, projects: ps } = pendingRestore; pendingRestore = null;
       ps.forEach((x) => put("projects", x)); ns.forEach((x) => put("notes", x));
-      $("#backup-import").textContent = "Restore from backup";
+      $("#backup-import-label").textContent = "Restore from backup";
       $("#backup-msg").textContent = `Restored ${ns.length} notes and ${ps.length} projects.`;
       return;
     }
@@ -2886,7 +2972,7 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
       const data = JSON.parse(await f.text());
       if (data.app !== "sticky-desk" || !Array.isArray(data.notes) || !Array.isArray(data.projects)) throw new Error("shape");
       pendingRestore = data;
-      $("#backup-import").textContent = `Tap again to restore ${data.notes.length} notes`;
+      $("#backup-import-label").textContent = `Tap again to restore ${data.notes.length} notes`;
       $("#backup-msg").textContent = "Notes with the same name in the backup replace the ones on your board. Others are added.";
     } catch (err) { $("#backup-msg").textContent = "That file isn't a Sticky Desk backup. Choose the .json file you saved from here."; }
   });
@@ -3163,6 +3249,22 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
       if (seenWelcome) setTimeout(maybeSignIn, 700);
     }
   }
+
+
+  /* ---------- settings page details ---------- */
+  function syncSettingsPage() {
+    $("#set-bg-value").textContent = (BGS.find((x) => x.id === bg) || BGS[0]).name.replace(/ \(.*\)$/, "");
+    $("#set-azan-value").textContent = settings.azanOn ? (settings.azanName ? "On · own recording" : "On · soft bell") : "Off";
+    if (cloud) $("#acct-avatar").textContent = (cloud.name || "?").trim().charAt(0).toUpperCase();
+    $("#set-sounds").checked = settings.sounds !== false;
+  }
+  $("#bg-btn").addEventListener("click", () => { syncSettingsPage(); $("#bgs-wrap").hidden = true; $("#set-bg-row").setAttribute("aria-expanded", "false"); });
+  $("#set-bg-row").addEventListener("click", () => {
+    const open = $("#bgs-wrap").hidden;
+    $("#bgs-wrap").hidden = !open; $("#set-bg-row").setAttribute("aria-expanded", String(open));
+  });
+  $("#bgs").addEventListener("click", () => setTimeout(syncSettingsPage, 0));
+  $("#set-azan").addEventListener("click", () => { $("#bg-sheet").hidden = true; $("#azan-sheet").hidden = false; });
 
   render();
   // Measure where the board starts so its columns can fill the rest of the screen.
