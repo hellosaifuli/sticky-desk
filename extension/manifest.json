@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Sticky Desk",
-  "version": "1.1.12",
+  "version": "1.1.13",
   "description": "A paper sticky-note board with projects, Dhaka prayer times and a daily Quran reading. Syncs with your iPhone and iPad.",
   "icons": {
     "16": "icons/16.png",

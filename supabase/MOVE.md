@@ -32,3 +32,8 @@ Notifications and the Siri key are set up again from Settings.
 
 The old `sd_*` tables, functions and the `sd-push-tick` cron job in the ledger project can be
 switched off (`select cron.unschedule('sd-push-tick');`) and later removed, with the owner's OK.
+
+## Editing the app
+
+Edit `src/page.html` (the page without its wrapper), then run `sh tools/build.sh` from the repo
+root to rebuild `index.html`, the `extension/` folder and `sticky-desk-chrome.zip`.
