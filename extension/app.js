@@ -526,6 +526,10 @@ document.getElementById("si-form").addEventListener("submit", (e) => e.preventDe
   spInput.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); spBody.querySelector(".sp-row")?.click(); } });
   $("#sp-clear").addEventListener("click", () => { spInput.value = ""; renderSpotlight(); spInput.focus(); });
   $("#sp-cancel").addEventListener("click", closeSpotlight);
+  // tapping empty space around the results closes search, like tapping outside a sheet
+  sp.addEventListener("click", (e) => {
+    if (e.target === sp || e.target.id === "sp-body" || e.target.classList.contains("sp-bar") || e.target.classList.contains("sp-sec")) closeSpotlight();
+  });
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && !sp.hidden) closeSpotlight();
     // ⌘K / Ctrl+K opens search on a keyboard

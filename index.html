@@ -823,7 +823,15 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
 #sp-input::-webkit-search-cancel-button { display: none; }
 .sp-clear { width: 26px; height: 26px; border: 0; border-radius: 50%; display: grid; place-items: center; cursor: pointer; background: color-mix(in srgb, var(--ui-fg) 22%, transparent); }
 .sp-clear svg { width: 14px; height: 14px; stroke: var(--ui-on-fg); stroke-width: 2.6; stroke-linecap: round; fill: none; }
-.sp-cancel { border: 0; background: none; cursor: pointer; font: 500 17px var(--font-sys); color: var(--ui-fg); padding: 10px 2px; }
+.sp-cancel {
+  flex: 0 0 auto; display: inline-flex; align-items: center; gap: 6px; height: 48px; padding: 0 16px 0 13px; cursor: pointer;
+  border-radius: var(--r-md); border: 1px solid var(--glass-edge); background: var(--glass-shine), var(--glass-bg); box-shadow: var(--glass-shadow);
+  font: 500 16px var(--font-sys); color: var(--ui-fg);
+}
+.sp-cancel svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; }
+.sp-cancel:active { transform: scale(.96); }
+.sp-tip { margin: 2px auto 0; width: min(680px, 100%); font: 400 .78rem var(--font-sys); color: var(--on-desk); opacity: .65; text-align: center; pointer-events: none; }
+@media (max-width: 520px) { .sp-cancel span { display: none; } .sp-cancel { padding: 0 14px; } .sp-tip { display: none; } }
 .sp-body { flex: 1; overflow-y: auto; width: min(680px, 100%); margin: 0 auto; padding: 22px 0 calc(28px + env(safe-area-inset-bottom, 0px)); display: grid; align-content: start; gap: 26px; overscroll-behavior: contain; }
 .sp-sec { display: grid; gap: 10px; animation: sp-rise .34s var(--ease-out) both; }
 .sp-sec:nth-child(2) { animation-delay: 40ms; } .sp-sec:nth-child(3) { animation-delay: 80ms; } .sp-sec:nth-child(4) { animation-delay: 120ms; }
@@ -1344,8 +1352,9 @@ kbd { display: inline-grid; place-items: center; min-width: 26px; height: 26px; 
       <input id="sp-input" type="search" placeholder="Search notes, steps and projects" aria-label="Search notes, steps and projects" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search">
       <button class="sp-clear" id="sp-clear" type="button" aria-label="Clear search" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 8l8 8M16 8l-8 8"/></svg></button>
     </div>
-    <button class="sp-cancel" id="sp-cancel" type="button">Cancel</button>
+    <button class="sp-cancel" id="sp-cancel" type="button" aria-label="Close search"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg><span>Close</span></button>
   </div>
+  <p class="sp-tip kb-tip" aria-hidden="true">Tap anywhere outside to close</p>
   <div class="sp-body" id="sp-body" aria-live="polite"></div>
 </div>
 <div class="rail" id="rail" role="region" aria-label="Prayer times and today's Quran">
@@ -2174,6 +2183,10 @@ kbd { display: inline-grid; place-items: center; min-width: 26px; height: 26px; 
   spInput.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); spBody.querySelector(".sp-row")?.click(); } });
   $("#sp-clear").addEventListener("click", () => { spInput.value = ""; renderSpotlight(); spInput.focus(); });
   $("#sp-cancel").addEventListener("click", closeSpotlight);
+  // tapping empty space around the results closes search, like tapping outside a sheet
+  sp.addEventListener("click", (e) => {
+    if (e.target === sp || e.target.id === "sp-body" || e.target.classList.contains("sp-bar") || e.target.classList.contains("sp-sec")) closeSpotlight();
+  });
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && !sp.hidden) closeSpotlight();
     // ⌘K / Ctrl+K opens search on a keyboard
