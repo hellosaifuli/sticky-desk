@@ -1385,15 +1385,20 @@ kbd { display: inline-grid; place-items: center; min-width: 26px; height: 26px; 
   /* on phones the two typed fields get a full row each, after the dropdowns */
   #more .mfield:has(#edit-next), #more .mfield:has(#edit-waiting) { grid-column: 1 / -1; order: 2; }
 }
-#more .mfield, .plabel { font: 500 .82rem var(--font-sys); text-transform: none; letter-spacing: 0; color: var(--ui-muted); }
+#more .mfield, .plabel, #prio-label { font: 600 .82rem var(--font-sys); text-transform: none; letter-spacing: 0; color: color-mix(in srgb, var(--ui-fg) 82%, transparent); }
 #more .mfield > span:first-child { font: inherit; }
 #more .mfield .field, #more .date-wrap { width: 100%; max-width: none; }
 #more .mfield input.field { padding-inline: 12px; text-overflow: ellipsis; }
-#more .mfield input.field::placeholder { color: var(--ui-muted); opacity: .8; }
+#more .mfield input.field::placeholder, #edit-waiting::placeholder, #edit-next::placeholder { color: color-mix(in srgb, var(--ui-fg) 68%, transparent); opacity: 1; }
+/* the note sheet's panel is more solid than other glass, so the board behind doesn't show through the text */
+#hand .panel { background: var(--glass-shine), color-mix(in srgb, var(--ui) 94%, transparent); }
+#more .date-ph { color: color-mix(in srgb, var(--ui-fg) 68%, transparent); }
+#hand .field { background-color: color-mix(in srgb, var(--ui-fg) 11%, transparent); }
+.nlp-hint.tip { color: color-mix(in srgb, var(--ui-fg) 72%, transparent); }
 /* every dropdown gets the same chevron, inset from the edge */
 select.field {
   -webkit-appearance: none; appearance: none; padding-left: 12px; padding-right: 36px; cursor: pointer;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1.5 1.5 6 6l4.5-4.5' fill='none' stroke='%238a7c68' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1.5 1.5 6 6l4.5-4.5' fill='none' stroke='%236b5a45' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat; background-position: right 13px center; background-size: 11px 8px;
   text-overflow: ellipsis; white-space: nowrap; overflow: hidden;
 }
