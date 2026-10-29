@@ -1188,7 +1188,7 @@ document.getElementById("si-form").addEventListener("submit", (e) => e.preventDe
     const on = !azanOn();
     unlockAudio();
     saveSettings({ azanOn: on }); syncAzanBtn();
-    toast(on ? "Azan is on. Keep this page open, ideally in Desk mode, and it plays at each prayer time."
+    toast(on ? "Azan is on. Keep this page open, ideally in Focus mode, and it plays at each prayer time."
              : "Azan is off.");
   });
   $("#azan-settings").addEventListener("click", () => { $("#azan-sheet").hidden = false; });
@@ -1384,7 +1384,7 @@ document.getElementById("si-form").addEventListener("submit", (e) => e.preventDe
     requestAnimationFrame(() => move.style.setProperty("--dur", Math.max(25, move.firstChild.scrollWidth / 55) + "s"));
   }
 
-  /* ---------- desk mode: keep the iPad awake as a note display ---------- */
+  /* ---------- focus mode: full screen, screen kept awake, nothing but the board ---------- */
   let wake = null, clockTimer = null, lastDay = today();
   async function requestWake() { try { wake = await navigator.wakeLock.request("screen"); return true; } catch (e) { return false; } }
   function tick() {
@@ -1400,13 +1400,28 @@ document.getElementById("si-form").addEventListener("submit", (e) => e.preventDe
   setTimeout(() => { showDate(); setInterval(showDate, 60000); }, (60 - new Date().getSeconds()) * 1000);
   // Re-draw at midnight so "Today", "TMR" and "Late" stay right on a board left open.
   setInterval(() => { if (today() !== lastDay) { lastDay = today(); render(); if (!document.body.classList.contains("desk")) showDate(); } }, 60000);
+  const root = document.documentElement;
+  const fsElement = () => document.fullscreenElement || document.webkitFullscreenElement;
+  // must run straight from the tap: browsers only allow full screen from a user gesture
+  function enterFullscreen() {
+    const req = root.requestFullscreen || root.webkitRequestFullscreen;
+    if (!req) return Promise.resolve(false);
+    try { return Promise.resolve(req.call(root, { navigationUI: "hide" })).then(() => true, () => false); } catch (e) { return Promise.resolve(false); }
+  }
+  function leaveFullscreen() {
+    if (!fsElement()) return;
+    try { (document.exitFullscreen || document.webkitExitFullscreen).call(document); } catch (e) {}
+  }
   async function setDesk(on) {
+    if (on === document.body.classList.contains("desk")) return;
+    const full = on ? enterFullscreen() : (leaveFullscreen(), Promise.resolve(false));
     document.body.classList.toggle("desk", on);
+    setFab(false);
     if (on) {
       tick(); clearInterval(clockTimer); clockTimer = setInterval(tick, 15000);
-      const ok = await requestWake();
-      toast(ok ? "Desk mode is on. The screen will stay awake while this page is open."
-               : "Desk mode is on, but your iPad may still lock. To stop that, set Settings › Display & Brightness › Auto-Lock to Never.");
+      const [isFull, awake] = await Promise.all([full, requestWake()]);
+      const how = isFull ? "Press Esc or tap Exit focus mode to leave." : "This browser can't go full screen. On iPhone, Add to Home Screen opens it without the browser bars.";
+      toast(`Focus mode is on. ${how}` + (awake ? "" : " Your screen may still lock on its own."));
     } else {
       clearInterval(clockTimer); showDate();
       $("#clock").style.fontVariantNumeric = "tabular-nums";
@@ -1414,6 +1429,11 @@ document.getElementById("si-form").addEventListener("submit", (e) => e.preventDe
       wake = null;
     }
   }
+  // leaving full screen with Esc or the browser's own control ends focus mode too
+  const onFsChange = () => { if (!fsElement() && document.body.classList.contains("desk")) setDesk(false); };
+  document.addEventListener("fullscreenchange", onFsChange);
+  document.addEventListener("webkitfullscreenchange", onFsChange);
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && document.body.classList.contains("desk") && !fsElement() && !editing && !anySheetOpen()) setDesk(false); });
   $("#desk-btn").addEventListener("click", () => setDesk(true));
   $("#exit-desk").addEventListener("click", () => setDesk(false));
   document.addEventListener("visibilitychange", () => {

@@ -609,10 +609,12 @@ body.dragging .fab, body.desk .fab { opacity: 0; pointer-events: none; }
 .searchbar .search { width: min(260px, calc(100vw - 120px)); box-shadow: none; }
 @keyframes pop { from { transform: translateY(10px) scale(.9); opacity: 0; } }
 
-/* ---------- Desk mode ---------- */
+/* ---------- Focus mode: the board alone, full screen ---------- */
 body.desk .tools, body.desk .hint, body.desk .status { display: none; }
 body.desk .clock { display: inline; }
-body.desk .exit-desk { display: inline-block; }
+body.desk .exit-desk { display: inline-flex; align-items: center; gap: 8px; }
+.exit-desk svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+body.desk .exit-desk:hover, body.desk .exit-desk:focus-visible { opacity: 1; }
 .exit-desk {
   display: none; position: fixed; z-index: 30;
   left: calc(16px + env(safe-area-inset-left, 0px));
@@ -1145,7 +1147,7 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
 .settings-panel > .set-group, .settings-panel > #acct-section { margin-top: 6px; }
 .set-group, .set-item, .set-expand { flex-shrink: 0; }
 
-/* the prayer and Quran strip lives in the menu unless it's switched on, in desk mode too */
+/* the prayer and Quran strip lives in the menu unless it's switched on, in focus mode too */
 body:not(.show-rail) .rail { display: none; }
 body:not(.show-rail) { --rail-h: env(safe-area-inset-bottom, 0px); }
 
@@ -1340,9 +1342,9 @@ kbd { display: inline-grid; place-items: center; min-width: 26px; height: 26px; 
   Throw away
 </div>
 
-<button class="btn exit-desk" id="exit-desk" type="button">Exit desk mode</button>
+<button class="btn exit-desk" id="exit-desk" type="button" aria-label="Exit focus mode (Esc)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>Exit focus mode</button>
 
-<!-- Floating options button: fans out into search, background, prayer & Quran, desk mode -->
+<!-- Floating options button: fans out into search, settings, prayer & Quran, focus mode, your week -->
 <div class="spotlight" id="spotlight" hidden role="dialog" aria-modal="true" aria-label="Search">
   <div class="sp-bar">
     <div class="sp-field">
@@ -1371,8 +1373,8 @@ kbd { display: inline-grid; place-items: center; min-width: 26px; height: 26px; 
     <button class="fab-item" id="today-btn" type="button" style="--x:0px;--y:-184px;--i:2" aria-controls="today" aria-label="Prayer times and Quran">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 3.5a8.5 8.5 0 1 0 5 15.4A7 7 0 0 1 15.5 3.5z"/></svg><span>Prayer &amp; Quran</span>
     </button>
-    <button class="fab-item" id="desk-btn" type="button" style="--x:0px;--y:-242px;--i:3" aria-label="Desk mode">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M8 20h8M12 16v4"/></svg><span>Desk mode</span>
+    <button class="fab-item" id="desk-btn" type="button" style="--x:0px;--y:-242px;--i:3" aria-label="Focus mode, full screen">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><span>Focus mode</span>
     </button>
     <button class="fab-item" id="week-btn" type="button" style="--x:0px;--y:-300px;--i:4" aria-label="Your week">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19V11M10 19V6M15 19v-5M20 19V9"/></svg><span>Your week</span>
