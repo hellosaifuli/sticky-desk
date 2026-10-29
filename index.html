@@ -1139,9 +1139,9 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
 .settings-panel > .set-group, .settings-panel > #acct-section { margin-top: 6px; }
 .set-group, .set-item, .set-expand { flex-shrink: 0; }
 
-/* the prayer and Quran strip lives in the + menu unless it's switched on */
-body:not(.show-rail):not(.desk) .rail { display: none; }
-body:not(.show-rail):not(.desk) { --rail-h: env(safe-area-inset-bottom, 0px); }
+/* the prayer and Quran strip lives in the menu unless it's switched on, in desk mode too */
+body:not(.show-rail) .rail { display: none; }
+body:not(.show-rail) { --rail-h: env(safe-area-inset-bottom, 0px); }
 
 /* ================= Refreshed board: soft trays on the desk ================= */
 .board { gap: 18px; margin-top: 2px; }
