@@ -762,6 +762,22 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
 .chip .n { font-weight: 600; opacity: .55; }
 .hint { font-size: .8rem; color: var(--on-desk); opacity: .6; }
 .empty { font-size: .88rem; border-radius: var(--r-md); border-width: 1.5px; padding: 26px 12px; }
+.empty { display: grid; justify-items: center; gap: 6px; width: 100%; color: var(--on-desk); background: none; }
+.empty-doodle { width: 44px; height: 44px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; opacity: .75; }
+.empty-line { font: 400 1.1rem/1.25 var(--font-hand); }
+.empty-cta { font: 600 .82rem var(--font-sys); letter-spacing: .01em; padding: 6px 12px; border-radius: 999px;
+  background: color-mix(in srgb, var(--on-desk) 12%, transparent); }
+.empty.is-add { cursor: pointer; opacity: .72; -webkit-tap-highlight-color: transparent;
+  transition: opacity .18s ease, transform .25s cubic-bezier(.3,1.6,.5,1), background-color .18s ease, border-color .18s ease; }
+.empty.is-add:hover, .empty.is-add:focus-visible { opacity: 1; transform: translateY(-2px) rotate(-.6deg);
+  background-color: color-mix(in srgb, var(--on-desk) 7%, transparent); border-color: color-mix(in srgb, var(--on-desk) 55%, transparent); }
+.empty.is-add:hover .empty-doodle, .empty.is-add:focus-visible .empty-doodle { animation: doodle-wiggle .6s ease; }
+.empty.is-add:active { transform: scale(.97); }
+.empty.is-add:focus-visible { outline: 2px solid var(--on-desk); outline-offset: 3px; }
+.empty.is-add[data-add="todo"] .empty-doodle { animation: doodle-bob 3.2s ease-in-out infinite; }
+@keyframes doodle-bob { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-3px) rotate(-4deg); } }
+@keyframes doodle-wiggle { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(-9deg) scale(1.08); } 60% { transform: rotate(7deg) scale(1.08); } }
+@media (prefers-reduced-motion: reduce) { .empty.is-add, .empty-doodle { animation: none !important; transition: none; } .empty.is-add:hover { transform: none; } }
 .btn { font-size: .95rem; font-weight: 600; letter-spacing: -.005em; border-radius: var(--r-sm); padding: 10px 16px; }
 .btn.quiet { font-weight: 500; text-decoration: none; color: var(--ui-fg); opacity: .8; }
 .btn.quiet:hover { opacity: 1; }

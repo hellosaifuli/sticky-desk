@@ -226,10 +226,32 @@ document.getElementById("si-form").addEventListener("submit", (e) => e.preventDe
     return el;
   }
   const EMPTY = {
-    all: { todo: "Tap the pad to tear off a note.", doing: "Drag a note here when you start it.", done: "Finished notes land here." },
-    today: { todo: "Nothing due today.", doing: "Nothing due today in progress.", done: "Nothing finished today yet." },
-    scheduled: { todo: "No dated notes here.", doing: "No dated notes here.", done: "Finished notes don't show in Scheduled." },
-    flagged: { todo: "No flagged notes.", doing: "No flagged notes.", done: "No flagged notes." },
+    all: {
+      todo: ["A clean desk!", "Tap to stick your first note"],
+      doing: ["Nothing on the go", "Tap to start something"],
+      done: ["Wins pile up here", "Already did something? Log it"],
+    },
+    today: {
+      todo: ["Your day is wide open", "Tap to plan something for today"],
+      doing: ["Nothing in progress today", "Tap to start one now"],
+      done: ["Nothing finished today yet", "Small win? Tap to log it"],
+    },
+    scheduled: {
+      todo: ["No dates on the calendar", "Tap to add a note for today"],
+      doing: ["Nothing dated in progress", "Tap to start a dated note"],
+      done: ["Finished notes hide in Scheduled", ""],
+    },
+    flagged: {
+      todo: ["No flags up", "Tap to add something important"],
+      doing: ["No flagged work going", "Tap to start an important one"],
+      done: ["No flagged wins yet", "Tap to log one"],
+    },
+  };
+  // hand-drawn doodles for each column's empty slot
+  const DOODLE = {
+    todo: '<path d="M14 40c6-1 14-2 22-1M14 30c7-1 16-1 26 0M14 20c5-1 10-1 15 0"/><path d="M38 12l8 8-16 16-9 2 1-9z"/><path d="M34 16l8 8"/>',
+    doing: '<path d="M12 22h24v10a10 10 0 0 1-10 10h-4a10 10 0 0 1-10-10z"/><path d="M36 25h3a4 4 0 0 1 0 8h-4"/><path d="M18 9c-2 3 2 4 0 7M25 8c-2 3 2 4 0 7M32 9c-2 3 2 4 0 7"/>',
+    done: '<path d="M24 7l4.6 10 10.4 1.2-7.8 7.2 2.2 10.4L24 30.6l-9.4 5.2 2.2-10.4L9 18.2l10.4-1.2z"/><path d="M8 42c4-2 8 1 12-1s8 1 12-1 8 1 10 0"/>',
   };
   function renderTabs() {
     const tabs = $("#tabs");
@@ -277,9 +299,13 @@ document.getElementById("si-form").addEventListener("submit", (e) => e.preventDe
       const list = inCol(c);
       const kids = list.map(noteEl);
       if (!kids.length && mode !== "loading") {
-        const p = document.createElement("p"); p.className = "empty";
-        p.textContent = view.q ? "No notes match your search." : EMPTY[view.filter][c];
-        kids.push(p);
+        const [line, cta] = view.q ? ["No notes match your search", ""] : EMPTY[view.filter][c];
+        const e = document.createElement(cta ? "button" : "p");
+        e.className = "empty"; if (cta) { e.type = "button"; e.dataset.add = c; e.classList.add("is-add"); }
+        e.innerHTML = `<svg class="empty-doodle" viewBox="0 0 48 48" aria-hidden="true">${DOODLE[c]}</svg>`;
+        const l = document.createElement("span"); l.className = "empty-line"; l.textContent = line; e.append(l);
+        if (cta) { const t = document.createElement("span"); t.className = "empty-cta"; t.textContent = "+ " + cta; e.append(t); }
+        kids.push(e);
       }
       section.querySelector(".notes").replaceChildren(...kids);
       section.querySelector(".count").textContent = list.length;
@@ -528,14 +554,19 @@ document.getElementById("si-form").addEventListener("submit", (e) => e.preventDe
   $("#hand-delete").addEventListener("click", () => closeEditor(false));
   hand.addEventListener("click", (e) => { if (e.target === hand) closeEditor(true); });
 
-  function blankNote() {
+  function blankNote(col = "todo") {
     const pid = view.project !== "all" ? view.project : sortedProjects()[0].id;
-    const top = notes.filter((n) => n.column === "todo").sort((a, b) => a.order - b.order)[0];
-    return {
+    const top = notes.filter((n) => n.column === col).sort((a, b) => a.order - b.order)[0];
+    return withColumn({
       id: newId("n"), text: "", column: "todo", projectId: pid, order: top ? top.order - 1 : 1, createdAt: Date.now(),
-      due: view.filter === "today" ? today() : "", flagged: view.filter === "flagged", priority: 0, repeat: "", details: "", checklist: [],
-    };
+      due: view.filter === "today" || view.filter === "scheduled" ? today() : "", flagged: view.filter === "flagged", priority: 0, repeat: "", details: "", checklist: [],
+    }, col);
   }
+  board.addEventListener("click", (e) => {
+    const b = e.target.closest(".empty.is-add"); if (!b) return;
+    if (!projects.length) { toast("Make a project first, then tear off a note."); return openProject(null); }
+    openEditor(blankNote(b.dataset.add), true);
+  });
   $("#pad").addEventListener("click", () => {
     if (!projects.length) { toast("Make a project first, then tear off a note."); return openProject(null); }
     openEditor(blankNote(), true);
