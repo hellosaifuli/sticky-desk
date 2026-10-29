@@ -1,6 +1,6 @@
 # Sticky Desk for Chrome
 
-The same board as the website, packed as a Chrome extension. Click the toolbar icon to open your board in a tab.
+The same board as the website, packed as a Chrome extension. Every new tab opens your board, and the toolbar icon brings it back.
 
 ## Install it yourself (no store needed)
 
