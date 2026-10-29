@@ -574,7 +574,9 @@ body.dragging .fab, body.desk .fab { opacity: 0; pointer-events: none; }
 .fab svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
 .fab-main { inset: 0; box-shadow: 0 3px 4px rgba(0,0,0,.18), 0 14px 22px -10px var(--shadow); z-index: 2; }
 .fab-main svg { width: 28px; height: 28px; transition: transform .28s cubic-bezier(.2, .9, .3, 1.3); }
-.fab.open .fab-main svg { transform: rotate(135deg); }
+.fab-main .ico-close { display: none; }
+.fab.open .fab-main .ico-menu { display: none; }
+.fab.open .fab-main .ico-close { display: block; transform: rotate(90deg); }
 .fab-items { position: absolute; inset: 0; }
 .fab-item {
   left: 6px; top: 6px; width: 48px; height: 48px;
@@ -1109,6 +1111,13 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
 .set-expand .bg-sw { height: 46px; }
 .set-steps { margin: 0; padding-left: 1.2em; display: grid; gap: 4px; font: 400 .88rem/1.4 var(--font-sys); color: var(--ui-fg); }
 .set-foot { margin: 6px 18px 0; font: 400 .8rem/1.4 var(--font-sys); color: var(--ui-muted); }
+/* stepper (Doing limit) */
+.stepper { flex: 0 0 auto; display: inline-flex; align-items: center; border-radius: 10px; background: color-mix(in srgb, var(--ui-fg) 9%, transparent); }
+.stepper button { width: 38px; height: 32px; border: 0; background: none; color: var(--ui-fg); font: 500 1.2rem/1 var(--font-sys); cursor: pointer; border-radius: 10px; }
+.stepper button:disabled { opacity: .3; cursor: default; }
+.stepper output { min-width: 22px; text-align: center; font: 600 .95rem var(--font-sys); font-variant-numeric: tabular-nums; }
+.kb-only { display: none; }
+@media (hover: hover) and (pointer: fine) { .kb-only { display: flex; } }
 /* iOS switch */
 .switch { -webkit-appearance: none; appearance: none; flex: 0 0 auto; width: 51px; height: 31px; border-radius: 999px; position: relative; cursor: pointer; margin: 0;
   background: color-mix(in srgb, var(--ui-fg) 22%, transparent); transition: background .2s ease; }
@@ -1127,6 +1136,129 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
 .settings-panel { display: block; }
 .settings-panel > .set-group, .settings-panel > #acct-section { margin-top: 6px; }
 .set-group, .set-item, .set-expand { flex-shrink: 0; }
+
+/* the prayer and Quran strip lives in the + menu unless it's switched on */
+body:not(.show-rail):not(.desk) .rail { display: none; }
+body:not(.show-rail):not(.desk) { --rail-h: env(safe-area-inset-bottom, 0px); }
+
+/* ================= Refreshed board: soft trays on the desk ================= */
+.board { gap: 18px; margin-top: 2px; }
+.col + .col::before { display: none; }
+.col {
+  margin: 0; padding: 12px 12px 0; gap: 10px; border-radius: 22px;
+  background: color-mix(in srgb, var(--on-desk) 6%, transparent);
+  border: 1px solid color-mix(in srgb, var(--on-desk) 11%, transparent);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.14), 0 14px 34px -26px var(--shadow);
+}
+.col.over { background: color-mix(in srgb, var(--drop) 70%, transparent); border-color: color-mix(in srgb, var(--on-desk) 35%, transparent); box-shadow: inset 0 0 0 2px var(--drop); }
+.col-bar { display: flex; align-items: center; gap: 10px; min-height: 40px; padding: 0 2px 0 4px; }
+.col-bar .col-head { align-self: center; }
+.col:nth-child(1) .col-head { transform: rotate(-1.2deg); }
+.col:nth-child(2) .col-head { transform: rotate(.8deg); }
+.col:nth-child(3) .col-head { transform: rotate(-.6deg); }
+.col-add {
+  flex: 0 0 auto; width: 34px; height: 34px; border-radius: 50%; border: 0; cursor: pointer;
+  display: grid; place-items: center; font: 400 1.35rem/1 var(--font-sys); color: var(--on-desk);
+  background: color-mix(in srgb, var(--on-desk) 10%, transparent);
+  transition: background-color .15s ease, transform .2s cubic-bezier(.3,1.6,.5,1);
+}
+.col-add:hover { background: color-mix(in srgb, var(--on-desk) 18%, transparent); transform: rotate(90deg); }
+.col-add:active { transform: scale(.92); }
+.notes { padding: 8px 12px 22px; margin: 0 -8px; gap: 20px 16px; }
+.empty { border-radius: 16px; }
+.filters { padding-bottom: 2px; }
+.group-toggle { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; }
+.group-toggle svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+/* Doing meter: one dot per slot */
+.col-bar .wip { opacity: 1; padding: 3px 9px; border-radius: 999px; font: 600 .78rem var(--font-sys); font-variant-numeric: tabular-nums; letter-spacing: .02em;
+  color: var(--on-desk); background: color-mix(in srgb, var(--on-desk) 10%, transparent); }
+.col-bar .wip::before { content: "limit "; font-weight: 500; opacity: .7; }
+.col-bar .wip.is-over { color: #fff; background: #d9534a; }
+@media (max-width: 760px) {
+  .board { gap: 12px; }
+  .col { flex: 0 0 88%; padding: 10px 10px 0; }
+  .group-toggle { margin-left: 0; }
+}
+
+/* rows by project */
+.lane-head {
+  grid-column: 1 / -1; display: flex; align-items: center; gap: 8px; margin: 4px 0 -6px; padding: 6px 4px;
+  border: 0; background: none; cursor: pointer; color: var(--on-desk); text-align: left;
+  font: 600 .82rem var(--font-sys); letter-spacing: .01em;
+  border-bottom: 1px dashed color-mix(in srgb, var(--on-desk) 22%, transparent);
+}
+.lane-head:first-child { margin-top: 0; }
+.lane-dot { width: 12px; height: 12px; border-radius: 3px; background: var(--c); background-image: var(--paper-noise); transform: rotate(-6deg); box-shadow: 0 1px 2px rgba(0,0,0,.2); }
+.lane-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lane-n { opacity: .55; font-variant-numeric: tabular-nums; }
+.lane-chev { margin-left: auto; font-size: 1.1rem; opacity: .5; transform: rotate(90deg); transition: transform .2s ease; }
+.lane-head[aria-expanded="false"] .lane-chev { transform: rotate(0); }
+
+/* paper that ages */
+.note.aged-1 .paper::after, .note.aged-2 .paper::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none; mix-blend-mode: multiply;
+  background: radial-gradient(120% 90% at 30% 20%, transparent 40%, rgba(170, 130, 50, .16) 100%), linear-gradient(170deg, rgba(200, 165, 90, .10), rgba(160, 120, 45, .18));
+}
+.note.aged-2 .paper::after { background: radial-gradient(110% 80% at 30% 20%, transparent 25%, rgba(150, 105, 30, .26) 100%), linear-gradient(170deg, rgba(200, 160, 80, .2), rgba(140, 100, 35, .3)); }
+.note.aged-2 .paper { clip-path: polygon(0 0, 100% 0, 100% 83%, 83% 100%, 0 100%); }
+.curl {
+  position: absolute; z-index: 2; right: 0; bottom: 0; width: 17%; aspect-ratio: 1; pointer-events: none;
+  background: linear-gradient(to top left, transparent 50%, color-mix(in srgb, var(--c) 72%, #7a6334) 50%);
+  filter: drop-shadow(-2px -2px 2px rgba(0,0,0,.18));
+  transform: perspective(700px) rotateX(5deg); transform-origin: 50% 0;
+}
+.age { font-family: var(--font-hand); font-size: 7.5cqi; opacity: .7; margin-right: 6px; }
+.note.aged-2 .meta { padding-right: 15%; }
+/* waiting on someone: red tape across the corner */
+.wait-tape {
+  position: absolute; z-index: 3; top: 6%; left: -5%; max-width: 92%;
+  padding: 1.6cqi 5cqi 1.2cqi; font: 600 6.6cqi/1.15 var(--font-sys); color: #fff; letter-spacing: .01em;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  background: linear-gradient(90deg, rgba(0,0,0,.08), transparent 10%, transparent 90%, rgba(0,0,0,.08)), #d9534a;
+  box-shadow: 0 1px 3px rgba(0,0,0,.25); transform: rotate(-5deg); opacity: .96;
+  clip-path: polygon(0 10%, 2% 0, 100% 0, 98% 30%, 100% 60%, 98% 100%, 0 100%, 2% 70%);
+}
+.note.is-waiting .ntop { visibility: hidden; }
+
+/* week page */
+.week-panel { width: min(560px, 100%); gap: 14px; }
+.week-page {
+  position: relative; padding: 18px 20px 16px; border-radius: 4px; color: var(--ink);
+  background: #fbf7ea; background-image: repeating-linear-gradient(180deg, transparent 0 27px, rgba(80, 120, 190, .18) 27px 28px), var(--paper-noise);
+  box-shadow: 0 1px 2px rgba(0,0,0,.12), 0 10px 22px -14px var(--shadow); transform: rotate(-.6deg);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 96% 99%, 92% 100%, 88% 99%, 84% 100%, 80% 99%, 76% 100%, 72% 99%, 68% 100%, 64% 99%, 60% 100%, 56% 99%, 52% 100%, 48% 99%, 44% 100%, 40% 99%, 36% 100%, 32% 99%, 28% 100%, 24% 99%, 20% 100%, 16% 99%, 12% 100%, 8% 99%, 4% 100%, 0 99%);
+}
+.week-title { margin: 0; font: 400 1.6rem var(--font-marker); letter-spacing: .03em; }
+.week-range { margin: 2px 0 12px; font: 400 1rem var(--font-hand); opacity: .7; }
+.week-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.week-stat { display: grid; gap: 2px; }
+.week-stat b { font: 700 1.5rem/1.1 var(--font-hand); }
+.week-stat span { font: 400 .78rem/1.25 var(--font-sys); opacity: .7; }
+.week-bars { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; height: 110px; margin-top: 14px; align-items: end; }
+.wbar { display: grid; grid-template-rows: auto 1fr auto; justify-items: center; height: 100%; gap: 3px; }
+.wbar-n { font: 700 .9rem var(--font-hand); min-height: 1.1em; }
+.wbar-fill { align-self: end; width: 70%; height: max(4px, var(--h)); border-radius: 3px 3px 1px 1px; background: var(--n-pink); background-image: var(--paper-noise); box-shadow: inset 0 0 0 1px rgba(0,0,0,.06); }
+.wbar-fill.is-zero { height: 3px; background: rgba(0,0,0,.15); }
+.wbar-day { font: 600 .75rem var(--font-sys); opacity: .6; }
+.week-h { margin: 6px 2px -4px; font: 600 .8rem var(--font-sys); text-transform: uppercase; letter-spacing: .06em; color: var(--ui-muted); }
+#week-list { max-height: 36vh; overflow-y: auto; }
+.week-acts { display: flex; gap: 2px; flex: 0 0 auto; }
+.week-acts .btn { padding-inline: 10px; }
+@media (max-width: 560px) {
+  .week-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 12px; }
+  .week-row { flex-wrap: wrap; }
+  .week-acts { width: 100%; justify-content: flex-end; }
+}
+/* keyboard shortcut sheet */
+.keys-panel { width: min(520px, 100%); }
+.keys { display: grid; grid-template-columns: auto 1fr; gap: 10px 18px; margin: 0; align-items: center; }
+.keys dt { display: flex; gap: 4px; justify-content: flex-end; }
+.keys dd { margin: 0; font: 400 .95rem var(--font-sys); }
+kbd { display: inline-grid; place-items: center; min-width: 26px; height: 26px; padding: 0 7px; border-radius: 7px; font: 600 .8rem var(--font-sys); color: var(--ui-fg);
+  background: color-mix(in srgb, var(--ui-fg) 8%, transparent); box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--ui-fg) 16%, transparent); }
+/* a dot on the + when the week page is ready */
+.fab-dot { position: absolute; top: 6px; right: 6px; width: 10px; height: 10px; border-radius: 50%; background: #e5484d; box-shadow: 0 0 0 2px var(--ui); }
+@media (prefers-reduced-motion: reduce) { .col-add, .lane-chev { transition: none; } }
 </style>
 
 <main class="wrap">
@@ -1176,19 +1308,19 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
 
   <nav class="tabs" id="tabs" aria-label="Projects"></nav>
   <div class="filters" id="filters" role="group" aria-label="Show"></div>
-  <p class="hint" id="hint">Tap a note to write on it. Hold and drag to move it.<span class="m-only"> Swipe sideways for Doing and Done.</span></p>
+  <p class="hint" id="hint" hidden>Tap a note to write on it. Hold and drag to move it.</p>
 
   <section class="board" id="board" aria-label="Board">
     <section class="col" data-col="todo" aria-labelledby="h-todo">
-      <div class="tape col-head"><h2 id="h-todo">To do</h2><span class="count"></span></div>
+      <div class="col-bar"><div class="tape col-head"><h2 id="h-todo">To do</h2><span class="count"></span></div><span class="spacer"></span><button class="col-add" type="button" data-add="todo" aria-label="Add a note to To do">+</button></div>
       <div class="notes"></div>
     </section>
     <section class="col" data-col="doing" aria-labelledby="h-doing">
-      <div class="tape col-head"><h2 id="h-doing">Doing</h2><span class="count"></span><span class="wip" id="wip"></span></div>
+      <div class="col-bar"><div class="tape col-head"><h2 id="h-doing">Doing</h2><span class="count"></span></div><span class="wip" id="wip" role="img"></span><span class="spacer"></span><button class="col-add" type="button" data-add="doing" aria-label="Add a note to Doing">+</button></div>
       <div class="notes"></div>
     </section>
     <section class="col" data-col="done" aria-labelledby="h-done">
-      <div class="tape col-head"><h2 id="h-done">Done</h2><span class="count"></span></div>
+      <div class="col-bar"><div class="tape col-head"><h2 id="h-done">Done</h2><span class="count"></span></div><span class="spacer"></span><button class="col-add" type="button" data-add="done" aria-label="Add a note to Done">+</button></div>
       <button class="archive-btn" id="archive-btn" type="button" hidden></button>
       <div class="notes"></div>
     </section>
@@ -1233,12 +1365,16 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
     <button class="fab-item" id="desk-btn" type="button" style="--x:0px;--y:-242px;--i:3" aria-label="Desk mode">
       <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M8 20h8M12 16v4"/></svg><span>Desk mode</span>
     </button>
-    <button class="fab-item" id="ai-btn" type="button" style="--x:0px;--y:-300px;--i:4" aria-label="Ask Claude" hidden>
+    <button class="fab-item" id="week-btn" type="button" style="--x:0px;--y:-300px;--i:4" aria-label="Your week">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19V11M10 19V6M15 19v-5M20 19V9"/></svg><span>Your week</span>
+    </button>
+    <button class="fab-item" id="ai-btn" type="button" style="--x:0px;--y:-358px;--i:5" aria-label="Ask Claude" hidden>
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg><span>Ask Claude</span>
     </button>
   </div>
-  <button class="fab-main" id="fab-main" type="button" aria-expanded="false" aria-controls="fab-items" aria-label="Options">
-    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+  <button class="fab-main" id="fab-main" type="button" aria-expanded="false" aria-controls="fab-items" aria-label="Options"><span class="fab-dot" id="fab-dot" hidden></span>
+    <svg class="ico-menu" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="5" width="5.5" height="5.5" rx="1.6"/><rect x="13.5" y="5" width="5.5" height="5.5" rx="1.6"/><rect x="5" y="13.5" width="5.5" height="5.5" rx="1.6"/><rect x="13.5" y="13.5" width="5.5" height="5.5" rx="1.6"/></svg>
+    <svg class="ico-close" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg>
   </button>
 </div>
 
@@ -1273,6 +1409,7 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
       <label class="mfield">Project<select class="field" id="edit-project"></select></label>
       <label class="mfield">Column<select class="field" id="edit-col"><option value="todo">To do</option><option value="doing">Doing</option><option value="done">Done</option></select></label>
       <label class="mfield">Date<span class="date-wrap" id="date-wrap"><input class="field" id="edit-due" type="date"><span class="date-ph" aria-hidden="true">Pick a date</span></span></label>
+      <label class="mfield">Waiting on<input class="field" id="edit-waiting" type="text" maxlength="40" placeholder="Who or what? e.g. Rahim's review" autocomplete="off"></label>
       <label class="mfield">Repeat<select class="field" id="edit-repeat">
         <option value="">Doesn't repeat</option><option value="daily">Every day</option><option value="weekdays">Every weekday</option><option value="weekly">Every week</option><option value="monthly">Every month</option>
       </select></label>
@@ -1300,6 +1437,7 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
     <h3 class="tape sheet-title" id="proj-title">New project</h3>
     <div class="prow"><label class="plabel" for="proj-name">Name</label><input class="field" id="proj-name" type="text" maxlength="40" placeholder="e.g. Beevo Partner Portal" style="flex:1;min-width:0"></div>
     <div class="prow"><span class="plabel">Paper</span><div class="swatches" id="proj-swatches" role="group" aria-label="Paper colour"></div></div>
+    <div class="prow"><label class="plabel" for="proj-wip">Doing limit</label><select class="field" id="proj-wip"></select></div>
     <div class="pactions">
       <div class="left"><button class="btn danger" id="proj-delete" type="button">Delete project</button></div>
       <button class="btn quiet" id="proj-cancel" type="button">Cancel</button>
@@ -1355,10 +1493,14 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
       <button class="set-item" id="set-bg-row" type="button" aria-expanded="false" aria-controls="bgs"><span class="set-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="14" rx="2"/><path d="M3.5 15l5-4.5 4 3.5 3-2.5 5 4"/></svg></span><span class="set-text"><span class="set-label">Background</span></span><span class="set-value" id="set-bg-value"></span><span class="set-chev" aria-hidden="true">›</span></button>
       <div class="set-expand" id="bgs-wrap" hidden><div class="bgs" id="bgs" role="group" aria-label="Desk background"></div></div>
       <label class="set-item" for="set-sounds"><span class="set-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 9.5h3l4-3.5v12l-4-3.5H5z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg></span><span class="set-text"><span class="set-label">Paper sound</span></span><input type="checkbox" class="switch" id="set-sounds"></label>
+      <div class="set-item"><span class="set-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M9 5v14M15 5v14"/></svg></span><span class="set-text"><span class="set-label" id="set-wip-label">Doing limit</span></span>
+        <div class="stepper" role="group" aria-labelledby="set-wip-label"><button type="button" id="set-wip-down" aria-label="Lower the Doing limit">−</button><output id="set-wip" aria-live="polite">3</output><button type="button" id="set-wip-up" aria-label="Raise the Doing limit">+</button></div></div>
+      <button class="set-item kb-only" id="set-keys" type="button"><span class="set-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="2.5" y="6" width="19" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg></span><span class="set-text"><span class="set-label">Keyboard shortcuts</span></span><span class="set-value">?</span><span class="set-chev" aria-hidden="true">›</span></button>
     </div>
 
     <p class="set-h">Prayer</p>
     <div class="set-group">
+      <label class="set-item" for="set-rail"><span class="set-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="15" width="18" height="5" rx="1.5"/><path d="M7 17.5h10"/></svg></span><span class="set-text"><span class="set-label">Prayer and Quran strip</span><span class="set-sub">Along the bottom of the board</span></span><input type="checkbox" class="switch" id="set-rail"></label>
       <button class="set-item" id="set-azan" type="button"><span class="set-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M15.5 3.5a8.5 8.5 0 1 0 5 15.4A7 7 0 0 1 15.5 3.5z"/></svg></span><span class="set-text"><span class="set-label">Azan sound</span></span><span class="set-value" id="set-azan-value"></span><span class="set-chev" aria-hidden="true">›</span></button>
     </div>
 
@@ -1416,6 +1558,40 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
   </form>
 </div>
 
+<!-- Doing is full -->
+<div class="overlay" id="wip-sheet" hidden role="dialog" aria-modal="true" aria-labelledby="wip-title">
+  <div class="panel">
+    <h3 class="tape sheet-title" id="wip-title">Doing is full</h3>
+    <p class="sheet-text" id="wip-text"></p>
+    <div class="sp-list" id="wip-list"></div>
+    <div class="pactions"><button class="btn quiet" id="wip-back" type="button">Put it back</button><button class="btn primary" id="wip-anyway" type="button">Start anyway</button></div>
+  </div>
+</div>
+
+<!-- Your week -->
+<div class="overlay" id="week-sheet" hidden role="dialog" aria-modal="true" aria-labelledby="week-title">
+  <div class="panel week-panel">
+    <div class="week-page">
+      <h3 class="week-title" id="week-title">Your week</h3>
+      <p class="week-range" id="week-range"></p>
+      <div class="week-stats" id="week-stats"></div>
+      <div class="week-bars" id="week-bars" role="img"></div>
+    </div>
+    <h4 class="week-h">Needs a look</h4>
+    <div class="sp-list" id="week-list"></div>
+    <div class="pactions"><button class="btn primary" id="week-done" type="button">Close</button></div>
+  </div>
+</div>
+
+<!-- Keyboard shortcuts -->
+<div class="overlay" id="keys-sheet" hidden role="dialog" aria-modal="true" aria-labelledby="keys-title">
+  <div class="panel keys-panel">
+    <h3 class="tape sheet-title" id="keys-title">Keyboard shortcuts</h3>
+    <dl class="keys" id="keys-list"></dl>
+    <div class="pactions"><button class="btn primary" id="keys-done" type="button">Done</button></div>
+  </div>
+</div>
+
 <!-- Archive -->
 <div class="overlay" id="archive-sheet" hidden role="dialog" aria-modal="true" aria-labelledby="arch-title">
   <div class="panel">
@@ -1470,6 +1646,5 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
 <div class="toast" id="toast" hidden role="status"><span id="toast-msg"></span><button id="toast-undo" type="button" hidden>Undo</button></div>
 
 <script src="app.js"></script>
-
 </body>
 </html>

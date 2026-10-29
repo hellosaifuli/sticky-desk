@@ -5,6 +5,7 @@ document.getElementById("si-form").addEventListener("submit", (e) => e.preventDe
   const COLORS = ["pink", "yellow", "blue", "green", "orange", "lilac", "mint"];
   const COLOR_NAMES = { pink: "Pink", yellow: "Yellow", blue: "Blue", green: "Green", orange: "Orange", lilac: "Lilac", mint: "Mint" };
   const WIP_LIMIT = 3;
+  const DAY = 864e5;
   const LOCAL_KEY = "sticky-desk-v2";
   // Your projects and notes from the photo, used only when the board is opened without your account.
   const SAMPLE = {
@@ -25,11 +26,11 @@ document.getElementById("si-form").addEventListener("submit", (e) => e.preventDe
   let notes = [], projects = [];
   let mode = "loading"; // "account" | "local"
   let db = null;
-  let view = { project: "all", filter: "all", q: "" };
+  let view = { project: "all", filter: "all", q: "", group: false, collapsed: [] };
   let drag = null, editing = null, projEditing = null, renderPending = false, lastDeleted = null, toastTimer = null;
 
   try { const v = JSON.parse(localStorage.getItem("sticky-desk-view") || "null"); if (v) view = { ...view, ...v, q: "" }; } catch (e) {}
-  const saveView = () => { try { localStorage.setItem("sticky-desk-view", JSON.stringify({ project: view.project, filter: view.filter })); } catch (e) {} };
+  const saveView = () => { try { localStorage.setItem("sticky-desk-view", JSON.stringify({ project: view.project, filter: view.filter, group: view.group, collapsed: view.collapsed })); } catch (e) {} };
 
   /* ---------- dates ---------- */
   const ymd = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -77,6 +78,7 @@ document.getElementById("si-form").addEventListener("submit", (e) => e.preventDe
     if (filter === "today") { if (n.column === "done") return isToday(n.doneAt); if (!n.due || n.due > today()) return false; }
     if (filter === "scheduled" && (!n.due || n.column === "done")) return false;
     if (filter === "flagged" && !n.flagged) return false;
+    if (filter === "waiting" && (!n.waitingOn || n.column === "done")) return false;
     if (view.q) {
       const q = view.q.toLowerCase();
       const hay = [n.text, n.details, ...(n.checklist || []).map((s) => s.t), projOf(n)?.name].join(" ").toLowerCase();
@@ -85,6 +87,11 @@ document.getElementById("si-form").addEventListener("submit", (e) => e.preventDe
     return true;
   }
   const inCol = (c) => notes.filter((n) => n.column === c && !isArchived(n) && matches(n)).sort((a, b) => a.order - b.order);
+  const grouped = () => view.group && view.project === "all" && projects.length > 1;
+  const projRank = (n) => { const i = sortedProjects().findIndex((p) => p.id === n.projectId); return i < 0 ? 1e9 : i; };
+  // what the column actually shows, in screen order
+  const shownInCol = (c) => !grouped() ? inCol(c)
+    : inCol(c).sort((a, b) => projRank(a) - projRank(b) || a.order - b.order).filter((n) => !view.collapsed.includes(n.projectId));
 
   function toast(msg, undo) {
     $("#toast-msg").textContent = msg;
@@ -107,6 +114,7 @@ document.getElementById("si-form").addEventListener("submit", (e) => e.preventDe
   function saveLocal() { try { localStorage.setItem(LOCAL_KEY, JSON.stringify({ notes, projects })); } catch (e) { toast("This browser is out of space, so the last change wasn't saved. Remove a few photo notes, then try again."); } }
   const strip = ({ id, ...body }) => body;
   async function put(kind, obj) {
+    if (kind === "notes" && !undoing) obj = { ...obj, touchedAt: Date.now() };
     const list = kind === "notes" ? notes : projects;
     const i = list.findIndex((x) => x.id === obj.id);
     if (!undoing) remember(kind, i >= 0 ? list[i] : null, obj.id);
@@ -161,6 +169,7 @@ document.getElementById("si-form").addEventListener("submit", (e) => e.preventDe
   /* ---------- moving between columns (Done side effects) ---------- */
   function withColumn(note, col) {
     const n = { ...note, column: col };
+    if (col === "doing" && note.column !== "doing") n.startedAt = Date.now();
     if (col === "done" && note.column !== "done") {
       n.doneAt = Date.now();
       if (n.checklist) n.checklist = n.checklist.map((s) => ({ ...s, done: true }));
@@ -182,11 +191,59 @@ document.getElementById("si-form").addEventListener("submit", (e) => e.preventDe
       toast(`Done. The next one is in To do for ${dueInfo(copy.due).label}.`);
     } else toast("Nice. That one's done.", true);
   }
+  // A project can set its own limit; otherwise the desk-wide one counts every note in Doing.
+  function wipFor(projectId) {
+    const own = projects.find((p) => p.id === projectId)?.wip;
+    const limit = own || settings.wip || WIP_LIMIT;
+    const list = notes.filter((x) => x.column === "doing" && !isArchived(x) && (!own || x.projectId === projectId));
+    return { limit, list, own: !!own };
+  }
+  let wipPending = null;
   function checkWip(prev, next) {
     if (next.column !== "doing" || prev.column === "doing") return;
-    const n = notes.filter((x) => x.column === "doing").length;
-    if (n > WIP_LIMIT) toast(`You're doing ${n} things at once. Finishing one before starting another keeps you focused.`);
+    const { limit, list, own } = wipFor(next.projectId);
+    if (list.length <= limit) return;
+    wipPending = { prev, next };
+    $("#wip-text").textContent = `You already had ${limit} ${limit === 1 ? "note" : "notes"} in Doing${own ? " for " + (projOf(next)?.name || "this project") : ""}. Finishing one first keeps you focused. Done with one of these?`;
+    const host = $("#wip-list");
+    host.replaceChildren(...list.filter((x) => x.id !== next.id).map((n) => {
+      const row = document.createElement("div"); row.className = "sp-row";
+      const sw = document.createElement("span"); sw.className = "sp-swatch"; sw.style.setProperty("--c", `var(--n-${colorOf(n)})`);
+      const t = document.createElement("span"); t.className = "sp-text";
+      const a = document.createElement("span"); a.className = "sp-title"; a.textContent = (n.text || "Photo note").replace(/\n/g, " ");
+      const c = document.createElement("span"); c.className = "sp-sub"; const d = n.startedAt ? Math.floor((Date.now() - n.startedAt) / DAY) : null;
+      c.textContent = [projOf(n)?.name, d == null ? "" : d < 1 ? "started today" : `in Doing ${d} day${d > 1 ? "s" : ""}`].filter(Boolean).join(" · ");
+      t.append(a, c);
+      const b = document.createElement("button"); b.type = "button"; b.className = "btn quiet"; b.textContent = "Done ✓";
+      b.setAttribute("aria-label", `Mark "${a.textContent}" done`);
+      b.addEventListener("click", () => { const moved = withColumn(n, "done"); put("notes", moved); closeWip(); afterDone(n, moved); });
+      row.append(sw, t, b); return row;
+    }));
+    $("#wip-sheet").hidden = false;
+    setTimeout(() => $("#wip-anyway").focus(), 60);
   }
+  function closeWip() { $("#wip-sheet").hidden = true; wipPending = null; }
+  $("#wip-anyway").addEventListener("click", closeWip);
+  $("#wip-back").addEventListener("click", () => {
+    const w = wipPending; closeWip(); if (!w) return;
+    put("notes", { ...w.next, column: w.prev.column, order: w.prev.order, startedAt: w.prev.startedAt ?? null });
+    toast("Put back. One thing at a time.", true);
+  });
+  $("#wip-sheet").addEventListener("click", (e) => { if (e.target.id === "wip-sheet") closeWip(); });
+
+  /* ---------- paper that ages: notes nobody has touched in a while ---------- */
+  function ageOf(n) {
+    if (n.column === "done" || n.waitingOn) return { days: 0, level: 0 };
+    if (n.column === "todo" && n.due && n.due > today()) return { days: 0, level: 0 };
+    const t = n.touchedAt || n.createdAt; if (!t) return { days: 0, level: 0 };
+    const days = Math.floor((Date.now() - t) / DAY);
+    const [a, b] = n.column === "doing" ? [3, 7] : [14, 28];
+    return { days, level: days >= b ? 2 : days >= a ? 1 : 0 };
+  }
+  const sinceLabel = (ts) => {
+    const d = Math.floor((Date.now() - ts) / DAY);
+    return d < 1 ? "today" : d < 7 ? new Date(ts).toLocaleDateString(undefined, { weekday: "short" }) : new Date(ts).toLocaleDateString(undefined, { day: "numeric", month: "short" });
+  };
 
   /* ---------- render ---------- */
   function noteEl(n) {
@@ -202,6 +259,18 @@ document.getElementById("si-form").addEventListener("submit", (e) => e.preventDe
     el.style.setProperty("--c", `var(--n-${colorOf(n)})`);
     el.style.setProperty("--tilt", tiltFor(n.id));
     if (n.flagged) { const f = document.createElement("span"); f.className = "flag"; el.append(f); }
+    const age = ageOf(n);
+    if (age.level) {
+      el.classList.add("aged-" + age.level);
+      if (age.level === 2) { const c = document.createElement("span"); c.className = "curl"; c.setAttribute("aria-hidden", "true"); el.append(c); }
+      el.setAttribute("aria-label", el.getAttribute("aria-label").replace(/\. Tap to edit\.$/, `, untouched for ${age.days} days. Tap to edit.`));
+    }
+    if (n.waitingOn && n.column !== "done") {
+      const w = document.createElement("span"); w.className = "wait-tape";
+      w.textContent = `Waiting on ${n.waitingOn}` + (n.waitingSince ? ` · ${sinceLabel(n.waitingSince)}` : "");
+      el.append(w); el.classList.add("is-waiting");
+      el.setAttribute("aria-label", el.getAttribute("aria-label").replace(/\. Tap to edit\.$/, `, waiting on ${n.waitingOn}. Tap to edit.`));
+    }
 
     const paper = document.createElement("div"); paper.className = "paper";
     const top = document.createElement("div"); top.className = "ntop";
@@ -220,6 +289,7 @@ document.getElementById("si-form").addEventListener("submit", (e) => e.preventDe
     if (di && n.column !== "done") { due.className = "due " + di.state; due.textContent = (di.state === "due-late" ? "Late · " : "") + di.label + (n.repeat ? " ↻" : ""); }
     const sub = document.createElement("span"); sub.className = "sub";
     sub.textContent = [steps.length ? `${stepsDone}/${steps.length} ☐` : "", n.focusCount ? `⏱${n.focusCount}` : ""].filter(Boolean).join("  ");
+    if (age.level) { const a = document.createElement("span"); a.className = "age"; a.textContent = `${age.days} days`; sub.prepend(a); }
     meta.append(due, sub);
     paper.prepend(top); paper.append(t, meta);
     el.append(paper);
@@ -278,7 +348,8 @@ document.getElementById("si-form").addEventListener("submit", (e) => e.preventDe
   }
   function renderFilters() {
     const defs = [["all", "Everything"], ["today", "Today"], ["scheduled", "Scheduled"], ["flagged", "Flagged"]];
-    $("#filters").replaceChildren(...defs.map(([id, label]) => {
+    if (notes.some((x) => matches(x, "waiting")) || view.filter === "waiting") defs.push(["waiting", "Waiting"]);
+    const chips = defs.map(([id, label]) => {
       const b = document.createElement("button"); b.type = "button"; b.className = "chip"; b.dataset.f = id;
       b.setAttribute("aria-pressed", String(view.filter === id));
       b.textContent = label;
@@ -287,7 +358,14 @@ document.getElementById("si-form").addEventListener("submit", (e) => e.preventDe
         const s = document.createElement("span"); s.className = "n"; s.textContent = n; b.append(s);
       }
       return b;
-    }));
+    });
+    if (view.project === "all" && projects.length > 1) {
+      const g = document.createElement("button"); g.type = "button"; g.className = "chip group-toggle"; g.id = "group-toggle";
+      g.setAttribute("aria-pressed", String(!!view.group)); g.title = "Group notes into rows by project (G)";
+      g.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg>Rows by project';
+      chips.push(g);
+    }
+    $("#filters").replaceChildren(...chips);
   }
   function render(settleId) {
     if ((drag && drag.active) || editing) { renderPending = true; return; }
@@ -297,7 +375,24 @@ document.getElementById("si-form").addEventListener("submit", (e) => e.preventDe
     for (const c of COLS) {
       const section = board.querySelector(`[data-col="${c}"]`);
       const list = inCol(c);
-      const kids = list.map(noteEl);
+      let kids;
+      if (grouped()) {
+        kids = [];
+        for (const p of sortedProjects()) {
+          const own = list.filter((n) => n.projectId === p.id); if (!own.length) continue;
+          const shut = view.collapsed.includes(p.id);
+          const h = document.createElement("button"); h.type = "button"; h.className = "lane-head"; h.dataset.lane = p.id;
+          h.style.setProperty("--c", `var(--n-${COLORS.includes(p.color) ? p.color : "pink"})`);
+          h.setAttribute("aria-expanded", String(!shut));
+          h.innerHTML = '<span class="lane-dot" aria-hidden="true"></span>';
+          const nm = document.createElement("span"); nm.className = "lane-name"; nm.textContent = p.name;
+          const ct = document.createElement("span"); ct.className = "lane-n"; ct.textContent = own.length;
+          const cv = document.createElement("span"); cv.className = "lane-chev"; cv.setAttribute("aria-hidden", "true"); cv.textContent = "›";
+          h.append(nm, ct, cv); kids.push(h);
+          if (!shut) kids.push(...own.sort((a, b) => a.order - b.order).map(noteEl));
+        }
+        const loose = list.filter((n) => !projects.some((p) => p.id === n.projectId)); kids.push(...loose.map(noteEl));
+      } else kids = list.map(noteEl);
       if (!kids.length && mode !== "loading") {
         const [line, cta] = view.q ? ["No notes match your search", ""] : EMPTY[view.filter][c];
         const e = document.createElement(cta ? "button" : "p");
@@ -312,9 +407,12 @@ document.getElementById("si-form").addEventListener("submit", (e) => e.preventDe
     }
     const archN = notes.filter((n) => isArchived(n) && matches(n)).length;
     $("#archive-btn").hidden = !archN; $("#archive-btn").textContent = `Archive · ${archN}`;
-    const doingAll = notes.filter((n) => n.column === "doing").length;
-    $("#wip").textContent = `· max ${WIP_LIMIT}`;
-    board.querySelector('[data-col="doing"] .col-head').classList.toggle("over-limit", doingAll > WIP_LIMIT);
+    const w = wipFor(view.project === "all" ? null : view.project);
+    const used = w.list.length, over = used > w.limit;
+    $("#wip").textContent = `${used}/${w.limit}`;
+    $("#wip").setAttribute("aria-label", `${used} of ${w.limit} in Doing`); $("#wip").title = `${used} of ${w.limit} in Doing`;
+    $("#wip").classList.toggle("is-over", over);
+    board.querySelector('[data-col="doing"] .col-head').classList.toggle("over-limit", over);
     if (settleId) board.querySelector(`[data-id="${settleId}"]`)?.classList.add("settle");
   }
 
@@ -328,6 +426,7 @@ document.getElementById("si-form").addEventListener("submit", (e) => e.preventDe
   });
   $("#filters").addEventListener("click", (e) => {
     const b = e.target.closest(".chip"); if (!b) return;
+    if (b.id === "group-toggle") { view.group = !view.group; saveView(); render(); return; }
     view.filter = b.dataset.f; saveView(); render();
   });
 
@@ -470,6 +569,7 @@ document.getElementById("si-form").addEventListener("submit", (e) => e.preventDe
     });
     setDueField(N.due);
     $("#edit-repeat").value = N.repeat || "";
+    $("#edit-waiting").value = N.waitingOn || "";
     $("#quick-flag").setAttribute("aria-pressed", String(!!N.flagged));
     $("#more").hidden = true; $("#more-btn").setAttribute("aria-expanded", "false"); $("#more-btn").textContent = "More"; hand.classList.remove("more-open");
     editText.value = N.text || "";
@@ -501,6 +601,11 @@ document.getElementById("si-form").addEventListener("submit", (e) => e.preventDe
   });
   $("#quick-flag").addEventListener("click", (e) => { editing.note.flagged = !editing.note.flagged; e.currentTarget.setAttribute("aria-pressed", String(editing.note.flagged)); });
   $("#edit-details").addEventListener("input", (e) => { editing.note.details = e.target.value; });
+  $("#edit-waiting").addEventListener("input", (e) => {
+    const N = editing.note, v = e.target.value.trim();
+    if (v && !N.waitingOn) N.waitingSince = Date.now();
+    N.waitingOn = v; if (!v) N.waitingSince = null;
+  });
 
   function renderSteps() {
     const ul = $("#steps");
@@ -546,7 +651,8 @@ document.getElementById("si-form").addEventListener("submit", (e) => e.preventDe
     if (JSON.stringify(prev) !== JSON.stringify(note) || isNew) {
       put("notes", note);
       afterDone(prev, note); checkWip(prev, note);
-    } else render();
+    } else if (ageOf(note).level) { put("notes", note); toast("Freshened up.", true); }
+    else render();
     board.querySelector(`[data-id="${note.id}"]`)?.focus({ preventScroll: true });
   }
   $("#hand-close").addEventListener("click", () => closeEditor(true));
@@ -563,7 +669,9 @@ document.getElementById("si-form").addEventListener("submit", (e) => e.preventDe
     }, col);
   }
   board.addEventListener("click", (e) => {
-    const b = e.target.closest(".empty.is-add"); if (!b) return;
+    const lane = e.target.closest(".lane-head");
+    if (lane) { const id = lane.dataset.lane; view.collapsed = view.collapsed.includes(id) ? view.collapsed.filter((x) => x !== id) : [...view.collapsed, id]; saveView(); render(); return; }
+    const b = e.target.closest(".empty.is-add, .col-add"); if (!b) return;
     if (!projects.length) { toast("Make a project first, then tear off a note."); return openProject(null); }
     openEditor(blankNote(b.dataset.add), true);
   });
@@ -639,6 +747,9 @@ document.getElementById("si-form").addEventListener("submit", (e) => e.preventDe
       b.setAttribute("aria-label", COLOR_NAMES[c]); return b;
     }));
     syncSw = seg(host, () => projEditing.color, (v) => { projEditing.color = v; });
+    const desk = settings.wip || WIP_LIMIT;
+    $("#proj-wip").replaceChildren(...[["", `Same as the desk (${desk})`], ...[1, 2, 3, 4, 5, 6, 8].map((n) => [String(n), `${n} at a time`])].map(([v, t]) => { const o = document.createElement("option"); o.value = v; o.textContent = t; return o; }));
+    $("#proj-wip").value = projEditing.wip ? String(projEditing.wip) : "";
     $("#proj-sheet").hidden = false;
     setTimeout(() => $("#proj-name").focus(), 60);
   }
@@ -648,7 +759,9 @@ document.getElementById("si-form").addEventListener("submit", (e) => e.preventDe
   $("#proj-save").addEventListener("click", () => {
     const name = $("#proj-name").value.trim();
     if (!name) { toast("Give the project a name first."); $("#proj-name").focus(); return; }
-    const { isNew, ...p } = { ...projEditing, name };
+    const wip = Number($("#proj-wip").value) || null;
+    const { isNew, ...p } = { ...projEditing, name, wip };
+    if (!p.wip) delete p.wip;
     closeProject();
     put("projects", p);
     if (isNew) { view.project = p.id; saveView(); render(); }
@@ -675,17 +788,119 @@ document.getElementById("si-form").addEventListener("submit", (e) => e.preventDe
       e.preventDefault();
       const n = notes.find((x) => x.id === e.target.dataset.id); if (n) openEditor(n, false);
     }
-    if (onNote && (e.key === "ArrowLeft" || e.key === "ArrowRight")) {
+    if (onNote && (e.key === "ArrowLeft" || e.key === "ArrowRight") && !e.shiftKey && !e.metaKey && !e.ctrlKey) {
       e.preventDefault();
       const n = notes.find((x) => x.id === e.target.dataset.id); if (!n) return;
-      const to = COLS[COLS.indexOf(n.column) + (e.key === "ArrowRight" ? 1 : -1)]; if (!to) return;
-      const list = notes.filter((x) => x.column === to).sort((a, b) => a.order - b.order);
-      const moved = { ...withColumn(n, to), order: list.length ? list[list.length - 1].order + 1 : 1 };
-      put("notes", moved); afterDone(n, moved); checkWip(n, moved);
-      if (to !== "done") toast(`Moved to ${{ todo: "To do", doing: "Doing" }[to]}.`, true);
-      board.querySelector(`[data-id="${n.id}"]`)?.focus();
+      const to = COLS[COLS.indexOf(n.column) + (e.key === "ArrowRight" ? 1 : -1)]; if (to) keyMove(n, to, "end");
     }
+    if (typing(e) || e.metaKey || e.ctrlKey || e.altKey || editing || projEditing || anySheetOpen()) return;
+    const n = onNote && notes.find((x) => x.id === e.target.dataset.id);
+    if (n && ["1", "2", "3"].includes(e.key)) { e.preventDefault(); const to = COLS[Number(e.key) - 1]; if (to !== n.column) keyMove(n, to, "end"); }
+    else if (n && e.shiftKey && (e.key === "ArrowUp" || e.key === "ArrowDown")) { e.preventDefault(); keyMove(n, n.column, e.key === "ArrowUp" ? "top" : "end"); }
+    else if (n && (e.key === "f" || e.key === "F")) { e.preventDefault(); put("notes", { ...n, flagged: !n.flagged }); toast(n.flagged ? "Flag removed." : "Flagged.", true); refocus(n.id); }
+    else if (n && (e.key === "Backspace" || e.key === "Delete")) { e.preventDefault(); removeNote(n.id); }
+    else if (e.key === "n" || e.key === "N") { e.preventDefault(); $("#pad").click(); }
+    else if (e.key === "/") { e.preventDefault(); openSpotlight(); }
+    else if (e.key === "?") { e.preventDefault(); openKeys(); }
+    else if (e.key === "w" || e.key === "W") { e.preventDefault(); openWeek(); }
+    else if ((e.key === "g" || e.key === "G") && view.project === "all") { e.preventDefault(); view.group = !view.group; saveView(); render(); toast(view.group ? "Rows by project." : "One list per column.", true); }
   });
+  const typing = (e) => e.target.closest?.("input, textarea, select, [contenteditable]");
+  const anySheetOpen = () => [...document.querySelectorAll(".overlay, .spotlight, .today")].some((x) => !x.hidden);
+  const refocus = (id) => requestAnimationFrame(() => board.querySelector(`[data-id="${id}"]`)?.focus());
+  function keyMove(n, to, where) {
+    const list = notes.filter((x) => x.column === to && x.id !== n.id).sort((a, b) => a.order - b.order);
+    const order = !list.length ? 1 : where === "top" ? list[0].order - 1 : list[list.length - 1].order + 1;
+    const moved = { ...withColumn(n, to), order };
+    put("notes", moved); afterDone(n, moved); checkWip(n, moved);
+    if (to !== n.column && to !== "done") toast(`Moved to ${{ todo: "To do", doing: "Doing" }[to]}.`, true);
+    else if (to === n.column) toast(where === "top" ? "Moved to the top." : "Moved to the bottom.", true);
+    refocus(n.id);
+  }
+
+  /* ---------- keyboard shortcut sheet ---------- */
+  const KEYS = [
+    ["N", "New note"], ["/", "Search"], ["W", "Your week"], ["G", "Rows by project"], ["?", "This list"],
+    ["Tab", "Move between notes"], ["Enter", "Open the note"], ["← →", "Move it to the next column"],
+    ["1 2 3", "Send it to To do, Doing or Done"], ["⇧ ↑  ⇧ ↓", "Send it to the top or bottom"],
+    ["F", "Flag or unflag"], ["⌫", "Throw it away (Undo is in the toast)"], ["⌘ Z", "Undo"], ["Esc", "Close a sheet"],
+  ];
+  function openKeys() {
+    $("#keys-list").replaceChildren(...KEYS.flatMap(([k, t]) => {
+      const dt = document.createElement("dt"); dt.append(...k.split(/\s{1,2}/).map((x) => { const kb = document.createElement("kbd"); kb.textContent = x; return kb; }));
+      const dd = document.createElement("dd"); dd.textContent = t; return [dt, dd];
+    }));
+    $("#keys-sheet").hidden = false; setTimeout(() => $("#keys-done").focus(), 60);
+  }
+  const closeKeys = () => { $("#keys-sheet").hidden = true; };
+  $("#keys-done").addEventListener("click", closeKeys);
+  $("#keys-sheet").addEventListener("click", (e) => { if (e.target.id === "keys-sheet") closeKeys(); });
+  $("#set-keys").addEventListener("click", () => { $("#bg-sheet").hidden = true; openKeys(); });
+
+  /* ---------- your week: a torn notebook page of what moved ---------- */
+  const weekKey = (d = new Date()) => { const x = new Date(d); x.setDate(x.getDate() - x.getDay()); return ymd(x); };
+  function weekReady() {
+    const d = new Date();
+    return d.getDay() === 4 && d.getHours() >= 15 && settings.weekSeen !== weekKey() && notes.some((n) => n.doneAt && Date.now() - n.doneAt < 7 * DAY);
+  }
+  function openWeek() {
+    const now = Date.now(), from = now - 7 * DAY;
+    const done = notes.filter((n) => n.doneAt && n.doneAt >= from);
+    const started = notes.filter((n) => n.startedAt && n.startedAt >= from);
+    const spans = notes.filter((n) => n.doneAt && n.startedAt && n.doneAt >= now - 30 * DAY && n.doneAt > n.startedAt).map((n) => (n.doneAt - n.startedAt) / DAY).sort((a, b) => a - b);
+    const med = spans.length ? spans[Math.floor((spans.length - 1) / 2)] : null;
+    const medText = med == null ? "–" : med < 1 ? "under a day" : `${Math.round(med * 2) / 2} day${Math.round(med * 2) / 2 === 1 ? "" : "s"}`;
+    const waiting = notes.filter((n) => n.waitingOn && n.column !== "done").length;
+    const fmt = (t) => new Date(t).toLocaleDateString(undefined, { day: "numeric", month: "short" });
+    $("#week-range").textContent = `${fmt(from + DAY)} – ${fmt(now)}`;
+    const stat = (num, label) => { const d = document.createElement("div"); d.className = "week-stat"; const b = document.createElement("b"); b.textContent = num; const s = document.createElement("span"); s.textContent = label; d.append(b, s); return d; };
+    $("#week-stats").replaceChildren(stat(done.length, done.length === 1 ? "finished" : "finished"), stat(started.length, "started"), stat(medText, "usually in Doing"), stat(waiting, "waiting on others"));
+    const days = Array.from({ length: 7 }, (_, i) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - 6 + i); return d; });
+    const counts = days.map((d) => done.filter((n) => ymd(new Date(n.doneAt)) === ymd(d)).length);
+    const max = Math.max(1, ...counts);
+    $("#week-bars").replaceChildren(...days.map((d, i) => {
+      const col = document.createElement("div"); col.className = "wbar";
+      const bar = document.createElement("span"); bar.className = "wbar-fill"; bar.style.setProperty("--h", (counts[i] / max) * 100 + "%"); if (!counts[i]) bar.classList.add("is-zero");
+      const n = document.createElement("span"); n.className = "wbar-n"; n.textContent = counts[i] || "";
+      const l = document.createElement("span"); l.className = "wbar-day"; l.textContent = d.toLocaleDateString(undefined, { weekday: "narrow" });
+      col.append(n, bar, l); return col;
+    }));
+    $("#week-bars").setAttribute("aria-label", "Finished each day: " + days.map((d, i) => `${d.toLocaleDateString(undefined, { weekday: "long" })} ${counts[i]}`).join(", "));
+    renderWeekList();
+    $("#week-sheet").hidden = false; $("#fab-dot").hidden = true;
+    if (settings.weekSeen !== weekKey()) saveSettings({ weekSeen: weekKey() });
+    setTimeout(() => $("#week-done").focus(), 60);
+  }
+  function renderWeekList() {
+    const stale = notes.filter((n) => n.column !== "done" && (ageOf(n).level || (n.waitingOn && n.waitingSince && Date.now() - n.waitingSince > 5 * DAY)))
+      .sort((a, b) => (a.touchedAt || a.createdAt || 0) - (b.touchedAt || b.createdAt || 0)).slice(0, 6);
+    const host = $("#week-list");
+    if (!stale.length) { const p = document.createElement("p"); p.className = "sp-none"; p.textContent = "Nothing gathering dust. Nice."; host.replaceChildren(p); return; }
+    host.replaceChildren(...stale.map((n) => {
+      const row = document.createElement("div"); row.className = "sp-row week-row";
+      const sw = document.createElement("span"); sw.className = "sp-swatch"; sw.style.setProperty("--c", `var(--n-${colorOf(n)})`);
+      const t = document.createElement("span"); t.className = "sp-text";
+      const a = document.createElement("span"); a.className = "sp-title"; a.textContent = (n.text || "Photo note").replace(/\n/g, " ");
+      const c = document.createElement("span"); c.className = "sp-sub";
+      c.textContent = n.waitingOn ? `Waiting on ${n.waitingOn} since ${sinceLabel(n.waitingSince)}` : `${{ todo: "To do", doing: "Doing" }[n.column]} · untouched ${ageOf(n).days} days`;
+      t.append(a, c);
+      const acts = document.createElement("span"); acts.className = "week-acts";
+      const mk = (label, aria, fn) => { const b = document.createElement("button"); b.type = "button"; b.className = "btn quiet"; b.textContent = label; b.setAttribute("aria-label", `${aria} "${a.textContent}"`); b.addEventListener("click", fn); return b; };
+      acts.append(
+        mk("Done", "Mark done:", () => { const moved = withColumn(n, "done"); put("notes", moved); afterDone(n, moved); renderWeekList(); }),
+        mk("Next week", "Move to next week:", () => { put("notes", { ...n, due: addDays(today(), 7 - new Date().getDay()) }); renderWeekList(); toast("See you next week.", true); }),
+        mk("Open", "Open", () => { $("#week-sheet").hidden = true; openEditor(n, false); }),
+      );
+      row.append(sw, t, acts); return row;
+    }));
+  }
+  $("#week-btn").addEventListener("click", openWeek);
+  $("#week-done").addEventListener("click", () => { $("#week-sheet").hidden = true; });
+  $("#week-sheet").addEventListener("click", (e) => { if (e.target.id === "week-sheet") $("#week-sheet").hidden = true; });
+  setInterval(() => { if (weekReady()) $("#fab-dot").hidden = false; }, 60000);
+  setTimeout(() => { if (weekReady()) $("#fab-dot").hidden = false; }, 1500);
+  // stale notes yellow a little more each day even if the board just sits open
+  setInterval(() => { if (!drag && !editing) render(); }, 30 * 60000);
 
   /* ---------- drag: hold to pick up on touch, drag right away with a mouse ---------- */
   board.addEventListener("pointerdown", (e) => {
@@ -774,7 +989,7 @@ document.getElementById("si-form").addEventListener("submit", (e) => e.preventDe
       const r = others[i].getBoundingClientRect();
       if (d.y < r.top || (d.y <= r.bottom && d.x < r.left + r.width / 2)) { idx = i; break; }
     }
-    const list = inCol(d.target).filter((n) => n.id !== d.id);
+    const list = shownInCol(d.target).filter((n) => n.id !== d.id);
     const prev = list[idx - 1]?.order, next = list[idx]?.order;
     const order = prev == null && next == null ? 1 : prev == null ? next - 1 : next == null ? prev + 1 : (prev + next) / 2;
     if (note.column === d.target && note.order === order) { render(note.id); return; }
@@ -836,7 +1051,13 @@ document.getElementById("si-form").addEventListener("submit", (e) => e.preventDe
       catch (e) { toast("Couldn't save that setting to your account. It's kept on this device."); }
     } else queueSync("settings", "board", settings);
   }
+  function syncWipSetting() { const v = settings.wip || WIP_LIMIT; $("#set-wip").textContent = v; $("#set-wip-down").disabled = v <= 1; $("#set-wip-up").disabled = v >= 9; }
+  const stepWip = (d) => { const v = Math.min(9, Math.max(1, (settings.wip || WIP_LIMIT) + d)); saveSettings({ wip: v }); syncWipSetting(); render(); };
+  $("#set-wip-down").addEventListener("click", () => stepWip(-1));
+  $("#set-wip-up").addEventListener("click", () => stepWip(1));
+  syncWipSetting();
   function onSettings() {
+    syncWipSetting(); syncRail();
     if (BGS.some((x) => x.id === settings.bg)) applyBg(settings.bg);
     renderQuran(); loadAzanSource();
   }
@@ -1516,6 +1737,14 @@ document.getElementById("si-form").addEventListener("submit", (e) => e.preventDe
 
   /* ---------- settings: sounds, backup, welcome ---------- */
   const syncSoundBox = () => { $("#set-sounds").checked = settings.sounds !== false; };
+  function syncRail() {
+    const on = settings.rail === true;
+    document.body.classList.toggle("show-rail", on); $("#set-rail").checked = on;
+    const move = $("#rail-move");
+    if (on && move.firstChild) requestAnimationFrame(() => move.style.setProperty("--dur", Math.max(25, move.firstChild.scrollWidth / 55) + "s"));
+  }
+  syncRail();
+  $("#set-rail").addEventListener("change", (e) => { saveSettings({ rail: e.target.checked }); syncRail(); });
   $("#bg-btn").addEventListener("click", syncSoundBox);
   $("#set-sounds").addEventListener("change", (e) => { saveSettings({ sounds: e.target.checked }); if (e.target.checked) paperSound(); });
   $("#backup-export").addEventListener("click", async () => {
