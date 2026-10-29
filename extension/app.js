@@ -1991,8 +1991,8 @@ document.getElementById("si-form").addEventListener("submit", (e) => e.preventDe
      Cloud sync with name + PIN (Supabase). Website only: claude.ai blocks
      outside connections, and there the board already syncs through claude.ai.
      ===================================================================== */
-  const SB_URL = "https://gxeatllskccthzunvzbp.supabase.co";
-  const SB_KEY = "sb_publishable_bbnTx_OR9QFv6_ZpoYx0DA_QcUQDngC";
+  const SB_URL = "https://fcbwglqbccurcbcnakbn.supabase.co";
+  const SB_KEY = "sb_publishable_bT4djMe1SXJqSir3bZWQYQ_T6e0i2cp";
   const CLOUD_OK = !window.claude;
   const SYNC_KIND = { notes: "note", projects: "project", settings: "settings" };
   let cloud = null;
