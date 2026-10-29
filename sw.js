@@ -1,5 +1,5 @@
 // Sticky Desk service worker: opens without internet, and shows lock screen notifications.
-const CACHE = "sticky-desk-v8";
+const CACHE = "sticky-desk-v9";
 const SHELL = ["/", "/manifest.webmanifest", "/icon-180.png", "/icon-192.png", "/icon-512.png", "/q/index.json"];
 
 self.addEventListener("install", (e) => {
@@ -38,15 +38,19 @@ self.addEventListener("fetch", (e) => {
 self.addEventListener("push", (e) => {
   let msg = {};
   try { msg = e.data ? e.data.json() : {}; } catch (err) { msg = { title: "Sticky Desk", body: e.data ? e.data.text() : "" }; }
+  const meeting = msg.kind === "meeting";
   e.waitUntil(self.registration.showNotification(msg.title || "Sticky Desk", {
-    body: msg.body || "", tag: msg.tag || "sticky-desk", renotify: true,
-    icon: "/icon-192.png", badge: "/icon-192.png", data: { url: msg.url || "/" },
+    body: msg.body || "", tag: msg.tag || "sticky-desk", renotify: true, requireInteraction: meeting,
+    icon: "/icon-192.png", badge: "/icon-192.png", data: { url: msg.url || "/", kind: msg.kind || "" },
+    actions: meeting ? [{ action: "join", title: "Join" }] : [],
   }));
 });
 
 self.addEventListener("notificationclick", (e) => {
   e.notification.close();
   const url = (e.notification.data && e.notification.data.url) || "/";
+  // a meeting alert opens the call itself (Meet, Zoom or Teams), not the board
+  if (e.notification.data && e.notification.data.kind === "meeting") { e.waitUntil(self.clients.openWindow(url)); return; }
   e.waitUntil(self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((wins) => {
     const open = wins.find((w) => new URL(w.url).origin === location.origin);
     return open ? open.focus() : self.clients.openWindow(url);

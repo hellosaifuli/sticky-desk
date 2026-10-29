@@ -2227,6 +2227,114 @@ document.getElementById("si-form").addEventListener("submit", (e) => e.preventDe
     }
   }
 
+  /* ---------- Google Calendar: up-next chip, 30 and 5 minute alerts, spoken out loud ---------- */
+  const GOOGLE_FN = `${SB_URL}/functions/v1/sd-google`;
+  const GCAL_SCOPE = "openid email https://www.googleapis.com/auth/calendar.events.readonly";
+  let gcal = { connected: false, email: null, error: null, events: [] }, gcalConfig = null;
+  async function googleFn(body) {
+    const r = await fetch(GOOGLE_FN, { method: "POST", headers: { "Content-Type": "application/json", apikey: SB_KEY }, body: JSON.stringify(body) });
+    return r.json().catch(() => ({ ok: false }));
+  }
+  async function loadCalendar() {
+    if (!CLOUD_OK || !cloud) return;
+    try { gcal = await rpc("sd_calendar", { p_key: cloud.token }); } catch (e) { return; }
+    renderNextMeeting(); renderGcal(); meetingAlerts();
+  }
+  function renderGcal() {
+    const st = $("#gcal-status"), btn = $("#gcal-btn"); if (!st) return;
+    btn.disabled = false;
+    if (!cloud) { st.textContent = "Sign in above first. Your calendar connects to your board."; btn.textContent = "Connect"; btn.disabled = true; return; }
+    if (gcal.connected) { st.textContent = gcal.error || `Connected · ${gcal.email || "Google account"}`; btn.textContent = "Disconnect"; return; }
+    st.textContent = gcal.error || (gcalConfig && !gcalConfig.ready ? "Waiting for the Google set-up to finish" : "Meeting reminders with a Join button");
+    btn.textContent = "Connect"; btn.disabled = !!(gcalConfig && !gcalConfig.ready);
+  }
+  $("#gcal-btn").addEventListener("click", async () => {
+    if (gcal.connected) {
+      $("#gcal-btn").disabled = true;
+      await googleFn({ action: "disconnect", key: cloud.token }); toast("Google Calendar disconnected.");
+      return loadCalendar();
+    }
+    gcalConfig = gcalConfig || await googleFn({ action: "config" });
+    if (!gcalConfig.ready) { renderGcal(); return toast("Google isn't set up on the server yet."); }
+    const state = Math.random().toString(36).slice(2) + Date.now().toString(36);
+    try { sessionStorage.setItem("sd-google-state", state); } catch (e) {}
+    const u = new URL("https://accounts.google.com/o/oauth2/v2/auth");
+    for (const [k, v] of Object.entries({ client_id: gcalConfig.clientId, redirect_uri: gcalConfig.redirect, response_type: "code", scope: GCAL_SCOPE, access_type: "offline", prompt: "consent", include_granted_scopes: "true", state })) u.searchParams.set(k, v);
+    location.href = u.toString();
+  });
+  // coming back from Google's sign-in page with ?code=…&state=…
+  (async function finishGoogle() {
+    const q = new URLSearchParams(location.search);
+    if (!q.has("state") || !(q.has("code") || q.has("error"))) return;
+    let want = null; try { want = sessionStorage.getItem("sd-google-state"); sessionStorage.removeItem("sd-google-state"); } catch (e) {}
+    history.replaceState(null, "", location.pathname);
+    if (q.get("error")) return toast("Google Calendar wasn't connected.");
+    if (!want || want !== q.get("state")) return toast("That Google sign-in didn't match. Try Connect again.");
+    if (!cloud) return toast("Sign in to your board first, then connect Google Calendar.");
+    toast("Connecting Google Calendar…");
+    const r = await googleFn({ action: "connect", key: cloud.token, code: q.get("code") });
+    if (r.ok) { toast(`Google Calendar connected${r.email ? " · " + r.email : ""}. Meetings will show up in a moment.`); setTimeout(loadCalendar, 4000); setTimeout(loadCalendar, 15000); }
+    else toast(r.error === "no_offline_access" ? "Google didn't allow background access. Remove Sticky Desk from your Google account's third-party access, then connect again." : "Couldn't connect Google Calendar. Try again.");
+  })();
+
+  const minsTo = (iso) => Math.round((new Date(iso).getTime() - Date.now()) / 60000);
+  const fmtClock = (iso) => new Date(iso).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+  function upNext() {
+    return (gcal.events || []).find((e) => { const m = minsTo(e.start), endM = e.end ? minsTo(e.end) : m + 30; return endM > 0 && m <= 60; });
+  }
+  function renderNextMeeting() {
+    const a = $("#next-meeting"), e = upNext();
+    if (!e) { a.hidden = true; return; }
+    const m = minsTo(e.start);
+    a.hidden = false; a.href = e.join || e.link || "#";
+    a.classList.toggle("is-now", m <= 5);
+    a.replaceChildren();
+    const dot = document.createElement("span"); dot.className = "nm-dot"; dot.setAttribute("aria-hidden", "true");
+    const t = document.createElement("span"); t.className = "nm-title"; t.textContent = e.title;
+    const w = document.createElement("span"); w.className = "nm-when"; w.textContent = m > 0 ? `in ${m} min` : "now";
+    a.append(dot, t, w);
+    if (e.join) { const j = document.createElement("span"); j.className = "nm-join"; j.textContent = "Join"; a.append(j); }
+    a.setAttribute("aria-label", `${e.title}, ${m > 0 ? "in " + m + " minutes" : "happening now"} at ${fmtClock(e.start)}${e.join ? ". Join the call" : ". Open in Google Calendar"}`);
+  }
+
+  // speaking: "Hey boss, Design sync starts in 30 minutes."
+  const SPEAK_KEY = "sticky-desk-speak";
+  let speakOn = true; try { speakOn = localStorage.getItem(SPEAK_KEY) !== "0"; } catch (e) {}
+  $("#speak-on").checked = speakOn;
+  $("#speak-on").addEventListener("change", (e) => { speakOn = e.target.checked; try { localStorage.setItem(SPEAK_KEY, speakOn ? "1" : "0"); } catch (err) {} if (speakOn) say("Got it. I'll say your alerts out loud."); });
+  function say(text) {
+    if (!speakOn || !("speechSynthesis" in window)) return;
+    try {
+      const u = new SpeechSynthesisUtterance(text);
+      const v = speechSynthesis.getVoices().find((x) => /en[-_](US|GB|IN)/i.test(x.lang) && /natural|google|samantha|daniel/i.test(x.name)) || speechSynthesis.getVoices().find((x) => /^en/i.test(x.lang));
+      if (v) u.voice = v; u.rate = 1; u.pitch = 1;
+      speechSynthesis.cancel(); speechSynthesis.speak(u);
+    } catch (e) {}
+  }
+  // once per meeting per slot, on this device
+  function meetingAlerts() {
+    let seen = {}; try { seen = JSON.parse(localStorage.getItem("sticky-desk-meeting-alerts") || "{}"); } catch (e) {}
+    const now = Date.now();
+    for (const k of Object.keys(seen)) if (now - seen[k] > 2 * DAY) delete seen[k];
+    for (const e of gcal.events || []) {
+      const m = minsTo(e.start); if (m < 0 || m > 30) continue;
+      const slot = m <= 5 ? 5 : 30, key = `${e.id}:${e.start}:${slot}`;
+      if (seen[key] || (slot === 30 && seen[`${e.id}:${e.start}:5`])) continue;
+      seen[key] = now;
+      const when = m <= 1 ? "now" : `in ${m} minutes`;
+      toast(`${e.title} starts ${when} (${fmtClock(e.start)}).`, false, e.join ? { label: "Join", run: () => window.open(e.join, "_blank", "noopener") } : e.link ? { label: "Open", run: () => window.open(e.link, "_blank", "noopener") } : null);
+      say(`Hey boss, ${e.title} starts ${when}.`);
+      break;
+    }
+    try { localStorage.setItem("sticky-desk-meeting-alerts", JSON.stringify(seen)); } catch (e) {}
+  }
+  // calendar every minute; the chip's countdown and alerts every 20 seconds (browsers slow this to once a minute in background tabs)
+  if (CLOUD_OK) {
+    setTimeout(async () => { gcalConfig = await googleFn({ action: "config" }).catch(() => null); renderGcal(); loadCalendar(); }, 1200);
+    setInterval(loadCalendar, 60000);
+    setInterval(() => { renderNextMeeting(); meetingAlerts(); }, 20000);
+  } else { $("#apps-section").hidden = true; }
+
   /* ---------- sign-in sheet ---------- */
   let createMode = false;
   function openSignIn() {
@@ -2352,7 +2460,7 @@ document.getElementById("si-form").addEventListener("submit", (e) => e.preventDe
     try { await navigator.clipboard.writeText(ta.value); toast("Widget script copied. Paste it into a new Scriptable script."); }
     catch (e) { ta.focus(); ta.select(); toast("Select all and copy the script."); }
   });
-  $("#bg-btn").addEventListener("click", () => { renderAccount(); renderPush(); });
+  $("#bg-btn").addEventListener("click", () => { renderAccount(); renderPush(); renderGcal(); });
 
   function cloudBoot() {
     renderAccount();

@@ -1122,6 +1122,21 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
 .set-expand .bg-sw { height: 46px; }
 .set-steps { margin: 0; padding-left: 1.2em; display: grid; gap: 4px; font: 400 .88rem/1.4 var(--font-sys); color: var(--ui-fg); }
 .set-foot { margin: 6px 18px 0; font: 400 .8rem/1.4 var(--font-sys); color: var(--ui-muted); }
+/* up next: today's next meeting, under the date */
+.next-meeting { display: inline-flex; align-items: center; gap: 8px; margin: 8px 0 0 2px; max-width: min(100%, 460px); padding: 6px 6px 6px 12px; border-radius: 999px;
+  text-decoration: none; color: var(--ui-fg); font: 500 .85rem var(--font-sys);
+  background: var(--glass-shine), var(--glass-bg); border: 1px solid var(--glass-edge); box-shadow: var(--glass-shadow); }
+.next-meeting[hidden] { display: none; }
+.nm-dot { flex: 0 0 auto; width: 8px; height: 8px; border-radius: 50%; background: #2f7de1; box-shadow: 0 0 0 3px color-mix(in srgb, #2f7de1 22%, transparent); }
+.next-meeting.is-now .nm-dot { background: #e5484d; box-shadow: 0 0 0 3px color-mix(in srgb, #e5484d 25%, transparent); animation: nm-pulse 1.6s ease-in-out infinite; }
+@keyframes nm-pulse { 50% { box-shadow: 0 0 0 6px color-mix(in srgb, #e5484d 10%, transparent); } }
+.nm-title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.nm-when { flex: 0 0 auto; color: var(--ui-muted); }
+.nm-join { flex: 0 0 auto; padding: 4px 12px; border-radius: 999px; background: #2f7de1; color: #fff; font-weight: 600; }
+.next-meeting.is-now .nm-join { background: #e5484d; }
+.next-meeting:hover .nm-join { filter: brightness(1.08); }
+#gcal-btn { flex: 0 0 auto; min-height: 36px; padding: 6px 14px; }
+@media (prefers-reduced-motion: reduce) { .next-meeting.is-now .nm-dot { animation: none; } }
 /* stepper (Doing limit) */
 .stepper { flex: 0 0 auto; display: inline-flex; align-items: center; border-radius: 10px; background: color-mix(in srgb, var(--ui-fg) 9%, transparent); }
 .stepper button { width: 38px; height: 32px; border: 0; background: none; color: var(--ui-fg); font: 500 1.2rem/1 var(--font-sys); cursor: pointer; border-radius: 10px; }
@@ -1408,7 +1423,8 @@ select.field {
 <main class="wrap">
   <header class="top">
     <div class="title-group"><h1 class="tape title">Sticky Desk</h1>
-    <span class="clock" id="clock"></span></div>
+    <span class="clock" id="clock"></span>
+    <a class="next-meeting" id="next-meeting" hidden target="_blank" rel="noopener"></a></div>
     <span class="spacer"></span>
     <div class="tools">
       <input type="file" id="cam-input" accept="image/*" capture="environment" hidden>
@@ -1646,6 +1662,14 @@ select.field {
       <div class="set-item"><span class="set-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M9 5v14M15 5v14"/></svg></span><span class="set-text"><span class="set-label" id="set-wip-label">Doing limit</span></span>
         <div class="stepper" role="group" aria-labelledby="set-wip-label"><button type="button" id="set-wip-down" aria-label="Lower the Doing limit">−</button><output id="set-wip" aria-live="polite">3</output><button type="button" id="set-wip-up" aria-label="Raise the Doing limit">+</button></div></div>
       <button class="set-item kb-only" id="set-keys" type="button"><span class="set-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="2.5" y="6" width="19" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg></span><span class="set-text"><span class="set-label">Keyboard shortcuts</span></span><span class="set-value">?</span><span class="set-chev" aria-hidden="true">›</span></button>
+    </div>
+
+    <div class="cloud-only" id="apps-section">
+    <p class="set-h">Connected apps</p>
+    <div class="set-group">
+      <div class="set-item"><span class="set-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/><path d="M8 13h3v3H8z"/></svg></span><span class="set-text"><span class="set-label">Google Calendar</span><span class="set-sub" id="gcal-status" role="status">Meeting reminders with a Join button</span></span><button class="btn" id="gcal-btn" type="button">Connect</button></div>
+      <label class="set-item" for="speak-on"><span class="set-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 9.5h3l4-3.5v12l-4-3.5H5z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg></span><span class="set-text"><span class="set-label">Say alerts out loud</span><span class="set-sub">While Sticky Desk is open, even in a background tab</span></span><input type="checkbox" class="switch" id="speak-on"></label>
+    </div>
     </div>
 
     <div class="cloud-only" id="alerts-section">

@@ -1124,6 +1124,21 @@ body.desk .clock { font-size: 1.05rem; opacity: .9; }
 .set-expand .bg-sw { height: 46px; }
 .set-steps { margin: 0; padding-left: 1.2em; display: grid; gap: 4px; font: 400 .88rem/1.4 var(--font-sys); color: var(--ui-fg); }
 .set-foot { margin: 6px 18px 0; font: 400 .8rem/1.4 var(--font-sys); color: var(--ui-muted); }
+/* up next: today's next meeting, under the date */
+.next-meeting { display: inline-flex; align-items: center; gap: 8px; margin: 8px 0 0 2px; max-width: min(100%, 460px); padding: 6px 6px 6px 12px; border-radius: 999px;
+  text-decoration: none; color: var(--ui-fg); font: 500 .85rem var(--font-sys);
+  background: var(--glass-shine), var(--glass-bg); border: 1px solid var(--glass-edge); box-shadow: var(--glass-shadow); }
+.next-meeting[hidden] { display: none; }
+.nm-dot { flex: 0 0 auto; width: 8px; height: 8px; border-radius: 50%; background: #2f7de1; box-shadow: 0 0 0 3px color-mix(in srgb, #2f7de1 22%, transparent); }
+.next-meeting.is-now .nm-dot { background: #e5484d; box-shadow: 0 0 0 3px color-mix(in srgb, #e5484d 25%, transparent); animation: nm-pulse 1.6s ease-in-out infinite; }
+@keyframes nm-pulse { 50% { box-shadow: 0 0 0 6px color-mix(in srgb, #e5484d 10%, transparent); } }
+.nm-title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.nm-when { flex: 0 0 auto; color: var(--ui-muted); }
+.nm-join { flex: 0 0 auto; padding: 4px 12px; border-radius: 999px; background: #2f7de1; color: #fff; font-weight: 600; }
+.next-meeting.is-now .nm-join { background: #e5484d; }
+.next-meeting:hover .nm-join { filter: brightness(1.08); }
+#gcal-btn { flex: 0 0 auto; min-height: 36px; padding: 6px 14px; }
+@media (prefers-reduced-motion: reduce) { .next-meeting.is-now .nm-dot { animation: none; } }
 /* stepper (Doing limit) */
 .stepper { flex: 0 0 auto; display: inline-flex; align-items: center; border-radius: 10px; background: color-mix(in srgb, var(--ui-fg) 9%, transparent); }
 .stepper button { width: 38px; height: 32px; border: 0; background: none; color: var(--ui-fg); font: 500 1.2rem/1 var(--font-sys); cursor: pointer; border-radius: 10px; }
@@ -1410,7 +1425,8 @@ select.field {
 <main class="wrap">
   <header class="top">
     <div class="title-group"><h1 class="tape title">Sticky Desk</h1>
-    <span class="clock" id="clock"></span></div>
+    <span class="clock" id="clock"></span>
+    <a class="next-meeting" id="next-meeting" hidden target="_blank" rel="noopener"></a></div>
     <span class="spacer"></span>
     <div class="tools">
       <input type="file" id="cam-input" accept="image/*" capture="environment" hidden>
@@ -1648,6 +1664,14 @@ select.field {
       <div class="set-item"><span class="set-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M9 5v14M15 5v14"/></svg></span><span class="set-text"><span class="set-label" id="set-wip-label">Doing limit</span></span>
         <div class="stepper" role="group" aria-labelledby="set-wip-label"><button type="button" id="set-wip-down" aria-label="Lower the Doing limit">−</button><output id="set-wip" aria-live="polite">3</output><button type="button" id="set-wip-up" aria-label="Raise the Doing limit">+</button></div></div>
       <button class="set-item kb-only" id="set-keys" type="button"><span class="set-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="2.5" y="6" width="19" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg></span><span class="set-text"><span class="set-label">Keyboard shortcuts</span></span><span class="set-value">?</span><span class="set-chev" aria-hidden="true">›</span></button>
+    </div>
+
+    <div class="cloud-only" id="apps-section">
+    <p class="set-h">Connected apps</p>
+    <div class="set-group">
+      <div class="set-item"><span class="set-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/><path d="M8 13h3v3H8z"/></svg></span><span class="set-text"><span class="set-label">Google Calendar</span><span class="set-sub" id="gcal-status" role="status">Meeting reminders with a Join button</span></span><button class="btn" id="gcal-btn" type="button">Connect</button></div>
+      <label class="set-item" for="speak-on"><span class="set-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 9.5h3l4-3.5v12l-4-3.5H5z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg></span><span class="set-text"><span class="set-label">Say alerts out loud</span><span class="set-sub">While Sticky Desk is open, even in a background tab</span></span><input type="checkbox" class="switch" id="speak-on"></label>
+    </div>
     </div>
 
     <div class="cloud-only" id="alerts-section">
@@ -4072,6 +4096,114 @@ select.field {
     }
   }
 
+  /* ---------- Google Calendar: up-next chip, 30 and 5 minute alerts, spoken out loud ---------- */
+  const GOOGLE_FN = `${SB_URL}/functions/v1/sd-google`;
+  const GCAL_SCOPE = "openid email https://www.googleapis.com/auth/calendar.events.readonly";
+  let gcal = { connected: false, email: null, error: null, events: [] }, gcalConfig = null;
+  async function googleFn(body) {
+    const r = await fetch(GOOGLE_FN, { method: "POST", headers: { "Content-Type": "application/json", apikey: SB_KEY }, body: JSON.stringify(body) });
+    return r.json().catch(() => ({ ok: false }));
+  }
+  async function loadCalendar() {
+    if (!CLOUD_OK || !cloud) return;
+    try { gcal = await rpc("sd_calendar", { p_key: cloud.token }); } catch (e) { return; }
+    renderNextMeeting(); renderGcal(); meetingAlerts();
+  }
+  function renderGcal() {
+    const st = $("#gcal-status"), btn = $("#gcal-btn"); if (!st) return;
+    btn.disabled = false;
+    if (!cloud) { st.textContent = "Sign in above first. Your calendar connects to your board."; btn.textContent = "Connect"; btn.disabled = true; return; }
+    if (gcal.connected) { st.textContent = gcal.error || `Connected · ${gcal.email || "Google account"}`; btn.textContent = "Disconnect"; return; }
+    st.textContent = gcal.error || (gcalConfig && !gcalConfig.ready ? "Waiting for the Google set-up to finish" : "Meeting reminders with a Join button");
+    btn.textContent = "Connect"; btn.disabled = !!(gcalConfig && !gcalConfig.ready);
+  }
+  $("#gcal-btn").addEventListener("click", async () => {
+    if (gcal.connected) {
+      $("#gcal-btn").disabled = true;
+      await googleFn({ action: "disconnect", key: cloud.token }); toast("Google Calendar disconnected.");
+      return loadCalendar();
+    }
+    gcalConfig = gcalConfig || await googleFn({ action: "config" });
+    if (!gcalConfig.ready) { renderGcal(); return toast("Google isn't set up on the server yet."); }
+    const state = Math.random().toString(36).slice(2) + Date.now().toString(36);
+    try { sessionStorage.setItem("sd-google-state", state); } catch (e) {}
+    const u = new URL("https://accounts.google.com/o/oauth2/v2/auth");
+    for (const [k, v] of Object.entries({ client_id: gcalConfig.clientId, redirect_uri: gcalConfig.redirect, response_type: "code", scope: GCAL_SCOPE, access_type: "offline", prompt: "consent", include_granted_scopes: "true", state })) u.searchParams.set(k, v);
+    location.href = u.toString();
+  });
+  // coming back from Google's sign-in page with ?code=…&state=…
+  (async function finishGoogle() {
+    const q = new URLSearchParams(location.search);
+    if (!q.has("state") || !(q.has("code") || q.has("error"))) return;
+    let want = null; try { want = sessionStorage.getItem("sd-google-state"); sessionStorage.removeItem("sd-google-state"); } catch (e) {}
+    history.replaceState(null, "", location.pathname);
+    if (q.get("error")) return toast("Google Calendar wasn't connected.");
+    if (!want || want !== q.get("state")) return toast("That Google sign-in didn't match. Try Connect again.");
+    if (!cloud) return toast("Sign in to your board first, then connect Google Calendar.");
+    toast("Connecting Google Calendar…");
+    const r = await googleFn({ action: "connect", key: cloud.token, code: q.get("code") });
+    if (r.ok) { toast(`Google Calendar connected${r.email ? " · " + r.email : ""}. Meetings will show up in a moment.`); setTimeout(loadCalendar, 4000); setTimeout(loadCalendar, 15000); }
+    else toast(r.error === "no_offline_access" ? "Google didn't allow background access. Remove Sticky Desk from your Google account's third-party access, then connect again." : "Couldn't connect Google Calendar. Try again.");
+  })();
+
+  const minsTo = (iso) => Math.round((new Date(iso).getTime() - Date.now()) / 60000);
+  const fmtClock = (iso) => new Date(iso).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+  function upNext() {
+    return (gcal.events || []).find((e) => { const m = minsTo(e.start), endM = e.end ? minsTo(e.end) : m + 30; return endM > 0 && m <= 60; });
+  }
+  function renderNextMeeting() {
+    const a = $("#next-meeting"), e = upNext();
+    if (!e) { a.hidden = true; return; }
+    const m = minsTo(e.start);
+    a.hidden = false; a.href = e.join || e.link || "#";
+    a.classList.toggle("is-now", m <= 5);
+    a.replaceChildren();
+    const dot = document.createElement("span"); dot.className = "nm-dot"; dot.setAttribute("aria-hidden", "true");
+    const t = document.createElement("span"); t.className = "nm-title"; t.textContent = e.title;
+    const w = document.createElement("span"); w.className = "nm-when"; w.textContent = m > 0 ? `in ${m} min` : "now";
+    a.append(dot, t, w);
+    if (e.join) { const j = document.createElement("span"); j.className = "nm-join"; j.textContent = "Join"; a.append(j); }
+    a.setAttribute("aria-label", `${e.title}, ${m > 0 ? "in " + m + " minutes" : "happening now"} at ${fmtClock(e.start)}${e.join ? ". Join the call" : ". Open in Google Calendar"}`);
+  }
+
+  // speaking: "Hey boss, Design sync starts in 30 minutes."
+  const SPEAK_KEY = "sticky-desk-speak";
+  let speakOn = true; try { speakOn = localStorage.getItem(SPEAK_KEY) !== "0"; } catch (e) {}
+  $("#speak-on").checked = speakOn;
+  $("#speak-on").addEventListener("change", (e) => { speakOn = e.target.checked; try { localStorage.setItem(SPEAK_KEY, speakOn ? "1" : "0"); } catch (err) {} if (speakOn) say("Got it. I'll say your alerts out loud."); });
+  function say(text) {
+    if (!speakOn || !("speechSynthesis" in window)) return;
+    try {
+      const u = new SpeechSynthesisUtterance(text);
+      const v = speechSynthesis.getVoices().find((x) => /en[-_](US|GB|IN)/i.test(x.lang) && /natural|google|samantha|daniel/i.test(x.name)) || speechSynthesis.getVoices().find((x) => /^en/i.test(x.lang));
+      if (v) u.voice = v; u.rate = 1; u.pitch = 1;
+      speechSynthesis.cancel(); speechSynthesis.speak(u);
+    } catch (e) {}
+  }
+  // once per meeting per slot, on this device
+  function meetingAlerts() {
+    let seen = {}; try { seen = JSON.parse(localStorage.getItem("sticky-desk-meeting-alerts") || "{}"); } catch (e) {}
+    const now = Date.now();
+    for (const k of Object.keys(seen)) if (now - seen[k] > 2 * DAY) delete seen[k];
+    for (const e of gcal.events || []) {
+      const m = minsTo(e.start); if (m < 0 || m > 30) continue;
+      const slot = m <= 5 ? 5 : 30, key = `${e.id}:${e.start}:${slot}`;
+      if (seen[key] || (slot === 30 && seen[`${e.id}:${e.start}:5`])) continue;
+      seen[key] = now;
+      const when = m <= 1 ? "now" : `in ${m} minutes`;
+      toast(`${e.title} starts ${when} (${fmtClock(e.start)}).`, false, e.join ? { label: "Join", run: () => window.open(e.join, "_blank", "noopener") } : e.link ? { label: "Open", run: () => window.open(e.link, "_blank", "noopener") } : null);
+      say(`Hey boss, ${e.title} starts ${when}.`);
+      break;
+    }
+    try { localStorage.setItem("sticky-desk-meeting-alerts", JSON.stringify(seen)); } catch (e) {}
+  }
+  // calendar every minute; the chip's countdown and alerts every 20 seconds (browsers slow this to once a minute in background tabs)
+  if (CLOUD_OK) {
+    setTimeout(async () => { gcalConfig = await googleFn({ action: "config" }).catch(() => null); renderGcal(); loadCalendar(); }, 1200);
+    setInterval(loadCalendar, 60000);
+    setInterval(() => { renderNextMeeting(); meetingAlerts(); }, 20000);
+  } else { $("#apps-section").hidden = true; }
+
   /* ---------- sign-in sheet ---------- */
   let createMode = false;
   function openSignIn() {
@@ -4197,7 +4329,7 @@ select.field {
     try { await navigator.clipboard.writeText(ta.value); toast("Widget script copied. Paste it into a new Scriptable script."); }
     catch (e) { ta.focus(); ta.select(); toast("Select all and copy the script."); }
   });
-  $("#bg-btn").addEventListener("click", () => { renderAccount(); renderPush(); });
+  $("#bg-btn").addEventListener("click", () => { renderAccount(); renderPush(); renderGcal(); });
 
   function cloudBoot() {
     renderAccount();
