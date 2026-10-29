@@ -2245,8 +2245,8 @@ document.getElementById("si-form").addEventListener("submit", (e) => e.preventDe
     btn.disabled = false;
     if (!cloud) { st.textContent = "Sign in above first. Your calendar connects to your board."; btn.textContent = "Connect"; btn.disabled = true; return; }
     if (gcal.connected) { st.textContent = gcal.error || `Connected · ${gcal.email || "Google account"}`; btn.textContent = "Disconnect"; return; }
-    st.textContent = gcal.error || (gcalConfig && !gcalConfig.ready ? "Waiting for the Google set-up to finish" : "Meeting reminders with a Join button");
-    btn.textContent = "Connect"; btn.disabled = !!(gcalConfig && !gcalConfig.ready);
+    st.textContent = gcal.error || (gcalConfig && !gcalConfig.ready ? "Needs the Google Client ID and secret on the server first" : "Meeting reminders with a Join button");
+    btn.textContent = "Connect";
   }
   $("#gcal-btn").addEventListener("click", async () => {
     if (gcal.connected) {
@@ -2255,7 +2255,7 @@ document.getElementById("si-form").addEventListener("submit", (e) => e.preventDe
       return loadCalendar();
     }
     gcalConfig = gcalConfig || await googleFn({ action: "config" });
-    if (!gcalConfig.ready) { renderGcal(); return toast("Google isn't set up on the server yet."); }
+    if (!gcalConfig.ready) { renderGcal(); return toast("Almost there: the Google Client ID and secret still need adding on the server. Ask Claude to open the Supabase boxes for them."); }
     const state = Math.random().toString(36).slice(2) + Date.now().toString(36);
     try { sessionStorage.setItem("sd-google-state", state); } catch (e) {}
     const u = new URL("https://accounts.google.com/o/oauth2/v2/auth");
