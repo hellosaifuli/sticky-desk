@@ -4,8 +4,14 @@
 import { createClient } from "npm:@supabase/supabase-js@2.45.4";
 
 const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, { auth: { persistSession: false } });
-const CLIENT_ID = Deno.env.get("GOOGLE_CLIENT_ID") || "";
-const CLIENT_SECRET = Deno.env.get("GOOGLE_CLIENT_SECRET") || "";
+// Google keys come from edge function secrets if set, otherwise from Supabase Vault (sd_google_keys).
+let keyCache: { id: string; secret: string; at: number } | null = null;
+async function googleKeys() {
+  if (keyCache && Date.now() - keyCache.at < 60000) return keyCache;
+  const { data } = await sb.rpc("sd_google_keys");
+  keyCache = { id: Deno.env.get("GOOGLE_CLIENT_ID") || data?.client_id || "", secret: Deno.env.get("GOOGLE_CLIENT_SECRET") || data?.client_secret || "", at: Date.now() };
+  return keyCache;
+}
 const REDIRECT = "https://sticky-desk-ochre.vercel.app/";
 const ORIGINS = ["https://sticky-desk-ochre.vercel.app", "http://localhost:8765"];
 
@@ -37,17 +43,18 @@ Deno.serve(async (req) => {
   let body: { action?: string; key?: string; code?: string } = {};
   try { body = await req.json(); } catch { return json({ ok: false, error: "bad_request" }, 400); }
 
-  if (body.action === "config") return json({ ok: true, ready: !!(CLIENT_ID && CLIENT_SECRET), clientId: CLIENT_ID || null, redirect: REDIRECT });
+  const g = await googleKeys();
+  if (body.action === "config") return json({ ok: true, ready: !!(g.id && g.secret), clientId: g.id || null, redirect: REDIRECT });
 
   const board = await boardFor(body.key || "");
   if (!board) return json({ ok: false, error: "signed_out" }, 401);
 
   if (body.action === "connect") {
-    if (!CLIENT_ID || !CLIENT_SECRET) return json({ ok: false, error: "not_set_up" });
+    if (!g.id || !g.secret) return json({ ok: false, error: "not_set_up" });
     if (!body.code || body.code.length > 600) return json({ ok: false, error: "bad_code" });
     const r = await fetch("https://oauth2.googleapis.com/token", {
       method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({ code: body.code, client_id: CLIENT_ID, client_secret: CLIENT_SECRET, redirect_uri: REDIRECT, grant_type: "authorization_code" }),
+      body: new URLSearchParams({ code: body.code, client_id: g.id, client_secret: g.secret, redirect_uri: REDIRECT, grant_type: "authorization_code" }),
     });
     const t = await r.json();
     if (!r.ok || !t.refresh_token) {

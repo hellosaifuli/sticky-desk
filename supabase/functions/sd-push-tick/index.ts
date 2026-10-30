@@ -63,14 +63,23 @@ async function send(subs: Sub[], msg: { title: string; body: string; tag: string
 }
 
 /* ---------- Google Calendar ---------- */
+// Google keys come from edge function secrets if set, otherwise from Supabase Vault (sd_google_keys).
+let keyCache: { id: string; secret: string; at: number } | null = null;
+async function googleKeys() {
+  if (keyCache && Date.now() - keyCache.at < 60000) return keyCache;
+  const { data } = await sb.rpc("sd_google_keys");
+  keyCache = { id: Deno.env.get("GOOGLE_CLIENT_ID") || data?.client_id || "", secret: Deno.env.get("GOOGLE_CLIENT_SECRET") || data?.client_secret || "", at: Date.now() };
+  return keyCache;
+}
 type Google = { board_id: string; refresh_token: string; access_token: string | null; access_expires: string | null; synced_at: string | null };
 const JOIN_RE = /https:\/\/(meet\.google\.com\/[a-z0-9-]+|[\w.-]*zoom\.us\/j\/[^\s"<>]+|teams\.microsoft\.com\/l\/meetup-join\/[^\s"<>]+)/i;
 
 async function accessToken(g: Google) {
   if (g.access_token && g.access_expires && new Date(g.access_expires).getTime() > Date.now() + 60000) return g.access_token;
+  const k = await googleKeys();
   const r = await fetch("https://oauth2.googleapis.com/token", {
     method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({ client_id: Deno.env.get("GOOGLE_CLIENT_ID") || "", client_secret: Deno.env.get("GOOGLE_CLIENT_SECRET") || "", refresh_token: g.refresh_token, grant_type: "refresh_token" }),
+    body: new URLSearchParams({ client_id: k.id, client_secret: k.secret, refresh_token: g.refresh_token, grant_type: "refresh_token" }),
   });
   const t = await r.json();
   if (!r.ok) {
